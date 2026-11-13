@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
         android:theme="@android:style/Theme.Material.Light.NoActionBar"
-        android:label="Frases do Dia"
+        android:label="Frase de Filósofos"
         android:usesCleartextTraffic="false">
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
