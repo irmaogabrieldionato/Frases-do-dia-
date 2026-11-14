@@ -19,12 +19,15 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.UUID;
@@ -37,7 +40,7 @@ public class MainActivity extends Activity {
     private static final int LINE = Color.rgb(228, 238, 234);
     private static final int WHITE = Color.WHITE;
 
-    private final Locale brazil = new Locale("pt", "BR");
+    private String selectedLanguage;
     private SharedPreferences preferences;
     private JSONArray tasks = new JSONArray();
     private String day;
@@ -59,18 +62,111 @@ public class MainActivity extends Activity {
         getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
         preferences = getSharedPreferences("meu-dia-dados-v1", MODE_PRIVATE);
-        loadTasks();
-        makeInterface();
-        render();
+        selectedLanguage = preferences.getString("app-language", null);
+        if (Languages.index(selectedLanguage) < 0) {
+            showLanguagePicker(true);
+        } else {
+            loadTasks();
+            makeInterface();
+            render();
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (tasksBox != null) {
+        if (tasksBox != null && day != null) {
             resetWhenNewDay();
             render();
         }
+    }
+
+    private String tr(String key) {
+        return Languages.text(selectedLanguage, key);
+    }
+
+    private Locale selectedLocale() {
+        return Languages.locale(selectedLanguage);
+    }
+
+    /** First screen on installation; also available later from the globe button. */
+    private void showLanguagePicker(boolean firstRun) {
+        ScrollView scroll = new ScrollView(this);
+        scroll.setBackgroundColor(BG);
+        LinearLayout outer = vertical();
+        outer.setGravity(Gravity.CENTER_HORIZONTAL);
+        scroll.addView(outer);
+
+        LinearLayout page = vertical();
+        page.setPadding(dp(22), dp(30), dp(22), dp(38));
+        int width = Math.min(getResources().getDisplayMetrics().widthPixels, dp(560));
+        outer.addView(page, new LinearLayout.LayoutParams(width, -2));
+
+        ImageView logo = new ImageView(this);
+        logo.setImageResource(R.drawable.ic_launcher);
+        page.addView(logo, lp(75, 75));
+
+        TextView heading = text("Escolha seu idioma / Choose your language", 23, INK, true);
+        LinearLayout.LayoutParams headingLp = lp(-1, -2);
+        headingLp.topMargin = dp(14);
+        page.addView(heading, headingLp);
+
+        TextView description = text(
+            "Selecione um idioma. Você poderá mudar depois.\n" +
+            "Select a language. You can change it later.", 14, MUTED, false);
+        LinearLayout.LayoutParams descriptionLp = lp(-1, -2);
+        descriptionLp.topMargin = dp(8);
+        descriptionLp.bottomMargin = dp(16);
+        page.addView(description, descriptionLp);
+
+        RadioGroup choices = new RadioGroup(this);
+        choices.setOrientation(RadioGroup.VERTICAL);
+        choices.setBackground(rounded(WHITE, 18, LINE));
+        choices.setPadding(dp(12), dp(10), dp(12), dp(10));
+        page.addView(choices, lp(-1, -2));
+        final int[] current = {Math.max(0, Languages.index(selectedLanguage))};
+        if (firstRun) current[0] = 8; // Português pré-selecionado; o usuário confirma.
+        for (int i = 0; i < Languages.CODES.length; i++) {
+            RadioButton option = new RadioButton(this);
+            option.setId(1000 + i);
+            option.setText(Languages.NAMES[i]);
+            option.setTextSize(17);
+            option.setTextColor(INK);
+            option.setPadding(dp(8), dp(6), dp(5), dp(6));
+            option.setButtonTintList(ColorStateList.valueOf(TEAL));
+            choices.addView(option, new RadioGroup.LayoutParams(-1, dp(48)));
+        }
+        choices.check(1000 + current[0]);
+        choices.setOnCheckedChangeListener((group, checkedId) -> current[0] = checkedId - 1000);
+
+        TextView confirm = text("Continuar / Continue", 16, WHITE, true);
+        confirm.setGravity(Gravity.CENTER);
+        confirm.setBackground(rounded(TEAL, 14, 0));
+        LinearLayout.LayoutParams confirmLp = lp(-1, 54);
+        confirmLp.topMargin = dp(16);
+        page.addView(confirm, confirmLp);
+        confirm.setOnClickListener(v -> {
+            if (current[0] < 0 || current[0] >= Languages.CODES.length) return;
+            selectedLanguage = Languages.CODES[current[0]];
+            preferences.edit().putString("app-language", selectedLanguage).apply();
+            if (firstRun) loadTasks();
+            makeInterface();
+            render();
+        });
+
+        if (!firstRun) {
+            TextView cancel = text(tr("cancel"), 15, TEAL, true);
+            cancel.setGravity(Gravity.CENTER);
+            LinearLayout.LayoutParams cancelLp = lp(-1, 45);
+            cancelLp.topMargin = dp(8);
+            page.addView(cancel, cancelLp);
+            cancel.setOnClickListener(v -> {
+                makeInterface();
+                render();
+            });
+        }
+
+        setContentView(scroll);
     }
 
     private int dp(float value) {
@@ -101,10 +197,10 @@ public class MainActivity extends Activity {
                 tasks = new JSONArray();
             }
         } else {
-            tasks.put(task("Arrumar a cama"));
-            tasks.put(task("Beber água"));
-            tasks.put(task("Fazer exercícios"));
-            tasks.put(task("Estudar 30 minutos"));
+            tasks.put(task(tr("default1")));
+            tasks.put(task(tr("default2")));
+            tasks.put(task(tr("default3")));
+            tasks.put(task(tr("default4")));
         }
         resetWhenNewDay();
         save();
@@ -172,6 +268,8 @@ public class MainActivity extends Activity {
         scroll.setFillViewport(true);
         scroll.setBackgroundColor(BG);
         scroll.setClipToPadding(false);
+        scroll.setLayoutDirection(Languages.isRtl(selectedLanguage)
+                ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
 
         LinearLayout outer = vertical();
         outer.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -197,7 +295,7 @@ public class MainActivity extends Activity {
         LinearLayout heading = vertical();
         header.addView(heading, new LinearLayout.LayoutParams(0, -2, 1f));
 
-        TextView eyebrow = text("SUA ROTINA, NO SEU RITMO", 12, TEAL, true);
+        TextView eyebrow = text(tr("eyebrow").toUpperCase(selectedLocale()), 12, TEAL, true);
         eyebrow.setLetterSpacing(0.1f);
         heading.addView(eyebrow);
 
@@ -214,10 +312,18 @@ public class MainActivity extends Activity {
         symbol.setImageResource(R.drawable.ic_header_check);
         symbol.setPadding(dp(10), dp(10), dp(10), dp(10));
         symbol.setBackground(rounded(TEAL, 16, 0));
-        symbol.setContentDescription("Meu Dia: lista de tarefas");
+        symbol.setContentDescription("Meu Dia");
+        symbol.setOnClickListener(v -> showLanguagePicker(false));
         LinearLayout.LayoutParams symbolLp = lp(48, 48);
         symbolLp.leftMargin = dp(8);
         header.addView(symbol, symbolLp);
+        TextView languageButton = text("🌐", 24, TEAL, true);
+        languageButton.setGravity(Gravity.CENTER);
+        languageButton.setContentDescription(tr("language"));
+        languageButton.setOnClickListener(v -> showLanguagePicker(false));
+        LinearLayout.LayoutParams languageLp = lp(44, 48);
+        languageLp.leftMargin = dp(5);
+        header.addView(languageButton, languageLp);
 
         LinearLayout.LayoutParams headerLp = lp(-1, -2);
         headerLp.bottomMargin = dp(24);
@@ -232,7 +338,7 @@ public class MainActivity extends Activity {
         LinearLayout cardTop = horizontal();
         LinearLayout progressWords = vertical();
         cardTop.addView(progressWords, new LinearLayout.LayoutParams(0, -2, 1f));
-        progressWords.addView(text("Progresso de hoje", 15, WHITE, true));
+        progressWords.addView(text(tr("progress"), 15, WHITE, true));
         progressLabel = text("", 13, Color.rgb(209, 240, 232), false);
         LinearLayout.LayoutParams progressTextLp = lp(-1, -2);
         progressTextLp.topMargin = dp(5);
@@ -255,7 +361,7 @@ public class MainActivity extends Activity {
         card.addView(progressTrack, trackLp);
 
         LinearLayout section = horizontal();
-        TextView headingTasks = text("Minhas tarefas", 20, INK, true);
+        TextView headingTasks = text(tr("tasks"), 20, INK, true);
         section.addView(headingTasks, new LinearLayout.LayoutParams(0, -2, 1f));
         countLabel = text("", 13, MUTED, false);
         section.addView(countLabel);
@@ -270,7 +376,7 @@ public class MainActivity extends Activity {
         taskInput.setTextColor(INK);
         taskInput.setTextSize(15);
         taskInput.setHintTextColor(Color.rgb(139, 160, 157));
-        taskInput.setHint("Ex.: Beber 2 litros de água");
+        taskInput.setHint(tr("placeholder"));
         taskInput.setPadding(dp(14), 0, dp(14), 0);
         taskInput.setBackground(rounded(WHITE, 14, LINE));
         taskInput.setFilters(new android.text.InputFilter[] {
@@ -283,10 +389,10 @@ public class MainActivity extends Activity {
         inputLp.rightMargin = dp(9);
         form.addView(taskInput, inputLp);
 
-        TextView add = text("+ Adicionar", 14, WHITE, true);
+        TextView add = text("+ " + tr("add"), 14, WHITE, true);
         add.setGravity(Gravity.CENTER);
         add.setBackground(rounded(TEAL, 14, 0));
-        add.setContentDescription("Adicionar tarefa");
+        add.setContentDescription(tr("add"));
         add.setOnClickListener(v -> addTask());
         form.addView(add, lp(112, 53));
 
@@ -305,21 +411,21 @@ public class MainActivity extends Activity {
         tasksBox = vertical();
         content.addView(tasksBox, lp(-1, -2));
 
-        emptyLabel = text("Sua lista está vazia. Adicione sua primeira tarefa acima ✨",
+        emptyLabel = text(tr("empty"),
                 14, MUTED, false);
         emptyLabel.setGravity(Gravity.CENTER);
         emptyLabel.setPadding(dp(14), dp(28), dp(14), dp(28));
         emptyLabel.setBackground(rounded(WHITE, 16, LINE));
         content.addView(emptyLabel, lp(-1, -2));
 
-        TextView tip = text("ⓘ  As tarefas ficam salvas neste aparelho. A cada novo dia, elas voltam a ficar pendentes.",
+        TextView tip = text("ⓘ  " + tr("tip"),
                 13, MUTED, false);
         tip.setLineSpacing(dp(3), 1f);
         LinearLayout.LayoutParams tipLp = lp(-1, -2);
         tipLp.topMargin = dp(24);
         content.addView(tip, tipLp);
 
-        TextView footer = text("Sem cadastro · Seus dados ficam neste aparelho",
+        TextView footer = text(tr("footer"),
                 12, Color.rgb(132, 155, 149), false);
         footer.setGravity(Gravity.CENTER);
         LinearLayout.LayoutParams footLp = lp(-1, -2);
@@ -342,8 +448,8 @@ public class MainActivity extends Activity {
 
     private void render() {
         resetWhenNewDay();
-        String date = new SimpleDateFormat("EEEE, d 'de' MMMM", brazil).format(new Date());
-        dateLabel.setText(date.substring(0, 1).toUpperCase(brazil) + date.substring(1));
+        String date = DateFormat.getDateInstance(DateFormat.FULL, selectedLocale()).format(new Date());
+        dateLabel.setText(date.substring(0, 1).toUpperCase(selectedLocale()) + date.substring(1));
         int total = tasks.length();
         int done = 0;
         for (int i = 0; i < total; i++) {
@@ -351,10 +457,10 @@ public class MainActivity extends Activity {
             if (job != null && job.optBoolean("done")) done++;
         }
         final int percent = total == 0 ? 0 : Math.round(done * 100f / total);
-        progressLabel.setText(done + " de " + total + " tarefas concluídas");
+        progressLabel.setText(String.format(selectedLocale(), tr("progress_count"), done, total));
         percentLabel.setText(percent + "%");
-        countLabel.setText(total + (total == 1 ? " tarefa" : " tarefas"));
-        progressTrack.setContentDescription("Progresso diário: " + percent + "%");
+        countLabel.setText(String.format(selectedLocale(), tr("task_count"), total));
+        progressTrack.setContentDescription(String.format(selectedLocale(), tr("progress_accessible"), percent));
         progressTrack.post(() -> {
             FrameLayout.LayoutParams fillLp =
                     (FrameLayout.LayoutParams) progressFill.getLayoutParams();
@@ -385,7 +491,7 @@ public class MainActivity extends Activity {
         check.setGravity(Gravity.CENTER);
         check.setBackground(rounded(done ? TEAL : WHITE, 9,
                 done ? TEAL : Color.rgb(181, 207, 197)));
-        check.setContentDescription((done ? "Marcar como pendente: " : "Concluir: ") + title);
+        check.setContentDescription((done ? tr("pending_action") : tr("done_action")) + title);
         check.setOnClickListener(v -> {
             resetWhenNewDay();
             try { job.put("done", !job.optBoolean("done")); }
@@ -403,7 +509,7 @@ public class MainActivity extends Activity {
 
         TextView delete = text("×", 26, Color.rgb(155, 177, 170), false);
         delete.setGravity(Gravity.CENTER);
-        delete.setContentDescription("Excluir: " + title);
+        delete.setContentDescription(tr("delete_action") + title);
         delete.setOnClickListener(v -> {
             JSONArray kept = new JSONArray();
             for (int i = 0; i < tasks.length(); i++) {
