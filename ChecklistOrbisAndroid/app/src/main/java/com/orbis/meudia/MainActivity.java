@@ -594,7 +594,9 @@ public class MainActivity extends Activity {
         renderCalendar();
     }
 
-    private void pickDate(String key,java.util.function.Consumer<String> callback){
+    private interface DateSelection { void accept(String key); }
+
+    private void pickDate(String key,DateSelection callback){
         Calendar cal=Schedule.date(key);
         DatePickerDialog dialog=new DatePickerDialog(this,
                 (picker,y,month,day)->{
