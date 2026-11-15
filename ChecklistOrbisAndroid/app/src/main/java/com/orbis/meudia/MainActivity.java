@@ -1174,7 +1174,7 @@ public class MainActivity extends Activity {
             detailsPreview.setOnClickListener(v->new AlertDialog.Builder(this)
                     .setTitle(job.optString("title",""))
                     .setMessage(detailsText)
-                    .setPositiveButton(tr("close"),(dialog,which)->{})
+                    .setPositiveButton(android.R.string.ok,(dialog,which)->{})
                     .show());
             card.addView(detailsPreview,lp(-1,-2));
         }
