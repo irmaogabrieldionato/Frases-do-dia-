@@ -4,7 +4,7 @@ Atualizado em 2026-11-15. Branch exclusiva: `checklist-orbis`. Não alterar `mai
 
 ## Estado
 - Concorrente atual: **1/15 — Todoist**, em análise e implementação incremental.
-- Próxima ação: verificar CI das seções e testar filtros, persistência e backup; depois implementar etiquetas do Todoist.
+- Próxima ação: verificar CI das etiquetas e corrigir eventuais falhas; depois implementar ordenação de tarefas e filtros avançados do Todoist.
 - Segurança da distribuição: assinatura estável de release **bloqueada** até haver keystore privado e configuração de secrets seguros. Nunca gravar chaves no Git.
 - Implementações existentes verificadas no código: calendário mensal nativo, recorrências, histórico de progresso por data, cinco prioridades, filtros, 15 idiomas, armazenamento local e interface offline.
 - 0/15 concorrentes concluídos; não avançar sem registrar cada funcionalidade pendente, implementada ou bloqueada.
@@ -67,3 +67,11 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **CI**: runs da alteração inicial [43771897647](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43771897647) e da correção de filtro [43771905324](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43771905324) estavam em execução ao consultar. Confirmar run da tradução e compilação final antes de marcar validado.
 - **Limitações**: revisão estática de filtros e persistência; ainda sem testes instrumentados, aparelho físico ou restauração de backup com seções. Seções são atributos textuais, sem ordenação manual nem gerenciamento independente. Assinatura estável de release continua bloqueada por falta de keystore privado.
 - **Próximo recurso Todoist**: etiquetas (tags), após CI aprovado e correções necessárias.
+
+## Execução 7 — 2026-11-15
+- **Todoist (1/15)**: confirmado sucesso dos três workflows anteriores de seções: [43771897647](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43771897647), [43771905324](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43771905324), [43771915681](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43771915681).
+- **Implementadas etiquetas locais**: até 12 por tarefa, separadas por vírgula, até 40 caracteres por etiqueta, deduplicação sem diferenciar maiúsculas/minúsculas; etiquetas exibidas nos cartões e filtro combinável com dia, projeto, seção, prioridade e busca. Armazenadas em campo JSON opcional `tags`, preservado automaticamente na exportação/importação. Tarefas antigas sem tags continuam compatíveis. Commit [2e27faf7](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/2e27faf739fb6167288aa6204cc86d0f95298b5f).
+- **Traduções**: etiquetas, dicas e filtro em 15 idiomas. Commit [b4569fb9](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/b4569fb9a2134034cf53d5d3de9dee6290dfe9fd).
+- **CI**: a compilação inicial [43777034651](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43777034651) estava em andamento na consulta; verificar a execução do commit final das traduções antes de marcar como validado.
+- **Regressões e limitações**: alteração restrita ao app nativo, sem Google Agenda, APIs externas ou alteração da branch main; revisão estática da filtragem e serialização JSON. Não foram executados testes instrumentados ou em dispositivo; backup com etiquetas ainda requer teste físico. Assinatura estável de release continua bloqueada até provisionar keystore/segredos privados.
+- **Próximo recurso**: ordenação de tarefas (e filtros combinados/salvos), após CI aprovado.
