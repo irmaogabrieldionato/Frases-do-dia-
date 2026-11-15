@@ -114,6 +114,7 @@ public class MainActivity extends Activity {
     private boolean visible(JSONObject item){
         if(item==null || !Schedule.occurs(item,selectedDay)
                 || (priorityFilter!=0 && priority(item)!=priorityFilter))return false;
+        if(!projectFilter.isEmpty() && !projectFilter.equals(item.optString("project","")))return false;
         if(taskSearch.isEmpty())return true;
         String needle=taskSearch.toLowerCase(Locale.ROOT);
         if(item.optString("title","").toLowerCase(Locale.ROOT).contains(needle)
@@ -136,6 +137,8 @@ public class MainActivity extends Activity {
     private LinearLayout priorityFilterRow;
     private int priorityFilter=0;  // 0 = all, 1–5 = chosen level
     private String taskSearch="";
+    private String projectFilter="";
+    private Spinner projectFilterSpinner;
     private TextView dateLabel;
     private TextView percentLabel;
     private TextView progressLabel;
@@ -623,6 +626,12 @@ public class MainActivity extends Activity {
         searchLp.bottomMargin=dp(12);
         content.addView(searchBox,searchLp);
 
+        TextView projectFilterLabel=text(tr("filter_project"),13,MUTED,true);
+        content.addView(projectFilterLabel,lp(-1,-2));
+        projectFilterSpinner=new Spinner(this);
+        content.addView(projectFilterSpinner,lp(-1,48));
+        refreshProjectFilter();
+
         LinearLayout form = horizontal();
         taskInput = new EditText(this);
         taskInput.setSingleLine(true);
@@ -880,6 +889,18 @@ public class MainActivity extends Activity {
                 new android.text.InputFilter.LengthFilter(90)});
         form.addView(name,lp(-1,-2));
 
+        TextView projectLabel=text(tr("project"),14,INK,true);
+        LinearLayout.LayoutParams projectLabelLp=lp(-1,-2);
+        projectLabelLp.topMargin=dp(10);
+        form.addView(projectLabel,projectLabelLp);
+        EditText projectEditor=new EditText(this);
+        projectEditor.setSingleLine(true);
+        projectEditor.setHint(tr("project_hint"));
+        projectEditor.setText(item.optString("project",""));
+        projectEditor.setFilters(new android.text.InputFilter[]{
+                new android.text.InputFilter.LengthFilter(60)});
+        form.addView(projectEditor,lp(-1,-2));
+
         // Optional free-form details are stored with the task series.
         TextView detailsLabel=text(tr("task_description"),14,INK,true);
         LinearLayout.LayoutParams detailsLabelLp=lp(-1,-2);
@@ -1105,6 +1126,9 @@ public class MainActivity extends Activity {
                         updatedSubs.put(sub);
                     }
                     item.put("subtasks",updatedSubs);
+                    String project=projectEditor.getText().toString().trim();
+                    if(project.isEmpty())item.remove("project");
+                    else item.put("project",project);
                     item.put("start",start[0]);
                     item.put("mode",modes[modeIndex]);
                     item.put("priority",prioritySpinner.getSelectedItemPosition()+1);
@@ -1188,8 +1212,49 @@ public class MainActivity extends Activity {
         if(dateLabel==null||tasksBox==null)return;
         dateLabel.setText(formatDay(selectedDay));
         renderPriorityFilters();
+        refreshProjectFilter();
         renderCalendar();
         renderTaskResults();
+    }
+
+    /** Preserve selected project across edits; no separate database or network needed. */
+    private void refreshProjectFilter(){
+        if(projectFilterSpinner==null)return;
+        java.util.TreeSet<String> names=new java.util.TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        for(int i=0;i<tasks.length();i++){
+            JSONObject item=tasks.optJSONObject(i);
+            if(item!=null){
+                String name=item.optString("project","").trim();
+                if(!name.isEmpty())names.add(name);
+            }
+        }
+        java.util.ArrayList<String> values=new java.util.ArrayList<>();
+        values.add("");
+        values.addAll(names);
+        if(!projectFilter.isEmpty() && !names.contains(projectFilter))projectFilter="";
+        String[] labels=new String[values.size()];
+        labels[0]=tr("all_projects");
+        for(int i=1;i<labels.length;i++)labels[i]=values.get(i);
+        int selected=values.indexOf(projectFilter);
+        if(selected<0)selected=0;
+        projectFilterSpinner.setOnItemSelectedListener(null);
+        projectFilterSpinner.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item,labels));
+        projectFilterSpinner.setSelection(selected);
+        projectFilterSpinner.setOnItemSelectedListener(
+                new android.widget.AdapterView.OnItemSelectedListener(){
+                    @Override public void onItemSelected(
+                            android.widget.AdapterView<?> parent,View view,int pos,long id){
+                        String next=values.get(pos);
+                        if(!next.equals(projectFilter)){
+                            projectFilter=next;
+                            renderCalendar();
+                            renderTaskResults();
+                        }
+                    }
+                    @Override public void onNothingSelected(
+                            android.widget.AdapterView<?> parent){}
+                });
     }
 
     /** Rebuild results only; do not reconstruct the search field while typing. */
@@ -1244,6 +1309,12 @@ public class MainActivity extends Activity {
         edit.setOnClickListener(v->showScheduleEditor(job,false));
         row.addView(edit,lp(33,33));
 
+        String projectName=job.optString("project","").trim();
+        if(!projectName.isEmpty()){
+            TextView projectTag=text("▣ "+projectName,12,TEAL,true);
+            projectTag.setPadding(dp(40),dp(4),0,0);
+            card.addView(projectTag,lp(-1,-2));
+        }
         TextView rule=text(Schedule.description(job,tr("once"),tr("daily"),
                 tr("weekly"),tr("monthly"),tr("yearly")),12,MUTED,false);
         rule.setPadding(dp(7),dp(3),0,0);
