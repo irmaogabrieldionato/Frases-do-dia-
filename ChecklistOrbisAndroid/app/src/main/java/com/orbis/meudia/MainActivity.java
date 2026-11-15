@@ -4,6 +4,12 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.SharedPreferences;
+import android.content.Intent;
+import android.net.Uri;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -54,6 +60,9 @@ public class MainActivity extends Activity {
     private static final int BG = Color.rgb(243, 247, 245);
     private static final int LINE = Color.rgb(228, 238, 234);
     private static final int WHITE = Color.WHITE;
+    private static final int EXPORT_REQUEST=7101;
+    private static final int IMPORT_REQUEST=7102;
+    private static final int MAX_BACKUP_BYTES=5*1024*1024;
     private static final int[] PRIORITY_COLORS = {
         Color.rgb(46,125,50),   // 1: green
         Color.rgb(21,101,192),  // 2: blue
@@ -304,6 +313,98 @@ public class MainActivity extends Activity {
         day=today();
     }
 
+    /** Local Storage Access Framework backup; no network or storage permission. */
+    private void exportBackup(){
+        Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+        intent.putExtra(Intent.EXTRA_TITLE,"checklist-orbis-"+today()+".json");
+        startActivityForResult(intent,EXPORT_REQUEST);
+    }
+
+    private void importBackup(){
+        Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+        startActivityForResult(intent,IMPORT_REQUEST);
+    }
+
+    private String backupJson() throws JSONException {
+        JSONObject root=new JSONObject();
+        root.put("format","checklist-orbis-backup");
+        root.put("version",1);
+        root.put("exportedAt",System.currentTimeMillis());
+        root.put("tasks",new JSONArray(tasks.toString()));
+        return root.toString(2);
+    }
+
+    private JSONArray validateBackup(String raw) throws JSONException {
+        JSONObject root=new JSONObject(raw);
+        if(!"checklist-orbis-backup".equals(root.optString("format"))
+                ||root.optInt("version")!=1)throw new JSONException("Invalid format/version");
+        JSONArray incoming=root.getJSONArray("tasks");
+        if(incoming.length()>10000)throw new JSONException("Too many tasks");
+        for(int i=0;i<incoming.length();i++){
+            JSONObject task=incoming.optJSONObject(i);
+            if(task==null || !task.has("title") || !task.has("mode")
+                    || !task.has("start"))throw new JSONException("Invalid task");
+            if(task.optString("title").length()>1000)throw new JSONException("Invalid title");
+            if(!task.optString("start").matches("\\d{4}-\\d{2}-\\d{2}"))
+                throw new JSONException("Invalid date");
+            String mode=task.optString("mode");
+            if(!Arrays.asList("once","daily","weekly","monthly","yearly").contains(mode))
+                throw new JSONException("Invalid recurrence");
+            if(task.has("history") && task.optJSONObject("history")==null)
+                throw new JSONException("Invalid history");
+        }
+        return incoming;
+    }
+
+    @Override
+    protected void onActivityResult(int request,int result,Intent data){
+        super.onActivityResult(request,result,data);
+        if(result!=RESULT_OK || data==null || data.getData()==null)return;
+        Uri uri=data.getData();
+        if(request==EXPORT_REQUEST){
+            try(OutputStream output=getContentResolver().openOutputStream(uri)){
+                if(output==null)throw new java.io.IOException("No output stream");
+                output.write(backupJson().getBytes(StandardCharsets.UTF_8));
+                output.flush();
+                android.widget.Toast.makeText(this,tr("backup_saved"),
+                        android.widget.Toast.LENGTH_LONG).show();
+            }catch(Exception e){showBackupError();}
+        }else if(request==IMPORT_REQUEST){
+            try(InputStream input=getContentResolver().openInputStream(uri)){
+                if(input==null)throw new java.io.IOException("No input stream");
+                ByteArrayOutputStream bytes=new ByteArrayOutputStream();
+                byte[] chunk=new byte[8192];int n;
+                while((n=input.read(chunk))!=-1){
+                    if(bytes.size()+n>MAX_BACKUP_BYTES)
+                        throw new java.io.IOException("Backup too large");
+                    bytes.write(chunk,0,n);
+                }
+                JSONArray restored=validateBackup(bytes.toString("UTF-8"));
+                new AlertDialog.Builder(this)
+                    .setTitle(tr("restore_backup"))
+                    .setMessage(tr("restore_confirm"))
+                    .setNegativeButton(tr("cancel"),(dialog,which)->{})
+                    .setPositiveButton(tr("restore_backup"),(dialog,which)->{
+                        tasks=restored;
+                        save();
+                        loadTasks();
+                        render();
+                        android.widget.Toast.makeText(this,tr("backup_restored"),
+                                android.widget.Toast.LENGTH_LONG).show();
+                    }).show();
+            }catch(Exception e){showBackupError();}
+        }
+    }
+
+    private void showBackupError(){
+        new AlertDialog.Builder(this).setMessage(tr("backup_error"))
+                .setPositiveButton("OK",(dialog,which)->{}).show();
+    }
+
     private void save() {
         preferences.edit().putString("day",today())
                 .putString("tasks",tasks.toString()).apply();
@@ -409,6 +510,19 @@ public class MainActivity extends Activity {
         LinearLayout.LayoutParams headerLp = lp(-1, -2);
         headerLp.bottomMargin = dp(24);
         content.addView(header, headerLp);
+
+        LinearLayout backupActions=horizontal();
+        TextView backupButton=action("↓ "+tr("export_backup"));
+        backupButton.setOnClickListener(v->exportBackup());
+        backupActions.addView(backupButton,new LinearLayout.LayoutParams(0,dp(43),1f));
+        TextView restoreButton=action("↑ "+tr("restore_backup"));
+        restoreButton.setOnClickListener(v->importBackup());
+        LinearLayout.LayoutParams restoreLp=new LinearLayout.LayoutParams(0,dp(43),1f);
+        restoreLp.leftMargin=dp(8);
+        backupActions.addView(restoreButton,restoreLp);
+        LinearLayout.LayoutParams backupsLp=lp(-1,-2);
+        backupsLp.bottomMargin=dp(14);
+        content.addView(backupActions,backupsLp);
 
         calendarBody=vertical();
         LinearLayout.LayoutParams calLp=lp(-1,-2);
