@@ -1253,12 +1253,13 @@ public class MainActivity extends Activity {
                 subCheck.setButtonTintList(ColorStateList.valueOf(TEAL));
                 subCheck.setChecked(done);
                 subCheck.setPadding(dp(32),0,0,0);
+                final JSONObject currentSub=sub;
                 subCheck.setOnCheckedChangeListener((buttonView,isChecked)->{
-                    JSONObject h=sub.optJSONObject("history");
+                    JSONObject h=currentSub.optJSONObject("history");
                     if(h==null)h=new JSONObject();
                     try{
                         h.put(selectedDay,isChecked);
-                        sub.put("history",h);
+                        currentSub.put("history",h);
                     }catch(JSONException ignored){}
                     save();
                     int completed=0;
