@@ -845,6 +845,24 @@ public class MainActivity extends Activity {
                 new android.text.InputFilter.LengthFilter(90)});
         form.addView(name,lp(-1,-2));
 
+        // Optional free-form details are stored with the task series.
+        TextView detailsLabel=text(tr("task_description"),14,INK,true);
+        LinearLayout.LayoutParams detailsLabelLp=lp(-1,-2);
+        detailsLabelLp.topMargin=dp(10);
+        form.addView(detailsLabel,detailsLabelLp);
+        EditText details=new EditText(this);
+        details.setSingleLine(false);
+        details.setMinLines(2);
+        details.setMaxLines(6);
+        details.setGravity(Gravity.TOP);
+        details.setHint(tr("description_hint"));
+        details.setText(item.optString("description",""));
+        details.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_MULTI_LINE
+                |InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        details.setFilters(new android.text.InputFilter[]{
+                new android.text.InputFilter.LengthFilter(2000)});
+        form.addView(details,lp(-1,-2));
+
         TextView priorityLabel=text(tr("priority"),14,INK,true);
         LinearLayout.LayoutParams priorityLabelLp=lp(-1,-2);
         priorityLabelLp.topMargin=dp(12);
@@ -999,6 +1017,9 @@ public class MainActivity extends Activity {
                 }
                 try {
                     item.put("title",newTitle);
+                    String newDescription=details.getText().toString().trim();
+                    if(newDescription.isEmpty())item.remove("description");
+                    else item.put("description",newDescription);
                     item.put("start",start[0]);
                     item.put("mode",modes[modeIndex]);
                     item.put("priority",prioritySpinner.getSelectedItemPosition()+1);
@@ -1142,6 +1163,21 @@ public class MainActivity extends Activity {
         metadata.addView(priorityTag,lp(-2,-2));
         metadata.addView(rule,lp(-2,-2));
         card.addView(metadata,lp(-1,-2));
+
+        String detailsText=job.optString("description","").trim();
+        if(!detailsText.isEmpty()){
+            TextView detailsPreview=text(detailsText,13,MUTED,false);
+            detailsPreview.setMaxLines(3);
+            detailsPreview.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            detailsPreview.setPadding(dp(40),dp(6),dp(5),dp(2));
+            detailsPreview.setContentDescription(tr("task_description")+": "+detailsText);
+            detailsPreview.setOnClickListener(v->new AlertDialog.Builder(this)
+                    .setTitle(job.optString("title",""))
+                    .setMessage(detailsText)
+                    .setPositiveButton(tr("close"),(dialog,which)->{})
+                    .show());
+            card.addView(detailsPreview,lp(-1,-2));
+        }
 
         LinearLayout progressLine = horizontal();
         LinearLayout.LayoutParams progressLineLp = lp(-1, -2);
