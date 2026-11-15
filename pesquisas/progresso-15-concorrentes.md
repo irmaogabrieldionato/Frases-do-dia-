@@ -4,7 +4,7 @@ Atualizado em 2026-11-15. Branch exclusiva: `checklist-orbis`. Não alterar `mai
 
 ## Estado
 - Concorrente atual: **1/15 — Todoist**, em análise e implementação incremental.
-- Próxima ação: verificar CI das subtarefas e corrigir falhas; depois adicionar testes de persistência/backup e continuar funcionalidades do Todoist.
+- Próxima ação: verificar CI da busca, corrigir falhas e ampliar testes de persistência/backup; depois projetos/seções e etiquetas do Todoist.
 - Segurança da distribuição: assinatura estável de release **bloqueada** até haver keystore privado e configuração de secrets seguros. Nunca gravar chaves no Git.
 - Implementações existentes verificadas no código: calendário mensal nativo, recorrências, histórico de progresso por data, cinco prioridades, filtros, 15 idiomas, armazenamento local e interface offline.
 - 0/15 concorrentes concluídos; não avançar sem registrar cada funcionalidade pendente, implementada ou bloqueada.
@@ -43,3 +43,11 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **CI**: disparado para os commits; verificar conclusão do commit final antes de marcar como validado. Testes instrumentados e físicos ainda não executados.
 - **Limitações**: editar texto de uma subtarefa muda seu ID e reinicia histórico daquela subtarefa; excluir subtarefa remove seu histórico. Há limite de 4.000 caracteres no editor. Requer teste real de importação de JSON com subtarefas.
 - **Próximo passo**: verificar compilação, corrigir bugs e adicionar testes; depois projetos/seções, etiquetas e busca.
+
+## Execução 4 — 2026-11-15
+- **Todoist (1/15)**: verificada conclusão **com sucesso** do CI das subtarefas: [run 43755392320](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43755392320). Isso confirma compilação, não teste funcional em aparelho.
+- **Implementada busca local de tarefas**: campo na lista filtra em tempo real títulos, descrições e títulos de subtarefas, sem rede e sem alterar o armazenamento; busca combinada com o filtro existente de prioridades e com o dia selecionado. Mensagens traduzidas nos 15 idiomas. Commit [a4bef998](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/a4bef998a82e6846f433ac7ca5f556ccd9608b79).
+- **CI da busca**: [run 43760758343](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43760758343), iniciado; conferir resultado antes de marcar como aprovado.
+- **Revisão estática**: busca utiliza apenas os campos existentes e mantém os registros intactos; renderiza somente a lista enquanto o usuário digita, evitando recriar o campo de texto. Os resumos percentuais passam a considerar tarefas visíveis na busca, assim como já fazem com prioridades. Não foram executados testes instrumentados, nem restauração em dispositivo físico.
+- **Pendentes Todoist**: projetos e seções, etiquetas, ordenação, filtros combinados/salvos, duplicação, reagendamento, prazo separado, hora/duração, lembretes, histórico, concluídas, relatórios, modelos, widgets, seleção múltipla, Kanban, anexos e colaboração condicionada.
+- **Bloqueio mantido**: assinatura estável de release exige keystore privado/segredos; nunca publicar chave privada no repositório.
