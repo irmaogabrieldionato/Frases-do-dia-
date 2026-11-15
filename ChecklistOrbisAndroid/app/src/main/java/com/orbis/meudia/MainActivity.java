@@ -863,6 +863,30 @@ public class MainActivity extends Activity {
                 new android.text.InputFilter.LengthFilter(2000)});
         form.addView(details,lp(-1,-2));
 
+        TextView subtasksLabel=text(tr("subtasks"),14,INK,true);
+        LinearLayout.LayoutParams subLabelLp=lp(-1,-2);
+        subLabelLp.topMargin=dp(10);
+        form.addView(subtasksLabel,subLabelLp);
+        EditText subtasksEditor=new EditText(this);
+        subtasksEditor.setSingleLine(false);
+        subtasksEditor.setMinLines(2);
+        subtasksEditor.setMaxLines(7);
+        subtasksEditor.setGravity(Gravity.TOP);
+        subtasksEditor.setHint(tr("subtasks_hint"));
+        subtasksEditor.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        subtasksEditor.setFilters(new android.text.InputFilter[]{
+                new android.text.InputFilter.LengthFilter(4000)});
+        JSONArray existingSubtasks=item.optJSONArray("subtasks");
+        StringBuilder subtaskLines=new StringBuilder();
+        if(existingSubtasks!=null)for(int i=0;i<existingSubtasks.length();i++){
+            JSONObject sub=existingSubtasks.optJSONObject(i);
+            if(sub==null)continue;
+            if(subtaskLines.length()>0)subtaskLines.append("\n");
+            subtaskLines.append(sub.optString("title",""));
+        }
+        subtasksEditor.setText(subtaskLines.toString());
+        form.addView(subtasksEditor,lp(-1,-2));
+
         TextView priorityLabel=text(tr("priority"),14,INK,true);
         LinearLayout.LayoutParams priorityLabelLp=lp(-1,-2);
         priorityLabelLp.topMargin=dp(12);
@@ -1020,6 +1044,32 @@ public class MainActivity extends Activity {
                     String newDescription=details.getText().toString().trim();
                     if(newDescription.isEmpty())item.remove("description");
                     else item.put("description",newDescription);
+                    JSONArray oldSubs=item.optJSONArray("subtasks");
+                    JSONArray updatedSubs=new JSONArray();
+                    String[] lines=subtasksEditor.getText().toString().split("\n");
+                    boolean[] used=new boolean[oldSubs==null?0:oldSubs.length()];
+                    for(String raw:lines){
+                        String subTitle=raw.trim();
+                        if(subTitle.isEmpty())continue;
+                        if(subTitle.length()>90)subTitle=subTitle.substring(0,90);
+                        if(updatedSubs.length()>=50)break;
+                        JSONObject sub=null;
+                        if(oldSubs!=null)for(int k=0;k<oldSubs.length();k++){
+                            JSONObject candidate=oldSubs.optJSONObject(k);
+                            if(!used[k] && candidate!=null
+                                    && subTitle.equals(candidate.optString("title",""))){
+                                sub=candidate;used[k]=true;break;
+                            }
+                        }
+                        if(sub==null){
+                            sub=new JSONObject();
+                            sub.put("id",UUID.randomUUID().toString());
+                            sub.put("title",subTitle);
+                            sub.put("history",new JSONObject());
+                        }
+                        updatedSubs.put(sub);
+                    }
+                    item.put("subtasks",updatedSubs);
                     item.put("start",start[0]);
                     item.put("mode",modes[modeIndex]);
                     item.put("priority",prioritySpinner.getSelectedItemPosition()+1);
@@ -1177,6 +1227,52 @@ public class MainActivity extends Activity {
                     .setPositiveButton(android.R.string.ok,(dialog,which)->{})
                     .show());
             card.addView(detailsPreview,lp(-1,-2));
+        }
+
+        JSONArray subtasks=job.optJSONArray("subtasks");
+        if(subtasks!=null && subtasks.length()>0){
+            int finished=0;
+            for(int i=0;i<subtasks.length();i++){
+                JSONObject sub=subtasks.optJSONObject(i);
+                if(sub!=null && sub.optJSONObject("history")!=null
+                        && sub.optJSONObject("history").optBoolean(selectedDay,false))finished++;
+            }
+            TextView subHeading=text(tr("subtasks")+" ("+finished+"/"+subtasks.length()+")",
+                    12,TEAL,true);
+            subHeading.setPadding(dp(40),dp(8),0,dp(2));
+            card.addView(subHeading,lp(-1,-2));
+            for(int i=0;i<subtasks.length();i++){
+                JSONObject sub=subtasks.optJSONObject(i);
+                if(sub==null)continue;
+                JSONObject history=sub.optJSONObject("history");
+                boolean done=history!=null && history.optBoolean(selectedDay,false);
+                CheckBox subCheck=new CheckBox(this);
+                subCheck.setText(sub.optString("title",""));
+                subCheck.setTextColor(INK);
+                subCheck.setTextSize(13);
+                subCheck.setButtonTintList(ColorStateList.valueOf(TEAL));
+                subCheck.setChecked(done);
+                subCheck.setPadding(dp(32),0,0,0);
+                subCheck.setOnCheckedChangeListener((buttonView,isChecked)->{
+                    JSONObject h=sub.optJSONObject("history");
+                    if(h==null)h=new JSONObject();
+                    try{
+                        h.put(selectedDay,isChecked);
+                        sub.put("history",h);
+                    }catch(JSONException ignored){}
+                    save();
+                    int completed=0;
+                    JSONArray all=job.optJSONArray("subtasks");
+                    if(all!=null)for(int k=0;k<all.length();k++){
+                        JSONObject child=all.optJSONObject(k);
+                        if(child!=null && child.optJSONObject("history")!=null
+                                && child.optJSONObject("history").optBoolean(selectedDay,false))
+                            completed++;
+                    }
+                    subHeading.setText(tr("subtasks")+" ("+completed+"/"+all.length()+")");
+                });
+                card.addView(subCheck,lp(-1,-2));
+            }
         }
 
         LinearLayout progressLine = horizontal();
