@@ -111,11 +111,20 @@ public class MainActivity extends Activity {
         return PRIORITY_COLORS[Math.max(1,Math.min(5,level))-1];
     }
 
+    private boolean hasTag(JSONObject item,String name){
+        if(item==null)return false;
+        JSONArray tags=item.optJSONArray("tags");
+        if(tags==null)return false;
+        for(int i=0;i<tags.length();i++)if(name.equalsIgnoreCase(tags.optString(i)))return true;
+        return false;
+    }
+
     private boolean visible(JSONObject item){
         if(item==null || !Schedule.occurs(item,selectedDay)
                 || (priorityFilter!=0 && priority(item)!=priorityFilter))return false;
         if(!projectFilter.isEmpty() && !projectFilter.equals(item.optString("project","")))return false;
         if(!sectionFilter.isEmpty() && !sectionFilter.equals(item.optString("section","")))return false;
+        if(!tagFilter.isEmpty() && !hasTag(item,tagFilter))return false;
         if(taskSearch.isEmpty())return true;
         String needle=taskSearch.toLowerCase(Locale.ROOT);
         if(item.optString("title","").toLowerCase(Locale.ROOT).contains(needle)
@@ -140,6 +149,8 @@ public class MainActivity extends Activity {
     private String taskSearch="";
     private String projectFilter="";
     private String sectionFilter="";
+    private String tagFilter="";
+    private Spinner tagFilterSpinner;
     private Spinner sectionFilterSpinner;
     private Spinner projectFilterSpinner;
     private TextView dateLabel;
@@ -639,6 +650,10 @@ public class MainActivity extends Activity {
         sectionFilterSpinner=new Spinner(this);
         content.addView(sectionFilterSpinner,lp(-1,48));
         refreshSectionFilter();
+        content.addView(text(tr("filter_tags"),13,MUTED,true),lp(-1,-2));
+        tagFilterSpinner=new Spinner(this);
+        content.addView(tagFilterSpinner,lp(-1,48));
+        refreshTagFilter();
 
         LinearLayout form = horizontal();
         taskInput = new EditText(this);
@@ -757,7 +772,8 @@ public class MainActivity extends Activity {
             if(Schedule.occurs(task,date)
                     && (priorityFilter==0 || priority(task)==priorityFilter)
                     && (projectFilter.isEmpty() || projectFilter.equals(task.optString("project","")))
-                    && (sectionFilter.isEmpty() || sectionFilter.equals(task.optString("section","")))){
+                    && (sectionFilter.isEmpty() || sectionFilter.equals(task.optString("section","")))
+                    && (tagFilter.isEmpty() || hasTag(task,tagFilter))){
                 highest=Math.max(highest,priority(task));
             }
         }
@@ -922,6 +938,21 @@ public class MainActivity extends Activity {
         sectionEditor.setFilters(new android.text.InputFilter[]{
                 new android.text.InputFilter.LengthFilter(60)});
         form.addView(sectionEditor,lp(-1,-2));
+        form.addView(text(tr("tags"),14,INK,true),lp(-1,-2));
+        EditText tagsEditor=new EditText(this);
+        tagsEditor.setSingleLine(true);
+        tagsEditor.setHint(tr("tags_hint"));
+        tagsEditor.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(500)});
+        JSONArray oldTags=item.optJSONArray("tags");
+        if(oldTags!=null){
+            StringBuilder oldNames=new StringBuilder();
+            for(int i=0;i<oldTags.length();i++){
+                if(i>0)oldNames.append(", ");
+                oldNames.append(oldTags.optString(i));
+            }
+            tagsEditor.setText(oldNames.toString());
+        }
+        form.addView(tagsEditor,lp(-1,-2));
 
         // Optional free-form details are stored with the task series.
         TextView detailsLabel=text(tr("task_description"),14,INK,true);
@@ -1154,6 +1185,20 @@ public class MainActivity extends Activity {
                     String section=sectionEditor.getText().toString().trim();
                     if(project.isEmpty() || section.isEmpty())item.remove("section");
                     else item.put("section",section);
+                    JSONArray newTags=new JSONArray();
+                    java.util.LinkedHashSet<String> uniqueTags=new java.util.LinkedHashSet<>();
+                    for(String rawTag:tagsEditor.getText().toString().split(",")){
+                        String tag=rawTag.trim().replaceAll("\\s+"," ");
+                        if(tag.length()>40)tag=tag.substring(0,40).trim();
+                        if(tag.isEmpty())continue;
+                        boolean duplicate=false;
+                        for(String existing:uniqueTags)if(existing.equalsIgnoreCase(tag))duplicate=true;
+                        if(!duplicate)uniqueTags.add(tag);
+                        if(uniqueTags.size()>=12)break;
+                    }
+                    for(String tag:uniqueTags)newTags.put(tag);
+                    if(newTags.length()==0)item.remove("tags");
+                    else item.put("tags",newTags);
                     item.put("start",start[0]);
                     item.put("mode",modes[modeIndex]);
                     item.put("priority",prioritySpinner.getSelectedItemPosition()+1);
@@ -1239,8 +1284,39 @@ public class MainActivity extends Activity {
         renderPriorityFilters();
         refreshProjectFilter();
         refreshSectionFilter();
+        refreshTagFilter();
         renderCalendar();
         renderTaskResults();
+    }
+
+    private void refreshTagFilter(){
+        if(tagFilterSpinner==null)return;
+        java.util.TreeSet<String> names=new java.util.TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        for(int i=0;i<tasks.length();i++){
+            JSONObject item=tasks.optJSONObject(i);
+            if(item==null)continue;
+            JSONArray tags=item.optJSONArray("tags");
+            if(tags!=null)for(int k=0;k<tags.length();k++){
+                String tag=tags.optString(k).trim();
+                if(!tag.isEmpty())names.add(tag);
+            }
+        }
+        java.util.ArrayList<String> values=new java.util.ArrayList<>();
+        values.add("");values.addAll(names);
+        if(!tagFilter.isEmpty()&&!names.contains(tagFilter))tagFilter="";
+        String[] labels=new String[values.size()];labels[0]=tr("all_tags");
+        for(int i=1;i<labels.length;i++)labels[i]="#"+values.get(i);
+        int selected=values.indexOf(tagFilter);
+        tagFilterSpinner.setOnItemSelectedListener(null);
+        tagFilterSpinner.setAdapter(new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item,labels));
+        tagFilterSpinner.setSelection(Math.max(0,selected));
+        tagFilterSpinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){
+            @Override public void onItemSelected(android.widget.AdapterView<?> parent,View view,int pos,long id){
+                String next=values.get(pos);
+                if(!next.equals(tagFilter)){tagFilter=next;render();}
+            }
+            @Override public void onNothingSelected(android.widget.AdapterView<?> parent){}
+        });
     }
 
     /** Preserve selected project across edits; no separate database or network needed. */
@@ -1383,6 +1459,17 @@ public class MainActivity extends Activity {
             TextView sectionTag=text("▸ "+sectionName,12,MUTED,true);
             sectionTag.setPadding(dp(40),dp(4),0,0);
             card.addView(sectionTag,lp(-1,-2));
+        }
+        JSONArray tags=job.optJSONArray("tags");
+        if(tags!=null && tags.length()>0){
+            StringBuilder shown=new StringBuilder();
+            for(int i=0;i<tags.length();i++){
+                if(i>0)shown.append("  ");
+                shown.append("#").append(tags.optString(i));
+            }
+            TextView tagText=text(shown.toString(),12,TEAL,true);
+            tagText.setPadding(dp(40),dp(4),0,0);
+            card.addView(tagText,lp(-1,-2));
         }
         String projectName=job.optString("project","").trim();
         if(!projectName.isEmpty()){
