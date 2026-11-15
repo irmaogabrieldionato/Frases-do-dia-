@@ -747,7 +747,8 @@ public class MainActivity extends Activity {
         for(int i=0;i<tasks.length();i++){
             JSONObject task=tasks.optJSONObject(i);
             if(Schedule.occurs(task,date)
-                    && (priorityFilter==0 || priority(task)==priorityFilter)){
+                    && (priorityFilter==0 || priority(task)==priorityFilter)
+                    && (projectFilter.isEmpty() || projectFilter.equals(task.optString("project","")))){
                 highest=Math.max(highest,priority(task));
             }
         }
