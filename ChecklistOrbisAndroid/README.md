@@ -40,3 +40,9 @@ gradle -p ChecklistOrbisAndroid :app:assembleDebug
 O identificador Android `com.orbis.meudia` e as preferências locais `meu-dia-dados-v1` foram mantidos para migração de dados. Entretanto, diferentes builds debug do GitHub Actions podem ter chaves de assinatura distintas, e a instalação de um APK sobre outro pode falhar. Não desinstale a versão antiga sem proteger suas tarefas; o projeto ainda precisa de uma assinatura fixa para atualizações sem perda de dados.
 
 Licença: MIT, consulte `LICENSE` na raiz da branch.
+
+## Backup local (novo)
+
+Os botões **Exportar backup** e **Restaurar backup** ficam acima do calendário. O sistema Android permite escolher o destino e abrir um JSON, sem permissão ampla de arquivos ou acesso ao Google Agenda. O backup inclui todas as tarefas, cores, recorrências e históricos por data; a restauração exige confirmação antes de substituir as tarefas existentes. Arquivos incompatíveis ou maiores que 5 MiB são rejeitados. Guarde o arquivo em local seguro: o JSON não é criptografado. O idioma da interface e outras preferências não fazem parte do backup.
+
+**Validação pendente em aparelho:** exportar, importar, cancelar e simular arquivos inválidos. A compilação CI verifica sintaxe e empacotamento, não substitui testes instrumentados.
