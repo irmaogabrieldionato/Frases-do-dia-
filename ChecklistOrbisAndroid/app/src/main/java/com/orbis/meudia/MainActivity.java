@@ -673,7 +673,7 @@ public class MainActivity extends Activity {
                 cell.setGravity(Gravity.CENTER);
                 if(selected)cell.setBackground(rounded(TEAL,11,0));
                 else if(todayCell)cell.setBackground(rounded(Color.rgb(230,244,239),11,0));
-                cell.setContentDescription(formatDay(key)+(scheduled?" • "+tr("tasks"):""));
+                cell.setContentDescription(formatDay(key)+(markerPriority>0?" • "+tr("tasks"):""));
                 cell.setOnClickListener(v->{
                     selectedDay=key;
                     shownMonth=Schedule.date(key);
