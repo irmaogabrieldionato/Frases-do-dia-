@@ -4,7 +4,7 @@ Atualizado em 2026-11-15. Branch exclusiva: `checklist-orbis`. Não alterar `mai
 
 ## Estado
 - Concorrente atual: **1/15 — Todoist**, em análise e implementação incremental.
-- Próxima ação: verificar CI de projetos, corrigir falhas e ampliar testes de persistência/backup; depois seções e etiquetas do Todoist.
+- Próxima ação: verificar CI das seções e testar filtros, persistência e backup; depois implementar etiquetas do Todoist.
 - Segurança da distribuição: assinatura estável de release **bloqueada** até haver keystore privado e configuração de secrets seguros. Nunca gravar chaves no Git.
 - Implementações existentes verificadas no código: calendário mensal nativo, recorrências, histórico de progresso por data, cinco prioridades, filtros, 15 idiomas, armazenamento local e interface offline.
 - 0/15 concorrentes concluídos; não avançar sem registrar cada funcionalidade pendente, implementada ou bloqueada.
@@ -59,3 +59,11 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **CI**: primeira compilação [run 43766539327](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43766539327) em execução durante a atualização; conferir também a execução do commit de correção antes de marcar validado. Nenhum teste instrumentado ou em aparelho físico executado.
 - **Regressões**: revisão estática da combinação dos filtros e persistência; não alegar validação funcional sem testes. Assinatura de release estável ainda bloqueada por falta de keystore/segredos privados.
 - **Próximo recurso Todoist**: seções de projeto e etiquetas, após confirmação de CI; registrar separadamente cada etapa.
+
+## Execução 6 — 2026-11-15
+- **Todoist (1/15)**: CI dos projetos da execução 5 confirmado **sucesso** nos runs [43766539327](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43766539327) e [43766556586](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43766556586).
+- **Implementadas seções locais de projeto**: campo opcional de até 60 caracteres no editor, exibido no cartão; seletor de seções com opções derivadas das tarefas do projeto escolhido; filtro combinável com projeto, prioridade, pesquisa e dia; pontos do calendário respeitam seção. Seção sem projeto não é salva. Commits [f6d4cd40](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/f6d4cd4029db59bdce4750653e17e017e288e8ad), [5d1c5ed1](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/5d1c5ed1aaa2da185d10fe4d950677616f4ff4a4), [30e1c3e7](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/30e1c3e7d41644a1fb012fc2fc7284cad903a51f). Etiquetas novas traduzidas nos 15 idiomas.
+- **Compatibilidade**: campo JSON opcional `section`, serializado automaticamente no backup; dados antigos continuam válidos. Sem Google Agenda, sem serviços de terceiros. Código autoral; licença MIT do repositório preservada.
+- **CI**: runs da alteração inicial [43771897647](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43771897647) e da correção de filtro [43771905324](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43771905324) estavam em execução ao consultar. Confirmar run da tradução e compilação final antes de marcar validado.
+- **Limitações**: revisão estática de filtros e persistência; ainda sem testes instrumentados, aparelho físico ou restauração de backup com seções. Seções são atributos textuais, sem ordenação manual nem gerenciamento independente. Assinatura estável de release continua bloqueada por falta de keystore privado.
+- **Próximo recurso Todoist**: etiquetas (tags), após CI aprovado e correções necessárias.
