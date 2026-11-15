@@ -4,7 +4,7 @@ Atualizado em 2026-11-15. Branch exclusiva: `checklist-orbis`. Não alterar `mai
 
 ## Estado
 - Concorrente atual: **1/15 — Todoist**, em análise e implementação incremental.
-- Próxima ação: verificar CI da descrição de tarefas, depois iniciar subtarefas, com testes por funcionalidade.
+- Próxima ação: verificar CI das subtarefas e corrigir falhas; depois adicionar testes de persistência/backup e continuar funcionalidades do Todoist.
 - Segurança da distribuição: assinatura estável de release **bloqueada** até haver keystore privado e configuração de secrets seguros. Nunca gravar chaves no Git.
 - Implementações existentes verificadas no código: calendário mensal nativo, recorrências, histórico de progresso por data, cinco prioridades, filtros, 15 idiomas, armazenamento local e interface offline.
 - 0/15 concorrentes concluídos; não avançar sem registrar cada funcionalidade pendente, implementada ou bloqueada.
@@ -36,3 +36,10 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **CI de descrição**: [run 43749313357](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43749313357), em execução ao registrar esta etapa. Não declarar recurso validado até a conclusão.
 - **Verificação de regressões**: inspeção estática de pontos de gravação, calendário, recorrências, prioridades e backup; sem testes instrumentados ou aparelho físico. Próximo passo: conferir CI e adicionar testes automatizados de persistência/backup.
 - **Próximo recurso**: subtarefas, após aprovação da compilação.
+
+## Execução 3 — 2026-11-15
+- **Todoist 1/15**: CI das descrições confirmado **sucesso** [run 43749313357](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43749313357).
+- **Subtarefas implementadas em código**: até 50 itens por tarefa, um por linha no editor; IDs estáveis e histórico de marcação independente por data de ocorrência, inclusive tarefas recorrentes; contador de itens concluídos nos cartões. A barra percentual principal continua manual e não é sobrescrita pelas subtarefas. Preserva JSON de backup e tarefas antigas sem subtarefas. Commits [c5b61340](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/c5b61340d0c664feffa211415d8d1a84f3ee00b9), [74858834](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/7485883471190bc6a24e4ae3b2302e902553fb0a) (traduções 15 idiomas), [35e0b87b](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/35e0b87b12382fccca6e0dac965951c935a0c166) (captura segura da referência Java).
+- **CI**: disparado para os commits; verificar conclusão do commit final antes de marcar como validado. Testes instrumentados e físicos ainda não executados.
+- **Limitações**: editar texto de uma subtarefa muda seu ID e reinicia histórico daquela subtarefa; excluir subtarefa remove seu histórico. Há limite de 4.000 caracteres no editor. Requer teste real de importação de JSON com subtarefas.
+- **Próximo passo**: verificar compilação, corrigir bugs e adicionar testes; depois projetos/seções, etiquetas e busca.
