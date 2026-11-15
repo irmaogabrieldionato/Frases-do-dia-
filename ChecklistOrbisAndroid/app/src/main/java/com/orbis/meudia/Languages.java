@@ -32,6 +32,8 @@ final class Languages {
         put("cancel", "Cancel", "取消", "रद्द करें", "Cancelar", "Annuler", "إلغاء", "বাতিল", "Отмена", "Cancelar", "Batal", "منسوخ کریں", "Abbrechen", "キャンセル", "Ghairi", "रद्द करा");
         put("language_screen", "Choose your language", "选择语言", "अपनी भाषा चुनें", "Elige tu idioma", "Choisissez votre langue", "اختر لغتك", "আপনার ভাষা বেছে নিন", "Выберите язык", "Escolha seu idioma", "Pilih bahasa", "اپنی زبان منتخب کریں", "Sprache auswählen", "言語を選択", "Chagua lugha", "तुमची भाषा निवडा");
         put("continue", "Continue", "继续", "जारी रखें", "Continuar", "Continuer", "متابعة", "চালিয়ে যান", "Продолжить", "Continuar", "Lanjutkan", "جاری رکھیں", "Weiter", "続ける", "Endelea", "पुढे चला");
+        put("task_progress", "Progress: %1$d%%", "进度：%1$d%%", "प्रगति: %1$d%%", "Progreso: %1$d%%", "Progression : %1$d%%", "التقدم: %1$d%%", "অগ্রগতি: %1$d%%", "Прогресс: %1$d%%", "%1$d%% concluída", "Progres: %1$d%%", "پیش رفت: %1$d%%", "Fortschritt: %1$d%%", "進捗：%1$d%%", "Maendeleo: %1$d%%", "प्रगती: %1$d%%");
+        put("task_progress_label", "Task progress", "任务进度", "कार्य की प्रगति", "Progreso de la tarea", "Progression de la tâche", "تقدم المهمة", "কাজের অগ্রগতি", "Прогресс задачи", "Progresso da tarefa", "Progres tugas", "کام کی پیش رفت", "Aufgabenfortschritt", "タスクの進捗", "Maendeleo ya kazi", "कामाची प्रगती");
     }
 
     private static void put(String key, String... values) {

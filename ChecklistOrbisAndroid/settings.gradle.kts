@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "FrasesDoDia"
+rootProject.name = "ChecklistOrbis"
 include(":app")

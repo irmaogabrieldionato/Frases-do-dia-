@@ -21,6 +21,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.SeekBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import org.json.JSONArray;
@@ -41,6 +42,23 @@ public class MainActivity extends Activity {
     private static final int WHITE = Color.WHITE;
 
     private String selectedLanguage;
+
+    private int progress(JSONObject item) {
+        if (item == null) return 0;
+        // Compatibilidade: versões anteriores guardavam somente done=true/false.
+        int value = item.has("progress") ? item.optInt("progress", 0)
+                : (item.optBoolean("done", false) ? 100 : 0);
+        return Math.max(0, Math.min(100, value));
+    }
+
+    private void setProgress(JSONObject item, int value) {
+        int safe = Math.max(0, Math.min(100, value));
+        try {
+            item.put("progress", safe);
+            item.put("done", safe == 100);
+        } catch (JSONException ignored) { }
+    }
+
     private SharedPreferences preferences;
     private JSONArray tasks = new JSONArray();
     private String day;
@@ -183,6 +201,7 @@ public class MainActivity extends Activity {
             value.put("id", UUID.randomUUID().toString());
             value.put("title", title);
             value.put("done", false);
+            value.put("progress", 0);
         } catch (JSONException ignored) { }
         return value;
     }
@@ -202,6 +221,11 @@ public class MainActivity extends Activity {
             tasks.put(task(tr("default3")));
             tasks.put(task(tr("default4")));
         }
+        // Migra tarefas já cadastradas sem perder o histórico ou os títulos.
+        for (int i = 0; i < tasks.length(); i++) {
+            JSONObject job = tasks.optJSONObject(i);
+            if (job != null) setProgress(job, progress(job));
+        }
         resetWhenNewDay();
         save();
     }
@@ -213,8 +237,7 @@ public class MainActivity extends Activity {
             for (int i = 0; i < tasks.length(); i++) {
                 JSONObject item = tasks.optJSONObject(i);
                 if (item != null) {
-                    try { item.put("done", false); }
-                    catch (JSONException ignored) { }
+                    setProgress(item, 0);
                 }
             }
             save();
@@ -299,7 +322,7 @@ public class MainActivity extends Activity {
         eyebrow.setLetterSpacing(0.1f);
         heading.addView(eyebrow);
 
-        TextView title = text("Meu Dia ✦", 34, INK, true);
+        TextView title = text("Checklist Orbis ✦", 30, INK, true);
         LinearLayout.LayoutParams titleLp = lp(-1, -2);
         titleLp.topMargin = dp(3);
         heading.addView(title, titleLp);
@@ -312,7 +335,7 @@ public class MainActivity extends Activity {
         symbol.setImageResource(R.drawable.ic_header_check);
         symbol.setPadding(dp(10), dp(10), dp(10), dp(10));
         symbol.setBackground(rounded(TEAL, 16, 0));
-        symbol.setContentDescription("Meu Dia");
+        symbol.setContentDescription("Checklist Orbis");
         symbol.setOnClickListener(v -> showLanguagePicker(false));
         LinearLayout.LayoutParams symbolLp = lp(48, 48);
         symbolLp.leftMargin = dp(8);
@@ -446,64 +469,67 @@ public class MainActivity extends Activity {
         render();
     }
 
-    private void render() {
-        resetWhenNewDay();
-        String date = DateFormat.getDateInstance(DateFormat.FULL, selectedLocale()).format(new Date());
-        dateLabel.setText(date.substring(0, 1).toUpperCase(selectedLocale()) + date.substring(1));
+    /** Média do progresso de todas as tarefas, mantendo a contagem de tarefas 100%. */
+    private void updateSummary() {
         int total = tasks.length();
-        int done = 0;
+        int completed = 0;
+        int sum = 0;
         for (int i = 0; i < total; i++) {
-            JSONObject job = tasks.optJSONObject(i);
-            if (job != null && job.optBoolean("done")) done++;
+            JSONObject item = tasks.optJSONObject(i);
+            if (item == null) continue;
+            int value = progress(item);
+            sum += value;
+            if (value == 100) completed++;
         }
-        final int percent = total == 0 ? 0 : Math.round(done * 100f / total);
-        progressLabel.setText(String.format(selectedLocale(), tr("progress_count"), done, total));
+        final int percent = total == 0 ? 0 : Math.round(sum / (float) total);
+        progressLabel.setText(String.format(selectedLocale(), tr("progress_count"), completed, total));
         percentLabel.setText(percent + "%");
         countLabel.setText(String.format(selectedLocale(), tr("task_count"), total));
         progressTrack.setContentDescription(String.format(selectedLocale(), tr("progress_accessible"), percent));
         progressTrack.post(() -> {
-            FrameLayout.LayoutParams fillLp =
+            FrameLayout.LayoutParams params =
                     (FrameLayout.LayoutParams) progressFill.getLayoutParams();
-            fillLp.width = Math.round(progressTrack.getWidth() * percent / 100f);
-            progressFill.setLayoutParams(fillLp);
+            params.width = Math.round(progressTrack.getWidth() * percent / 100f);
+            progressFill.setLayoutParams(params);
         });
+    }
 
+    private void render() {
+        resetWhenNewDay();
+        String date = DateFormat.getDateInstance(DateFormat.FULL, selectedLocale()).format(new Date());
+        dateLabel.setText(date.substring(0, 1).toUpperCase(selectedLocale()) + date.substring(1));
+        updateSummary();
         tasksBox.removeAllViews();
-        emptyLabel.setVisibility(total == 0 ? View.VISIBLE : View.GONE);
-        for (int i = 0; i < total; i++) {
+        emptyLabel.setVisibility(tasks.length() == 0 ? View.VISIBLE : View.GONE);
+        for (int i = 0; i < tasks.length(); i++) {
             JSONObject job = tasks.optJSONObject(i);
             if (job != null) addTaskRow(job);
         }
     }
 
     private void addTaskRow(JSONObject job) {
-        boolean done = job.optBoolean("done");
+        final int initialProgress = progress(job);
         String title = job.optString("title", "");
         String id = job.optString("id", "");
 
-        LinearLayout row = horizontal();
-        row.setMinimumHeight(dp(66));
-        row.setPadding(dp(15), dp(13), dp(15), dp(13));
-        row.setBackground(rounded(WHITE, 16, LINE));
-        row.setElevation(dp(2));
+        LinearLayout card = vertical();
+        card.setPadding(dp(15), dp(13), dp(15), dp(13));
+        card.setBackground(rounded(WHITE, 16, LINE));
+        card.setElevation(dp(2));
 
-        TextView check = text(done ? "✓" : "", 20, WHITE, true);
+        LinearLayout row = horizontal();
+        card.addView(row, lp(-1, -2));
+
+        TextView check = text(initialProgress == 100 ? "✓" : "", 20, WHITE, true);
         check.setGravity(Gravity.CENTER);
-        check.setBackground(rounded(done ? TEAL : WHITE, 9,
-                done ? TEAL : Color.rgb(181, 207, 197)));
-        check.setContentDescription((done ? tr("pending_action") : tr("done_action")) + title);
-        check.setOnClickListener(v -> {
-            resetWhenNewDay();
-            try { job.put("done", !job.optBoolean("done")); }
-            catch (JSONException ignored) { }
-            save();
-            render();
-        });
+        check.setBackground(rounded(initialProgress == 100 ? TEAL : WHITE, 9,
+                initialProgress == 100 ? TEAL : Color.rgb(181, 207, 197)));
+        check.setContentDescription((initialProgress == 100 ? tr("pending_action")
+                : tr("done_action")) + title);
         row.addView(check, lp(28, 28));
 
         TextView taskText = text(title, 15,
-                done ? Color.rgb(141, 161, 156) : INK, false);
-        if (done) taskText.setPaintFlags(taskText.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+                initialProgress == 100 ? Color.rgb(141, 161, 156) : INK, false);
         taskText.setPadding(dp(12), 0, dp(6), 0);
         row.addView(taskText, new LinearLayout.LayoutParams(0, -2, 1f));
 
@@ -522,8 +548,72 @@ public class MainActivity extends Activity {
         });
         row.addView(delete, lp(33, 33));
 
-        LinearLayout.LayoutParams rowLp = lp(-1, -2);
-        rowLp.bottomMargin = dp(10);
-        tasksBox.addView(row, rowLp);
+        LinearLayout progressLine = horizontal();
+        LinearLayout.LayoutParams progressLineLp = lp(-1, -2);
+        progressLineLp.topMargin = dp(8);
+        card.addView(progressLine, progressLineLp);
+
+        SeekBar slider = new SeekBar(this);
+        slider.setMax(100);
+        slider.setProgress(initialProgress);
+        slider.setProgressTintList(ColorStateList.valueOf(TEAL));
+        slider.setThumbTintList(ColorStateList.valueOf(TEAL));
+        slider.setProgressBackgroundTintList(ColorStateList.valueOf(LINE));
+        slider.setContentDescription(tr("task_progress_label") + ": " + title);
+        progressLine.addView(slider, new LinearLayout.LayoutParams(0, dp(44), 1f));
+
+        TextView amount = text("", 13, TEAL, true);
+        amount.setGravity(Gravity.CENTER_VERTICAL | Gravity.END);
+        amount.setMinWidth(dp(112));
+        amount.setText(String.format(selectedLocale(), tr("task_progress"), initialProgress));
+        LinearLayout.LayoutParams amountLp = lp(-2, 44);
+        amountLp.leftMargin = dp(5);
+        progressLine.addView(amount, amountLp);
+
+        // Muda o visual sem reconstruir o SeekBar durante o arrasto.
+        final Runnable refreshTaskView = () -> {
+            int value = progress(job);
+            boolean completed = value == 100;
+            amount.setText(String.format(selectedLocale(), tr("task_progress"), value));
+            check.setText(completed ? "✓" : "");
+            check.setBackground(rounded(completed ? TEAL : WHITE, 9,
+                    completed ? TEAL : Color.rgb(181, 207, 197)));
+            check.setContentDescription((completed ? tr("pending_action")
+                    : tr("done_action")) + title);
+            taskText.setTextColor(completed ? Color.rgb(141, 161, 156) : INK);
+            int flags = taskText.getPaintFlags();
+            taskText.setPaintFlags(completed
+                    ? flags | Paint.STRIKE_THRU_TEXT_FLAG
+                    : flags & ~Paint.STRIKE_THRU_TEXT_FLAG);
+        };
+        refreshTaskView.run();
+
+        slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int value, boolean fromUser) {
+                if (!fromUser) return;
+                resetWhenNewDay();
+                setProgress(job, value);
+                refreshTaskView.run();
+                save();
+                updateSummary();
+            }
+            @Override public void onStartTrackingTouch(SeekBar seekBar) { }
+            @Override public void onStopTrackingTouch(SeekBar seekBar) { }
+        });
+
+        // Botão original de marcar concluída continua funcionando.
+        check.setOnClickListener(v -> {
+            resetWhenNewDay();
+            setProgress(job, progress(job) == 100 ? 0 : 100);
+            slider.setProgress(progress(job));
+            refreshTaskView.run();
+            save();
+            updateSummary();
+        });
+
+        LinearLayout.LayoutParams cardLp = lp(-1, -2);
+        cardLp.bottomMargin = dp(10);
+        tasksBox.addView(card, cardLp);
     }
 }

@@ -1,12 +1,12 @@
-name: Gerar APK Meu Dia (Android)
+name: Gerar APK Checklist Orbis (Android)
 
 on:
   push:
     branches:
-      - meu-dia-android
+      - checklist-orbis
     paths:
-      - 'MeuDiaAndroid/**'
-      - '.github/workflows/build-meu-dia.yml'
+      - 'ChecklistOrbisAndroid/**'
+      - '.github/workflows/build-checklist-orbis.yml'
   workflow_dispatch:
 
 permissions:
@@ -33,10 +33,10 @@ jobs:
         with:
           gradle-version: '8.9'
       - name: Compilar aplicativo nativo
-        run: gradle -p MeuDiaAndroid :app:assembleDebug --no-daemon
+        run: gradle -p ChecklistOrbisAndroid :app:assembleDebug --no-daemon
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
         with:
-          name: MeuDia-Android-APK
-          path: MeuDiaAndroid/app/build/outputs/apk/debug/app-debug.apk
+          name: Checklist-Orbis-Android-APK
+          path: ChecklistOrbisAndroid/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
