@@ -1,6 +1,8 @@
 package com.orbis.meudia;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -22,6 +24,9 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
+import android.widget.Spinner;
+import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import org.json.JSONArray;
@@ -32,6 +37,11 @@ import java.text.DateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.Arrays;
+import java.text.DateFormatSymbols;
+import android.text.InputType;
 
 public class MainActivity extends Activity {
     private static final int TEAL = Color.rgb(20, 108, 99);
@@ -43,25 +53,32 @@ public class MainActivity extends Activity {
 
     private String selectedLanguage;
 
+    /** Each occurrence has independent progress for its calendar date. */
     private int progress(JSONObject item) {
-        if (item == null) return 0;
-        // Compatibilidade: versões anteriores guardavam somente done=true/false.
-        int value = item.has("progress") ? item.optInt("progress", 0)
-                : (item.optBoolean("done", false) ? 100 : 0);
-        return Math.max(0, Math.min(100, value));
+        if(item==null)return 0;
+        JSONObject history=item.optJSONObject("history");
+        if(history==null)return 0;
+        return Math.max(0,Math.min(100,history.optInt(selectedDay,0)));
     }
 
-    private void setProgress(JSONObject item, int value) {
-        int safe = Math.max(0, Math.min(100, value));
+    private void setProgress(JSONObject item,int percent) {
+        if(item==null)return;
+        JSONObject history=item.optJSONObject("history");
+        if(history==null)history=new JSONObject();
         try {
-            item.put("progress", safe);
-            item.put("done", safe == 100);
-        } catch (JSONException ignored) { }
+            history.put(selectedDay,Math.max(0,Math.min(100,percent)));
+            item.put("history",history);
+        } catch(JSONException ignored){}
     }
+
+    private boolean visible(JSONObject item){ return Schedule.occurs(item,selectedDay); }
 
     private SharedPreferences preferences;
     private JSONArray tasks = new JSONArray();
     private String day;
+    private String selectedDay;
+    private Calendar shownMonth;
+    private LinearLayout calendarBody;
     private TextView dateLabel;
     private TextView percentLabel;
     private TextView progressLabel;
@@ -93,7 +110,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (tasksBox != null && day != null) {
+        if(tasksBox!=null && day!=null) {
             resetWhenNewDay();
             render();
         }
@@ -200,55 +217,56 @@ public class MainActivity extends Activity {
         try {
             value.put("id", UUID.randomUUID().toString());
             value.put("title", title);
-            value.put("done", false);
-            value.put("progress", 0);
+            value.put("start",selectedDay);
+            value.put("mode","once");
+            value.put("history",new JSONObject());
         } catch (JSONException ignored) { }
         return value;
     }
 
     private void loadTasks() {
-        day = preferences.getString("day", today());
-        String saved = preferences.getString("tasks", null);
-        if (saved != null) {
-            try {
-                tasks = new JSONArray(saved);
-            } catch (JSONException ignored) {
-                tasks = new JSONArray();
-            }
+        day=preferences.getString("day",today());
+        selectedDay=today();
+        shownMonth=Schedule.date(selectedDay);
+        String stored=preferences.getString("tasks",null);
+        if(stored!=null){
+            try{tasks=new JSONArray(stored);}catch(JSONException e){tasks=new JSONArray();}
         } else {
-            tasks.put(task(tr("default1")));
-            tasks.put(task(tr("default2")));
-            tasks.put(task(tr("default3")));
-            tasks.put(task(tr("default4")));
+            for(String key:new String[]{"default1","default2","default3","default4"}){
+                JSONObject item=task(tr(key));
+                try{item.put("mode","daily");}catch(JSONException ignored){}
+                tasks.put(item);
+            }
         }
-        // Migra tarefas já cadastradas sem perder o histórico ou os títulos.
-        for (int i = 0; i < tasks.length(); i++) {
-            JSONObject job = tasks.optJSONObject(i);
-            if (job != null) setProgress(job, progress(job));
+        // Migration from earlier versions. Last day's slider value is retained.
+        for(int i=0;i<tasks.length();i++){
+            JSONObject item=tasks.optJSONObject(i);
+            if(item==null)continue;
+            try{
+                if(!item.has("history")){
+                    int old=item.has("progress")?item.optInt("progress",0):
+                            (item.optBoolean("done",false)?100:0);
+                    JSONObject history=new JSONObject();
+                    if(old>0)history.put(day,old);
+                    item.put("history",history);
+                }
+                if(!item.has("start"))item.put("start",day);
+                if(!item.has("mode"))item.put("mode","daily");
+                if(!item.has("id"))item.put("id",UUID.randomUUID().toString());
+            }catch(JSONException ignored){}
         }
         resetWhenNewDay();
         save();
     }
 
     private void resetWhenNewDay() {
-        String now = today();
-        if (!now.equals(day)) {
-            day = now;
-            for (int i = 0; i < tasks.length(); i++) {
-                JSONObject item = tasks.optJSONObject(i);
-                if (item != null) {
-                    setProgress(item, 0);
-                }
-            }
-            save();
-        }
+        // Calendar progress must never be reset on date transitions.
+        day=today();
     }
 
     private void save() {
-        preferences.edit()
-            .putString("day", day)
-            .putString("tasks", tasks.toString())
-            .apply();
+        preferences.edit().putString("day",today())
+                .putString("tasks",tasks.toString()).apply();
     }
 
     private GradientDrawable rounded(int color, float radius, int border) {
@@ -352,6 +370,12 @@ public class MainActivity extends Activity {
         headerLp.bottomMargin = dp(24);
         content.addView(header, headerLp);
 
+        calendarBody=vertical();
+        LinearLayout.LayoutParams calLp=lp(-1,-2);
+        calLp.bottomMargin=dp(18);
+        content.addView(calendarBody,calLp);
+        renderCalendar();
+
         LinearLayout card = vertical();
         card.setPadding(dp(24), dp(24), dp(24), dp(23));
         card.setBackground(rounded(TEAL, 23, 0));
@@ -361,7 +385,7 @@ public class MainActivity extends Activity {
         LinearLayout cardTop = horizontal();
         LinearLayout progressWords = vertical();
         cardTop.addView(progressWords, new LinearLayout.LayoutParams(0, -2, 1f));
-        progressWords.addView(text(tr("progress"), 15, WHITE, true));
+        progressWords.addView(text(tr("selected_progress"), 15, WHITE, true));
         progressLabel = text("", 13, Color.rgb(209, 240, 232), false);
         LinearLayout.LayoutParams progressTextLp = lp(-1, -2);
         progressTextLp.topMargin = dp(5);
@@ -457,54 +481,367 @@ public class MainActivity extends Activity {
     }
 
     private void addTask() {
-        resetWhenNewDay();
-        String title = taskInput.getText().toString().trim();
-        if (title.isEmpty()) return;
-        tasks.put(task(title));
-        taskInput.setText("");
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (imm != null) imm.hideSoftInputFromWindow(taskInput.getWindowToken(), 0);
-        taskInput.clearFocus();
-        save();
-        render();
+        String title=taskInput.getText().toString().trim();
+        if(title.isEmpty())return;
+        showScheduleEditor(task(title),true);
     }
 
-    /** Média do progresso de todas as tarefas, mantendo a contagem de tarefas 100%. */
-    private void updateSummary() {
-        int total = tasks.length();
-        int completed = 0;
-        int sum = 0;
-        for (int i = 0; i < total; i++) {
-            JSONObject item = tasks.optJSONObject(i);
-            if (item == null) continue;
-            int value = progress(item);
-            sum += value;
-            if (value == 100) completed++;
+    private String formatDay(String key) {
+        return DateFormat.getDateInstance(DateFormat.MEDIUM,selectedLocale())
+                .format(Schedule.date(key).getTime());
+    }
+
+    private TextView action(String title) {
+        TextView button=text(title,15,TEAL,true);
+        button.setGravity(Gravity.CENTER);
+        button.setBackground(rounded(WHITE,12,LINE));
+        button.setPadding(dp(6),dp(7),dp(6),dp(7));
+        return button;
+    }
+
+    private boolean hasTasksForDay(String date) {
+        for(int i=0;i<tasks.length();i++){
+            if(Schedule.occurs(tasks.optJSONObject(i),date))return true;
         }
-        final int percent = total == 0 ? 0 : Math.round(sum / (float) total);
-        progressLabel.setText(String.format(selectedLocale(), tr("progress_count"), completed, total));
-        percentLabel.setText(percent + "%");
-        countLabel.setText(String.format(selectedLocale(), tr("task_count"), total));
-        progressTrack.setContentDescription(String.format(selectedLocale(), tr("progress_accessible"), percent));
-        progressTrack.post(() -> {
-            FrameLayout.LayoutParams params =
-                    (FrameLayout.LayoutParams) progressFill.getLayoutParams();
-            params.width = Math.round(progressTrack.getWidth() * percent / 100f);
+        return false;
+    }
+
+    private void renderCalendar(){
+        if(calendarBody==null||shownMonth==null)return;
+        calendarBody.removeAllViews();
+        LinearLayout frame=vertical();
+        frame.setPadding(dp(12),dp(12),dp(12),dp(14));
+        frame.setBackground(rounded(WHITE,20,LINE));
+        calendarBody.addView(frame,lp(-1,-2));
+
+        LinearLayout toolbar=horizontal();
+        TextView prev=action("‹");
+        prev.setContentDescription(tr("previous_month"));
+        toolbar.addView(prev,lp(42,42));
+        prev.setOnClickListener(v->moveMonth(-1));
+        String month=new SimpleDateFormat("LLLL yyyy",selectedLocale())
+                .format(shownMonth.getTime());
+        TextView heading=text(month.substring(0,1).toUpperCase(selectedLocale())+
+                month.substring(1),18,INK,true);
+        heading.setGravity(Gravity.CENTER);
+        toolbar.addView(heading,new LinearLayout.LayoutParams(0,dp(42),1f));
+        TextView next=action("›");
+        next.setContentDescription(tr("next_month"));
+        toolbar.addView(next,lp(42,42));
+        next.setOnClickListener(v->moveMonth(1));
+        frame.addView(toolbar,lp(-1,-2));
+
+        TextView now=text(tr("today"),13,TEAL,true);
+        now.setGravity(Gravity.CENTER);
+        frame.addView(now,lp(-1,35));
+        now.setOnClickListener(v->{
+            selectedDay=today();
+            shownMonth=Schedule.date(selectedDay);
+            render();
+        });
+
+        Calendar cal=(Calendar)shownMonth.clone();
+        cal.set(Calendar.DAY_OF_MONTH,1);
+        int first=Calendar.getInstance(selectedLocale()).getFirstDayOfWeek();
+        String[] names=new DateFormatSymbols(selectedLocale()).getShortWeekdays();
+        LinearLayout labels=horizontal();
+        for(int i=0;i<7;i++){
+            int dow=((first-1+i)%7)+1;
+            TextView label=text(names[dow],12,MUTED,true);
+            label.setGravity(Gravity.CENTER);
+            labels.addView(label,new LinearLayout.LayoutParams(0,dp(28),1f));
+        }
+        frame.addView(labels,lp(-1,-2));
+
+        int offset=(cal.get(Calendar.DAY_OF_WEEK)-first+7)%7;
+        cal.add(Calendar.DAY_OF_MONTH,-offset);
+        for(int r=0;r<6;r++){
+            LinearLayout week=horizontal();
+            for(int c=0;c<7;c++){
+                String key=Schedule.key(cal);
+                boolean currentMonth=cal.get(Calendar.MONTH)==shownMonth.get(Calendar.MONTH)
+                        && cal.get(Calendar.YEAR)==shownMonth.get(Calendar.YEAR);
+                boolean selected=key.equals(selectedDay);
+                boolean todayCell=key.equals(today());
+                boolean scheduled=hasTasksForDay(key);
+                TextView cell=text(cal.get(Calendar.DAY_OF_MONTH)+(scheduled?" •":""),
+                        13,selected?WHITE:(currentMonth?(todayCell?TEAL:INK):MUTED),
+                        selected||todayCell);
+                cell.setGravity(Gravity.CENTER);
+                if(selected)cell.setBackground(rounded(TEAL,11,0));
+                else if(todayCell)cell.setBackground(rounded(Color.rgb(230,244,239),11,0));
+                cell.setContentDescription(formatDay(key)+(scheduled?" • "+tr("tasks"):""));
+                cell.setOnClickListener(v->{
+                    selectedDay=key;
+                    shownMonth=Schedule.date(key);
+                    render();
+                });
+                week.addView(cell,new LinearLayout.LayoutParams(0,dp(44),1f));
+                cal.add(Calendar.DAY_OF_MONTH,1);
+            }
+            frame.addView(week,lp(-1,-2));
+        }
+        TextView note=text(tr("calendar_tip"),12,MUTED,false);
+        note.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams noteLp=lp(-1,-2);
+        noteLp.topMargin=dp(6);
+        frame.addView(note,noteLp);
+    }
+
+    private void moveMonth(int direction){
+        shownMonth.set(Calendar.DAY_OF_MONTH,1);
+        shownMonth.add(Calendar.MONTH,direction);
+        renderCalendar();
+    }
+
+    private void pickDate(String key,java.util.function.Consumer<String> callback){
+        Calendar cal=Schedule.date(key);
+        DatePickerDialog dialog=new DatePickerDialog(this,
+                (picker,y,month,day)->{
+                    Calendar chosen=new GregorianCalendar(y,month,day);
+                    callback.accept(Schedule.key(chosen));
+                },cal.get(Calendar.YEAR),cal.get(Calendar.MONTH),cal.get(Calendar.DAY_OF_MONTH));
+        dialog.show();
+    }
+
+    private void showScheduleEditor(JSONObject item,boolean creating){
+        String[] modes={"once","daily","weekly","monthly","yearly"};
+        String[] modeNames={tr("once"),tr("daily"),tr("weekly"),tr("monthly"),tr("yearly")};
+        String[] endNames={tr("never"),tr("until"),tr("after_count")};
+        String[] start={item.optString("start",selectedDay)};
+        String[] until={item.optString("until",start[0])};
+        int modePos=Arrays.asList(modes).indexOf(item.optString("mode","once"));
+        if(modePos<0)modePos=0;
+
+        ScrollView scroll=new ScrollView(this);
+        LinearLayout form=vertical();
+        form.setPadding(dp(16),dp(10),dp(16),dp(16));
+        scroll.addView(form);
+
+        form.addView(text(tr("task_name"),14,INK,true),lp(-1,-2));
+        EditText name=new EditText(this);
+        name.setSingleLine(true);
+        name.setText(item.optString("title",""));
+        name.setFilters(new android.text.InputFilter[]{
+                new android.text.InputFilter.LengthFilter(90)});
+        form.addView(name,lp(-1,-2));
+
+        TextView startButton=action("");
+        Runnable updateStart=()->startButton.setText(tr("start_date")+": "+formatDay(start[0]));
+        updateStart.run();
+        LinearLayout.LayoutParams startLp=lp(-1,52);
+        startLp.topMargin=dp(8);
+        form.addView(startButton,startLp);
+        startButton.setOnClickListener(v->pickDate(start[0],key->{
+            start[0]=key;
+            updateStart.run();
+        }));
+
+        TextView repeatLabel=text(tr("repeat"),14,INK,true);
+        LinearLayout.LayoutParams repeatLp=lp(-1,-2);
+        repeatLp.topMargin=dp(10);
+        form.addView(repeatLabel,repeatLp);
+        Spinner repeat=new Spinner(this);
+        repeat.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item,modeNames));
+        repeat.setSelection(modePos);
+        form.addView(repeat,lp(-1,48));
+
+        LinearLayout weeklyBox=vertical();
+        weeklyBox.addView(text(tr("weekdays"),14,INK,true),lp(-1,-2));
+        LinearLayout weekdays=horizontal();
+        String[] dayNames=new DateFormatSymbols(selectedLocale()).getShortWeekdays();
+        int first=Calendar.getInstance(selectedLocale()).getFirstDayOfWeek();
+        int mask=item.optInt("weekdays",0);
+        if(mask==0)mask=1<<(Schedule.date(start[0]).get(Calendar.DAY_OF_WEEK)-1);
+        CheckBox[] boxes=new CheckBox[7];
+        for(int i=0;i<7;i++){
+            int dayOfWeek=((first-1+i)%7)+1;
+            CheckBox cb=new CheckBox(this);
+            String text=dayNames[dayOfWeek];
+            cb.setText(text.isEmpty()?"•":text.substring(0,1));
+            cb.setContentDescription(text);
+            cb.setTextSize(11);
+            cb.setPadding(0,0,0,0);
+            cb.setTag(dayOfWeek);
+            cb.setButtonTintList(ColorStateList.valueOf(TEAL));
+            cb.setChecked((mask&(1<<(dayOfWeek-1)))!=0);
+            weekdays.addView(cb,new LinearLayout.LayoutParams(0,dp(44),1f));
+            boxes[i]=cb;
+        }
+        weeklyBox.addView(weekdays,lp(-1,-2));
+        form.addView(weeklyBox,lp(-1,-2));
+
+        TextView endLabel=text(tr("end_condition"),14,INK,true);
+        LinearLayout.LayoutParams endLp=lp(-1,-2);
+        endLp.topMargin=dp(10);
+        form.addView(endLabel,endLp);
+        Spinner endMode=new Spinner(this);
+        endMode.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item,endNames));
+        endMode.setSelection(item.optInt("count",0)>0?2:(item.has("until")?1:0));
+        form.addView(endMode,lp(-1,48));
+
+        TextView endButton=action("");
+        Runnable updateEnd=()->endButton.setText(tr("end_date")+": "+formatDay(until[0]));
+        updateEnd.run();
+        form.addView(endButton,lp(-1,50));
+        endButton.setOnClickListener(v->pickDate(until[0],key->{
+            until[0]=key;
+            updateEnd.run();
+        }));
+        EditText occurrences=new EditText(this);
+        occurrences.setSingleLine(true);
+        occurrences.setInputType(InputType.TYPE_CLASS_NUMBER);
+        occurrences.setHint(tr("occurrences"));
+        if(item.optInt("count",0)>0)occurrences.setText(String.valueOf(item.optInt("count")));
+        form.addView(occurrences,lp(-1,50));
+
+        Runnable refresh=()->{
+            boolean recurring=repeat.getSelectedItemPosition()!=0;
+            weeklyBox.setVisibility(recurring && repeat.getSelectedItemPosition()==2?
+                    View.VISIBLE:View.GONE);
+            endLabel.setVisibility(recurring?View.VISIBLE:View.GONE);
+            endMode.setVisibility(recurring?View.VISIBLE:View.GONE);
+            endButton.setVisibility(recurring && endMode.getSelectedItemPosition()==1?
+                    View.VISIBLE:View.GONE);
+            occurrences.setVisibility(recurring && endMode.getSelectedItemPosition()==2?
+                    View.VISIBLE:View.GONE);
+        };
+        android.widget.AdapterView.OnItemSelectedListener listener=
+                new android.widget.AdapterView.OnItemSelectedListener(){
+            @Override public void onItemSelected(android.widget.AdapterView<?> parent,
+                                                 View view,int position,long id){refresh.run();}
+            @Override public void onNothingSelected(android.widget.AdapterView<?> parent){}
+        };
+        repeat.setOnItemSelectedListener(listener);
+        endMode.setOnItemSelectedListener(listener);
+        refresh.run();
+
+        AlertDialog dialog=new AlertDialog.Builder(this)
+                .setTitle(creating?tr("schedule_new"):tr("edit_schedule"))
+                .setView(scroll)
+                .setNegativeButton(tr("cancel"),(d,w)->{})
+                .setPositiveButton(tr("save"),null).create();
+        dialog.setOnShowListener(ignore->dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            .setOnClickListener(button->{
+                String newTitle=name.getText().toString().trim();
+                if(newTitle.isEmpty()){name.setError(tr("required"));return;}
+                int modeIndex=repeat.getSelectedItemPosition();
+                int weekdaysMask=0;
+                for(CheckBox cb:boxes)if(cb.isChecked())
+                    weekdaysMask|=1<<(((Integer)cb.getTag())-1);
+                if(modeIndex==2 && weekdaysMask==0){
+                    android.widget.Toast.makeText(this,tr("choose_weekday"),
+                            android.widget.Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                int endIndex=endMode.getSelectedItemPosition();
+                if(modeIndex!=0 && endIndex==1 && until[0].compareTo(start[0])<0){
+                    android.widget.Toast.makeText(this,tr("bad_end"),
+                            android.widget.Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                int count=0;
+                if(modeIndex!=0 && endIndex==2){
+                    try{count=Integer.parseInt(occurrences.getText().toString());}
+                    catch(NumberFormatException e){count=0;}
+                    if(count<1 || count>10000){
+                        occurrences.setError(tr("count_range"));return;
+                    }
+                }
+                try {
+                    item.put("title",newTitle);
+                    item.put("start",start[0]);
+                    item.put("mode",modes[modeIndex]);
+                    item.put("weekdays",weekdaysMask);
+                    item.remove("until");
+                    item.remove("count");
+                    if(modeIndex!=0 && endIndex==1)item.put("until",until[0]);
+                    if(modeIndex!=0 && endIndex==2)item.put("count",count);
+                    if(creating)tasks.put(item);
+                }catch(JSONException ignored){}
+                taskInput.setText("");
+                InputMethodManager keyboard=(InputMethodManager)
+                        getSystemService(Context.INPUT_METHOD_SERVICE);
+                if(keyboard!=null)keyboard.hideSoftInputFromWindow(taskInput.getWindowToken(),0);
+                if(creating){
+                    selectedDay=start[0];
+                    shownMonth=Schedule.date(selectedDay);
+                }
+                save();dialog.dismiss();render();
+            }));
+        dialog.show();
+    }
+
+    private void deleteOccurrence(JSONObject item){
+        if("once".equals(item.optString("mode","once"))){
+            removeSeries(item);return;
+        }
+        new AlertDialog.Builder(this).setTitle(item.optString("title"))
+                .setItems(new String[]{tr("delete_this"),tr("delete_all")},
+                        (dialog,which)->{
+                            if(which==1)removeSeries(item);
+                            else{
+                                JSONArray excluded=item.optJSONArray("skips");
+                                if(excluded==null)excluded=new JSONArray();
+                                excluded.put(selectedDay);
+                                try{item.put("skips",excluded);}
+                                catch(JSONException ignored){}
+                                save();render();
+                            }
+                        })
+                .setNegativeButton(tr("cancel"),(dialog,which)->{})
+                .show();
+    }
+
+    private void removeSeries(JSONObject target){
+        JSONArray kept=new JSONArray();
+        String id=target.optString("id");
+        for(int i=0;i<tasks.length();i++){
+            JSONObject item=tasks.optJSONObject(i);
+            if(item!=null && !id.equals(item.optString("id")))kept.put(item);
+        }
+        tasks=kept;save();render();
+    }
+
+    /** Aggregate only tasks scheduled for the currently selected day. */
+    private void updateSummary(){
+        int total=0,completed=0,sum=0;
+        for(int i=0;i<tasks.length();i++){
+            JSONObject item=tasks.optJSONObject(i);
+            if(!visible(item))continue;
+            int value=progress(item);
+            total++;sum+=value;
+            if(value==100)completed++;
+        }
+        final int percent=total==0?0:Math.round(sum/(float)total);
+        progressLabel.setText(String.format(selectedLocale(),tr("progress_count"),
+                completed,total));
+        percentLabel.setText(percent+"%");
+        countLabel.setText(String.format(selectedLocale(),tr("task_count"),total));
+        progressTrack.setContentDescription(String.format(selectedLocale(),
+                tr("progress_accessible"),percent));
+        progressTrack.post(()->{
+            FrameLayout.LayoutParams params=(FrameLayout.LayoutParams)progressFill.getLayoutParams();
+            params.width=Math.round(progressTrack.getWidth()*percent/100f);
             progressFill.setLayoutParams(params);
         });
     }
 
-    private void render() {
+    private void render(){
         resetWhenNewDay();
-        String date = DateFormat.getDateInstance(DateFormat.FULL, selectedLocale()).format(new Date());
-        dateLabel.setText(date.substring(0, 1).toUpperCase(selectedLocale()) + date.substring(1));
+        if(dateLabel==null||tasksBox==null)return;
+        dateLabel.setText(formatDay(selectedDay));
+        renderCalendar();
         updateSummary();
         tasksBox.removeAllViews();
-        emptyLabel.setVisibility(tasks.length() == 0 ? View.VISIBLE : View.GONE);
-        for (int i = 0; i < tasks.length(); i++) {
-            JSONObject job = tasks.optJSONObject(i);
-            if (job != null) addTaskRow(job);
+        int count=0;
+        for(int i=0;i<tasks.length();i++){
+            JSONObject item=tasks.optJSONObject(i);
+            if(visible(item)){addTaskRow(item);count++;}
         }
+        emptyLabel.setVisibility(count==0?View.VISIBLE:View.GONE);
     }
 
     private void addTaskRow(JSONObject job) {
@@ -536,17 +873,18 @@ public class MainActivity extends Activity {
         TextView delete = text("×", 26, Color.rgb(155, 177, 170), false);
         delete.setGravity(Gravity.CENTER);
         delete.setContentDescription(tr("delete_action") + title);
-        delete.setOnClickListener(v -> {
-            JSONArray kept = new JSONArray();
-            for (int i = 0; i < tasks.length(); i++) {
-                JSONObject item = tasks.optJSONObject(i);
-                if (item != null && !id.equals(item.optString("id"))) kept.put(item);
-            }
-            tasks = kept;
-            save();
-            render();
-        });
+        delete.setOnClickListener(v -> deleteOccurrence(job));
         row.addView(delete, lp(33, 33));
+        TextView edit=text("▣",21,TEAL,true);
+        edit.setGravity(Gravity.CENTER);
+        edit.setContentDescription(tr("edit_schedule"));
+        edit.setOnClickListener(v->showScheduleEditor(job,false));
+        row.addView(edit,lp(33,33));
+
+        TextView rule=text(Schedule.description(job,tr("once"),tr("daily"),
+                tr("weekly"),tr("monthly"),tr("yearly")),12,MUTED,false);
+        rule.setPadding(dp(40),dp(3),0,0);
+        card.addView(rule,lp(-1,-2));
 
         LinearLayout progressLine = horizontal();
         LinearLayout.LayoutParams progressLineLp = lp(-1, -2);
