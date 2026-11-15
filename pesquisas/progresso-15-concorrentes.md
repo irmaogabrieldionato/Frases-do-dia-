@@ -4,7 +4,7 @@ Atualizado em 2026-11-15. Branch exclusiva: `checklist-orbis`. Não alterar `mai
 
 ## Estado
 - Concorrente atual: **1/15 — Todoist**, em análise e implementação incremental.
-- Próxima ação: verificar CI da busca, corrigir falhas e ampliar testes de persistência/backup; depois projetos/seções e etiquetas do Todoist.
+- Próxima ação: verificar CI de projetos, corrigir falhas e ampliar testes de persistência/backup; depois seções e etiquetas do Todoist.
 - Segurança da distribuição: assinatura estável de release **bloqueada** até haver keystore privado e configuração de secrets seguros. Nunca gravar chaves no Git.
 - Implementações existentes verificadas no código: calendário mensal nativo, recorrências, histórico de progresso por data, cinco prioridades, filtros, 15 idiomas, armazenamento local e interface offline.
 - 0/15 concorrentes concluídos; não avançar sem registrar cada funcionalidade pendente, implementada ou bloqueada.
@@ -51,3 +51,11 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **Revisão estática**: busca utiliza apenas os campos existentes e mantém os registros intactos; renderiza somente a lista enquanto o usuário digita, evitando recriar o campo de texto. Os resumos percentuais passam a considerar tarefas visíveis na busca, assim como já fazem com prioridades. Não foram executados testes instrumentados, nem restauração em dispositivo físico.
 - **Pendentes Todoist**: projetos e seções, etiquetas, ordenação, filtros combinados/salvos, duplicação, reagendamento, prazo separado, hora/duração, lembretes, histórico, concluídas, relatórios, modelos, widgets, seleção múltipla, Kanban, anexos e colaboração condicionada.
 - **Bloqueio mantido**: assinatura estável de release exige keystore privado/segredos; nunca publicar chave privada no repositório.
+
+## Execução 5 — 2026-11-15
+- **Todoist (1/15)**: pesquisa e inventário anterior reutilizados; não reiniciar concorrente. CI da busca confirmado sucesso [run 43760758343](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43760758343).
+- **Implementado projeto simples/local por tarefa**: campo de nome de projeto (até 60 caracteres) no editor; seletor dinâmico de projetos existentes; filtragem combinada com dia, busca e prioridade; etiqueta de projeto no cartão; indicadores de calendário respeitam projeto escolhido. Traduções em todos os 15 idiomas. Commits [f2c23c1e](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/f2c23c1e2e2fb5d9405e92764d47f0ed26b4ed52) e [ea29396e](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/ea29396e916fb6f88a1d31c388d3f03bb1a18532).
+- Projeto é um atributo textual de tarefa, não um sistema completo de projetos com seções, gerenciamento de projetos, permissões ou colaboração. O campo é incluído automaticamente em exportação JSON porque o backup serializa a tarefa. Tarefas antigas sem projeto continuam visíveis no filtro geral.
+- **CI**: primeira compilação [run 43766539327](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43766539327) em execução durante a atualização; conferir também a execução do commit de correção antes de marcar validado. Nenhum teste instrumentado ou em aparelho físico executado.
+- **Regressões**: revisão estática da combinação dos filtros e persistência; não alegar validação funcional sem testes. Assinatura de release estável ainda bloqueada por falta de keystore/segredos privados.
+- **Próximo recurso Todoist**: seções de projeto e etiquetas, após confirmação de CI; registrar separadamente cada etapa.
