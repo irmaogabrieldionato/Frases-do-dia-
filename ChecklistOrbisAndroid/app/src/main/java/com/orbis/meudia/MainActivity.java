@@ -115,6 +115,7 @@ public class MainActivity extends Activity {
         if(item==null || !Schedule.occurs(item,selectedDay)
                 || (priorityFilter!=0 && priority(item)!=priorityFilter))return false;
         if(!projectFilter.isEmpty() && !projectFilter.equals(item.optString("project","")))return false;
+        if(!sectionFilter.isEmpty() && !sectionFilter.equals(item.optString("section","")))return false;
         if(taskSearch.isEmpty())return true;
         String needle=taskSearch.toLowerCase(Locale.ROOT);
         if(item.optString("title","").toLowerCase(Locale.ROOT).contains(needle)
@@ -755,7 +756,8 @@ public class MainActivity extends Activity {
             JSONObject task=tasks.optJSONObject(i);
             if(Schedule.occurs(task,date)
                     && (priorityFilter==0 || priority(task)==priorityFilter)
-                    && (projectFilter.isEmpty() || projectFilter.equals(task.optString("project","")))){
+                    && (projectFilter.isEmpty() || projectFilter.equals(task.optString("project","")))
+                    && (sectionFilter.isEmpty() || sectionFilter.equals(task.optString("section","")))){
                 highest=Math.max(highest,priority(task));
             }
         }
