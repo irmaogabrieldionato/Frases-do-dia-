@@ -112,8 +112,19 @@ public class MainActivity extends Activity {
     }
 
     private boolean visible(JSONObject item){
-        return Schedule.occurs(item,selectedDay)
-                && (priorityFilter==0 || priority(item)==priorityFilter);
+        if(item==null || !Schedule.occurs(item,selectedDay)
+                || (priorityFilter!=0 && priority(item)!=priorityFilter))return false;
+        if(taskSearch.isEmpty())return true;
+        String needle=taskSearch.toLowerCase(Locale.ROOT);
+        if(item.optString("title","").toLowerCase(Locale.ROOT).contains(needle)
+                || item.optString("description","").toLowerCase(Locale.ROOT).contains(needle))return true;
+        JSONArray subs=item.optJSONArray("subtasks");
+        if(subs!=null)for(int i=0;i<subs.length();i++){
+            JSONObject sub=subs.optJSONObject(i);
+            if(sub!=null && sub.optString("title","").toLowerCase(Locale.ROOT).contains(needle))
+                return true;
+        }
+        return false;
     }
 
     private SharedPreferences preferences;
@@ -124,6 +135,7 @@ public class MainActivity extends Activity {
     private LinearLayout calendarBody;
     private LinearLayout priorityFilterRow;
     private int priorityFilter=0;  // 0 = all, 1–5 = chosen level
+    private String taskSearch="";
     private TextView dateLabel;
     private TextView percentLabel;
     private TextView progressLabel;
@@ -587,6 +599,29 @@ public class MainActivity extends Activity {
         LinearLayout.LayoutParams filterScrollLp=lp(-1,-2);
         filterScrollLp.bottomMargin=dp(14);
         content.addView(filterScroll,filterScrollLp);
+
+        EditText searchBox=new EditText(this);
+        searchBox.setSingleLine(true);
+        searchBox.setTextSize(15);
+        searchBox.setTextColor(INK);
+        searchBox.setHintTextColor(MUTED);
+        searchBox.setHint(tr("search_tasks"));
+        searchBox.setContentDescription(tr("search_tasks"));
+        searchBox.setBackground(rounded(WHITE,14,LINE));
+        searchBox.setPadding(dp(14),0,dp(14),0);
+        searchBox.setInputType(InputType.TYPE_CLASS_TEXT);
+        searchBox.setText(taskSearch);
+        searchBox.addTextChangedListener(new android.text.TextWatcher(){
+            @Override public void beforeTextChanged(CharSequence s,int start,int count,int after){}
+            @Override public void onTextChanged(CharSequence s,int start,int before,int count){
+                taskSearch=s.toString().trim();
+                renderTaskResults();
+            }
+            @Override public void afterTextChanged(android.text.Editable e){}
+        });
+        LinearLayout.LayoutParams searchLp=lp(-1,49);
+        searchLp.bottomMargin=dp(12);
+        content.addView(searchBox,searchLp);
 
         LinearLayout form = horizontal();
         taskInput = new EditText(this);
@@ -1154,6 +1189,12 @@ public class MainActivity extends Activity {
         dateLabel.setText(formatDay(selectedDay));
         renderPriorityFilters();
         renderCalendar();
+        renderTaskResults();
+    }
+
+    /** Rebuild results only; do not reconstruct the search field while typing. */
+    private void renderTaskResults(){
+        if(tasksBox==null || emptyLabel==null)return;
         updateSummary();
         tasksBox.removeAllViews();
         int count=0;
@@ -1161,6 +1202,8 @@ public class MainActivity extends Activity {
             JSONObject item=tasks.optJSONObject(i);
             if(visible(item)){addTaskRow(item);count++;}
         }
+        emptyLabel.setText(count==0 && !taskSearch.isEmpty()
+                ?tr("no_search_results"):tr("empty"));
         emptyLabel.setVisibility(count==0?View.VISIBLE:View.GONE);
     }
 
