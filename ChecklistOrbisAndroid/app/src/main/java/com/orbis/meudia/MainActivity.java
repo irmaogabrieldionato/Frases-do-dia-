@@ -24,6 +24,10 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
+import android.widget.HorizontalScrollView;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.widget.Spinner;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
@@ -50,6 +54,23 @@ public class MainActivity extends Activity {
     private static final int BG = Color.rgb(243, 247, 245);
     private static final int LINE = Color.rgb(228, 238, 234);
     private static final int WHITE = Color.WHITE;
+    private static final int[] PRIORITY_COLORS = {
+        Color.rgb(46,125,50),   // 1: green
+        Color.rgb(21,101,192),  // 2: blue
+        Color.rgb(249,168,37),  // 3: yellow
+        Color.rgb(239,108,0),   // 4: orange
+        Color.rgb(198,40,40)    // 5: red
+    };
+    private static final String[] PRIORITY_KEYS = {
+        "green", "blue", "yellow", "orange", "red"
+    };
+    private static final int[] PRIORITY_LIGHT = {
+        Color.rgb(232,245,233),
+        Color.rgb(227,242,253),
+        Color.rgb(255,248,225),
+        Color.rgb(255,243,224),
+        Color.rgb(255,235,238)
+    };
 
     private String selectedLanguage;
 
@@ -71,7 +92,20 @@ public class MainActivity extends Activity {
         } catch(JSONException ignored){}
     }
 
-    private boolean visible(JSONObject item){ return Schedule.occurs(item,selectedDay); }
+    private int priority(JSONObject item) {
+        if(item==null)return 2;
+        int level=item.optInt("priority",2);
+        return level>=1 && level<=5?level:2;
+    }
+
+    private int priorityColor(int level) {
+        return PRIORITY_COLORS[Math.max(1,Math.min(5,level))-1];
+    }
+
+    private boolean visible(JSONObject item){
+        return Schedule.occurs(item,selectedDay)
+                && (priorityFilter==0 || priority(item)==priorityFilter);
+    }
 
     private SharedPreferences preferences;
     private JSONArray tasks = new JSONArray();
@@ -79,6 +113,8 @@ public class MainActivity extends Activity {
     private String selectedDay;
     private Calendar shownMonth;
     private LinearLayout calendarBody;
+    private LinearLayout priorityFilterRow;
+    private int priorityFilter=0;  // 0 = all, 1–5 = chosen level
     private TextView dateLabel;
     private TextView percentLabel;
     private TextView progressLabel;
@@ -219,6 +255,7 @@ public class MainActivity extends Activity {
             value.put("title", title);
             value.put("start",selectedDay);
             value.put("mode","once");
+            value.put("priority",2); // Blue by default, including legacy tasks.
             value.put("history",new JSONObject());
         } catch (JSONException ignored) { }
         return value;
@@ -253,6 +290,9 @@ public class MainActivity extends Activity {
                 if(!item.has("start"))item.put("start",day);
                 if(!item.has("mode"))item.put("mode","daily");
                 if(!item.has("id"))item.put("id",UUID.randomUUID().toString());
+                int level=item.optInt("priority",2);
+                if(level<1 || level>5)item.put("priority",2);
+                else if(!item.has("priority"))item.put("priority",2);
             }catch(JSONException ignored){}
         }
         resetWhenNewDay();
@@ -417,6 +457,23 @@ public class MainActivity extends Activity {
         sectionLp.bottomMargin = dp(12);
         content.addView(section, sectionLp);
 
+        // Horizontal priority filter: All, green, blue, yellow, orange, red.
+        TextView filtersLabel=text(tr("filter_priority"),13,MUTED,true);
+        LinearLayout.LayoutParams filtersLabelLp=lp(-1,-2);
+        filtersLabelLp.bottomMargin=dp(8);
+        content.addView(filtersLabel,filtersLabelLp);
+
+        HorizontalScrollView filterScroll=new HorizontalScrollView(this);
+        filterScroll.setHorizontalScrollBarEnabled(false);
+        filterScroll.setFillViewport(false);
+        priorityFilterRow=horizontal();
+        priorityFilterRow.setPadding(dp(1),dp(1),dp(1),dp(3));
+        filterScroll.addView(priorityFilterRow);
+        renderPriorityFilters();
+        LinearLayout.LayoutParams filterScrollLp=lp(-1,-2);
+        filterScrollLp.bottomMargin=dp(14);
+        content.addView(filterScroll,filterScrollLp);
+
         LinearLayout form = horizontal();
         taskInput = new EditText(this);
         taskInput.setSingleLine(true);
@@ -499,11 +556,48 @@ public class MainActivity extends Activity {
         return button;
     }
 
-    private boolean hasTasksForDay(String date) {
-        for(int i=0;i<tasks.length();i++){
-            if(Schedule.occurs(tasks.optJSONObject(i),date))return true;
+    private void renderPriorityFilters() {
+        if(priorityFilterRow==null)return;
+        priorityFilterRow.removeAllViews();
+        for(int level=0;level<=5;level++){
+            final int chosen=level;
+            boolean active=level==priorityFilter;
+            String label=level==0?tr("all"):tr(PRIORITY_KEYS[level-1]);
+            TextView chip=text(level==0?label:"● "+label,13,
+                    active&&level==0?WHITE:(level==0?INK:priorityColor(level)),true);
+            chip.setGravity(Gravity.CENTER);
+            chip.setPadding(dp(14),0,dp(14),0);
+            int fill=active?(level==0?TEAL:PRIORITY_LIGHT[level-1]):WHITE;
+            int stroke=level==0?(active?TEAL:LINE):priorityColor(level);
+            chip.setBackground(rounded(fill,13,stroke));
+            chip.setSelected(active);
+            chip.setContentDescription(tr("filter_priority")+": "+label);
+            chip.setOnClickListener(v->{
+                if(priorityFilter==chosen)return;
+                priorityFilter=chosen;
+                renderPriorityFilters();
+                render();
+            });
+            LinearLayout.LayoutParams cp=lp(-2,39);
+            cp.rightMargin=dp(7);
+            priorityFilterRow.addView(chip,cp);
         }
-        return false;
+    }
+
+    private int calendarPriorityForDay(String date) {
+        int highest=0;
+        for(int i=0;i<tasks.length();i++){
+            JSONObject task=tasks.optJSONObject(i);
+            if(Schedule.occurs(task,date)
+                    && (priorityFilter==0 || priority(task)==priorityFilter)){
+                highest=Math.max(highest,priority(task));
+            }
+        }
+        return highest;
+    }
+
+    private boolean hasTasksForDay(String date) {
+        return calendarPriorityForDay(date)>0;
     }
 
     private void renderCalendar(){
@@ -563,10 +657,19 @@ public class MainActivity extends Activity {
                         && cal.get(Calendar.YEAR)==shownMonth.get(Calendar.YEAR);
                 boolean selected=key.equals(selectedDay);
                 boolean todayCell=key.equals(today());
-                boolean scheduled=hasTasksForDay(key);
-                TextView cell=text(cal.get(Calendar.DAY_OF_MONTH)+(scheduled?" •":""),
+                int markerPriority=calendarPriorityForDay(key);
+                String dateNumber=String.valueOf(cal.get(Calendar.DAY_OF_MONTH));
+                String cellLabel=dateNumber+(markerPriority>0?" •":"");
+                TextView cell=text(cellLabel,
                         13,selected?WHITE:(currentMonth?(todayCell?TEAL:INK):MUTED),
                         selected||todayCell);
+                if(markerPriority>0){
+                    SpannableString styled=new SpannableString(cellLabel);
+                    styled.setSpan(new ForegroundColorSpan(priorityColor(markerPriority)),
+                            dateNumber.length()+1,cellLabel.length(),
+                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    cell.setText(styled);
+                }
                 cell.setGravity(Gravity.CENTER);
                 if(selected)cell.setBackground(rounded(TEAL,11,0));
                 else if(todayCell)cell.setBackground(rounded(Color.rgb(230,244,239),11,0));
@@ -627,6 +730,34 @@ public class MainActivity extends Activity {
         name.setFilters(new android.text.InputFilter[]{
                 new android.text.InputFilter.LengthFilter(90)});
         form.addView(name,lp(-1,-2));
+
+        TextView priorityLabel=text(tr("priority"),14,INK,true);
+        LinearLayout.LayoutParams priorityLabelLp=lp(-1,-2);
+        priorityLabelLp.topMargin=dp(12);
+        form.addView(priorityLabel,priorityLabelLp);
+        LinearLayout priorityChoice=horizontal();
+        TextView colorDot=text("●",27,priorityColor(priority(item)),true);
+        colorDot.setGravity(Gravity.CENTER);
+        priorityChoice.addView(colorDot,lp(32,48));
+        String[] priorityOptions=new String[5];
+        for(int level=1;level<=5;level++){
+            priorityOptions[level-1]=level+" · "+tr(PRIORITY_KEYS[level-1]);
+        }
+        Spinner prioritySpinner=new Spinner(this);
+        prioritySpinner.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item,priorityOptions));
+        prioritySpinner.setSelection(priority(item)-1);
+        priorityChoice.addView(prioritySpinner,new LinearLayout.LayoutParams(0,dp(48),1f));
+        form.addView(priorityChoice,lp(-1,-2));
+        prioritySpinner.setOnItemSelectedListener(
+                new android.widget.AdapterView.OnItemSelectedListener(){
+                    @Override public void onItemSelected(
+                            android.widget.AdapterView<?> parent,View view,int pos,long id){
+                        colorDot.setTextColor(priorityColor(pos+1));
+                    }
+                    @Override public void onNothingSelected(
+                            android.widget.AdapterView<?> parent){}
+                });
 
         TextView startButton=action("");
         Runnable updateStart=()->startButton.setText(tr("start_date")+": "+formatDay(start[0]));
@@ -756,6 +887,7 @@ public class MainActivity extends Activity {
                     item.put("title",newTitle);
                     item.put("start",start[0]);
                     item.put("mode",modes[modeIndex]);
+                    item.put("priority",prioritySpinner.getSelectedItemPosition()+1);
                     item.put("weekdays",weekdaysMask);
                     item.remove("until");
                     item.remove("count");
@@ -835,6 +967,7 @@ public class MainActivity extends Activity {
         resetWhenNewDay();
         if(dateLabel==null||tasksBox==null)return;
         dateLabel.setText(formatDay(selectedDay));
+        renderPriorityFilters();
         renderCalendar();
         updateSummary();
         tasksBox.removeAllViews();
@@ -885,8 +1018,16 @@ public class MainActivity extends Activity {
 
         TextView rule=text(Schedule.description(job,tr("once"),tr("daily"),
                 tr("weekly"),tr("monthly"),tr("yearly")),12,MUTED,false);
-        rule.setPadding(dp(40),dp(3),0,0);
-        card.addView(rule,lp(-1,-2));
+        rule.setPadding(dp(7),dp(3),0,0);
+        LinearLayout metadata=horizontal();
+        metadata.setPadding(dp(40),0,0,0);
+        TextView priorityTag=text("● "+tr(PRIORITY_KEYS[priority(job)-1]),
+                12,priorityColor(priority(job)),true);
+        priorityTag.setContentDescription(tr("priority")+": "+
+                priority(job)+" "+tr(PRIORITY_KEYS[priority(job)-1]));
+        metadata.addView(priorityTag,lp(-2,-2));
+        metadata.addView(rule,lp(-2,-2));
+        card.addView(metadata,lp(-1,-2));
 
         LinearLayout progressLine = horizontal();
         LinearLayout.LayoutParams progressLineLp = lp(-1, -2);

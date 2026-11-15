@@ -63,6 +63,14 @@ final class Languages {
         put("choose_weekday", "Choose a day", "请选择一天", "एक दिन चुनें", "Elige un día", "Choisissez un jour", "اختر يوماً", "একটি দিন বাছুন", "Выберите день", "Escolha pelo menos um dia", "Pilih satu hari", "دن منتخب کریں", "Tag auswählen", "曜日を選択", "Chagua siku", "दिवस निवडा");
         put("bad_end", "End must follow start", "结束不得早于开始", "अंत पहले नहीं हो सकता", "El fin debe ser posterior", "La fin doit suivre le début", "النهاية بعد البداية", "শেষ শুরু থেকে পরে হবে", "Конец после начала", "O término deve ser após o início", "Akhir setelah mulai", "اختتام بعد میں", "Ende nach Start", "終了日は開始日以降", "Mwisho baada ya mwanzo", "शेवट सुरुवातीनंतर");
         put("count_range", "Use 1–10000", "输入1–10000", "1–10000 भरें", "Usa 1–10000", "Entrez 1–10000", "أدخل 1–10000", "১–১০০০০ লিখুন", "Введите 1–10000", "Digite de 1 a 10.000", "Isi 1–10000", "1–10000 لکھیں", "1–10000 eingeben", "1〜10000を入力", "Tumia 1–10000", "1–10000 वापरा");
+        put("priority", "Priority", "优先级", "प्राथमिकता", "Prioridad", "Priorité", "الأولوية", "অগ্রাধিকার", "Приоритет", "Prioridade", "Prioritas", "ترجیح", "Priorität", "優先度", "Kipaumbele", "प्राधान्य");
+        put("filter_priority", "Filter by priority", "按优先级筛选", "प्राथमिकता से छाँटें", "Filtrar por prioridad", "Filtrer par priorité", "تصفية حسب الأولوية", "অগ্রাধিকার অনুযায়ী ফিল্টার", "Фильтр по приоритету", "Filtrar por prioridade", "Filter prioritas", "ترجیح کے مطابق فلٹر", "Nach Priorität filtern", "優先度で絞り込む", "Chuja kwa kipaumbele", "प्राधान्याने फिल्टर");
+        put("all", "All", "全部", "सभी", "Todas", "Toutes", "الكل", "সব", "Все", "Todas", "Semua", "سب", "Alle", "すべて", "Zote", "सर्व");
+        put("green", "Green", "绿色", "हरा", "Verde", "Vert", "أخضر", "সবুজ", "Зелёный", "Verde", "Hijau", "سبز", "Grün", "緑", "Kijani", "हिरवा");
+        put("blue", "Blue", "蓝色", "नीला", "Azul", "Bleu", "أزرق", "নীল", "Синий", "Azul", "Biru", "نیلا", "Blau", "青", "Bluu", "निळा");
+        put("yellow", "Yellow", "黄色", "पीला", "Amarillo", "Jaune", "أصفر", "হলুদ", "Жёлтый", "Amarelo", "Kuning", "پیلا", "Gelb", "黄", "Njano", "पिवळा");
+        put("orange", "Orange", "橙色", "नारंगी", "Naranja", "Orange", "برتقالي", "কমলা", "Оранжевый", "Laranja", "Oranye", "نارنجی", "Orange", "オレンジ", "Chungwa", "नारिंगी");
+        put("red", "Red", "红色", "लाल", "Rojo", "Rouge", "أحمر", "লাল", "Красный", "Vermelho", "Merah", "سرخ", "Rot", "赤", "Nyekundu", "लाल");
     }
 
     private static void put(String key, String... values) {
