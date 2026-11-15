@@ -138,6 +138,8 @@ public class MainActivity extends Activity {
     private int priorityFilter=0;  // 0 = all, 1–5 = chosen level
     private String taskSearch="";
     private String projectFilter="";
+    private String sectionFilter="";
+    private Spinner sectionFilterSpinner;
     private Spinner projectFilterSpinner;
     private TextView dateLabel;
     private TextView percentLabel;
@@ -631,6 +633,11 @@ public class MainActivity extends Activity {
         projectFilterSpinner=new Spinner(this);
         content.addView(projectFilterSpinner,lp(-1,48));
         refreshProjectFilter();
+        TextView sectionFilterLabel=text(tr("filter_section"),13,MUTED,true);
+        content.addView(sectionFilterLabel,lp(-1,-2));
+        sectionFilterSpinner=new Spinner(this);
+        content.addView(sectionFilterSpinner,lp(-1,48));
+        refreshSectionFilter();
 
         LinearLayout form = horizontal();
         taskInput = new EditText(this);
@@ -902,6 +909,18 @@ public class MainActivity extends Activity {
                 new android.text.InputFilter.LengthFilter(60)});
         form.addView(projectEditor,lp(-1,-2));
 
+        TextView sectionLabel=text(tr("section"),14,INK,true);
+        LinearLayout.LayoutParams sectionLabelLp=lp(-1,-2);
+        sectionLabelLp.topMargin=dp(10);
+        form.addView(sectionLabel,sectionLabelLp);
+        EditText sectionEditor=new EditText(this);
+        sectionEditor.setSingleLine(true);
+        sectionEditor.setHint(tr("section_hint"));
+        sectionEditor.setText(item.optString("section",""));
+        sectionEditor.setFilters(new android.text.InputFilter[]{
+                new android.text.InputFilter.LengthFilter(60)});
+        form.addView(sectionEditor,lp(-1,-2));
+
         // Optional free-form details are stored with the task series.
         TextView detailsLabel=text(tr("task_description"),14,INK,true);
         LinearLayout.LayoutParams detailsLabelLp=lp(-1,-2);
@@ -1130,6 +1149,9 @@ public class MainActivity extends Activity {
                     String project=projectEditor.getText().toString().trim();
                     if(project.isEmpty())item.remove("project");
                     else item.put("project",project);
+                    String section=sectionEditor.getText().toString().trim();
+                    if(project.isEmpty() || section.isEmpty())item.remove("section");
+                    else item.put("section",section);
                     item.put("start",start[0]);
                     item.put("mode",modes[modeIndex]);
                     item.put("priority",prioritySpinner.getSelectedItemPosition()+1);
@@ -1214,6 +1236,7 @@ public class MainActivity extends Activity {
         dateLabel.setText(formatDay(selectedDay));
         renderPriorityFilters();
         refreshProjectFilter();
+        refreshSectionFilter();
         renderCalendar();
         renderTaskResults();
     }
@@ -1249,6 +1272,49 @@ public class MainActivity extends Activity {
                         String next=values.get(pos);
                         if(!next.equals(projectFilter)){
                             projectFilter=next;
+                            sectionFilter="";
+                            refreshSectionFilter();
+                            renderCalendar();
+                            renderTaskResults();
+                        }
+                    }
+                    @Override public void onNothingSelected(
+                            android.widget.AdapterView<?> parent){}
+                });
+    }
+
+    /** Sections are scoped to the selected project, never globally shared. */
+    private void refreshSectionFilter(){
+        if(sectionFilterSpinner==null)return;
+        java.util.TreeSet<String> names=new java.util.TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        for(int i=0;i<tasks.length();i++){
+            JSONObject item=tasks.optJSONObject(i);
+            if(item==null)continue;
+            String project=item.optString("project","").trim();
+            String section=item.optString("section","").trim();
+            if(!section.isEmpty() && (projectFilter.isEmpty() || projectFilter.equals(project)))
+                names.add(section);
+        }
+        java.util.ArrayList<String> values=new java.util.ArrayList<>();
+        values.add("");
+        values.addAll(names);
+        if(!sectionFilter.isEmpty() && !names.contains(sectionFilter))sectionFilter="";
+        String[] labels=new String[values.size()];
+        labels[0]=tr("all_sections");
+        for(int i=1;i<labels.length;i++)labels[i]=values.get(i);
+        int selected=values.indexOf(sectionFilter);
+        if(selected<0)selected=0;
+        sectionFilterSpinner.setOnItemSelectedListener(null);
+        sectionFilterSpinner.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item,labels));
+        sectionFilterSpinner.setSelection(selected);
+        sectionFilterSpinner.setOnItemSelectedListener(
+                new android.widget.AdapterView.OnItemSelectedListener(){
+                    @Override public void onItemSelected(
+                            android.widget.AdapterView<?> parent,View view,int pos,long id){
+                        String next=values.get(pos);
+                        if(!next.equals(sectionFilter)){
+                            sectionFilter=next;
                             renderCalendar();
                             renderTaskResults();
                         }
@@ -1310,6 +1376,12 @@ public class MainActivity extends Activity {
         edit.setOnClickListener(v->showScheduleEditor(job,false));
         row.addView(edit,lp(33,33));
 
+        String sectionName=job.optString("section","").trim();
+        if(!sectionName.isEmpty()){
+            TextView sectionTag=text("▸ "+sectionName,12,MUTED,true);
+            sectionTag.setPadding(dp(40),dp(4),0,0);
+            card.addView(sectionTag,lp(-1,-2));
+        }
         String projectName=job.optString("project","").trim();
         if(!projectName.isEmpty()){
             TextView projectTag=text("▣ "+projectName,12,TEAL,true);
