@@ -4,7 +4,7 @@ Atualizado em 2026-11-15. Branch exclusiva: `checklist-orbis`. Não alterar `mai
 
 ## Estado
 - Concorrente atual: **1/15 — Todoist**, em análise e implementação incremental.
-- Próxima ação: confirmar CI dos testes unitários (commit e92debf7), corrigir falhas e só depois implementar duplicação de tarefas; continuar a fila Todoist.
+- Próxima ação: confirmar CI da correção/testes específicos de duplicação (commit 627ba0af), corrigir falhas e só depois avançar para reagendamento; continuar a fila Todoist.
 - Segurança da distribuição: assinatura estável de release **bloqueada** até haver keystore privado e configuração de secrets seguros. Nunca gravar chaves no Git.
 - Implementações existentes verificadas no código: calendário mensal nativo, recorrências, histórico de progresso por data, cinco prioridades, filtros, 15 idiomas, armazenamento local e interface offline.
 - 0/15 concorrentes concluídos; não avançar sem registrar cada funcionalidade pendente, implementada ou bloqueada.
@@ -153,3 +153,11 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **Regressões**: nenhuma falha nos testes JVM e build observada nos jobs consultados; calendário, 15 idiomas, progresso por dia, cores/filtros e dados legados **não foram testados funcionalmente** nesta execução. Nenhum teste físico ou instrumentado executado.
 - **Bloqueio**: assinatura release estável depende de keystore e secrets privados configurados fora do repositório. Nenhuma integração Google Agenda; trabalho restrito à branch checklist-orbis.
 - **Próximo passo**: criar teste específico de duplicação, corrigir série recorrente vencida e confirmar CI; somente depois avançar na fila Todoist.
+
+## Execução 18 — 2026-11-16
+- **Todoist (1/15)**: registro durável e pesquisa inicial consultados antes de alterar código. Duplicação já implementada anteriormente; não duplicada.
+- **Correção da recorrência vencida e testabilidade**: extraída lógica de duplicação para classe Java original `TaskDuplicator`, que gera IDs novos, zera históricos de tarefa/subtarefas e exclui ocorrências ignoradas. Ao deslocar início de uma série com `until`, preserva sua duração em **dias de calendário** e desloca a data final, evitando duplicata invisível quando o fim original já passou; intervalo legado inválido remove o limite final. [Commit da classe](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/de196a2a26f0111587d1d7b86db697f555e3297e).
+- **Testes específicos adicionados**: quatro testes JUnit verificam independência de IDs/históricos, série vencida, duração cruzando ano bissexto e tarefa antiga sem campo de término. [Commit dos testes](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/b4c1227f9b7797caccf996a666c60e19f9c2bbfe).
+- **Integração no aplicativo**: MainActivity agora usa a função testável em vez de duplicar lógica, preservando armazenamento local e interface. [Commit](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/627ba0af99c1e8e9963c38ae413d4cde0849f836).
+- **CI**: workflows [43863359552](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43863359552) e [43863385012](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43863385012) estavam em andamento na consulta. **Ainda não confirmado CI do commit de integração 627ba0af**. Não declarar testes aprovados nem novo APK validado antes da execução final; verificar logs, corrigir regressões, depois avançar para reagendamento.
+- **Cobertura e limitações**: testes novos são JVM; sem dispositivo físico, instrumentação, teste real de backup/restauração, cobertura funcional completa de calendário, 15 idiomas, filtros e dados antigos. Sem alterações deliberadas nessas áreas, mas compatibilidade ainda precisa de validação. Não houve integração Google Agenda. Assinatura release segue bloqueada por keystore/secrets privados não provisionados; não expor credenciais. Branch exclusiva `checklist-orbis`; nenhum outro aplicativo ou `main` alterado.
