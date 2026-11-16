@@ -4,7 +4,7 @@ Atualizado em 2026-11-15. Branch exclusiva: `checklist-orbis`. Não alterar `mai
 
 ## Estado
 - Concorrente atual: **1/15 — Todoist**, em análise e implementação incremental.
-- Próxima ação: verificar CI da persistência local dos filtros (commit 538256a9); depois implementar presets nomeados e testes automatizados.
+- Próxima ação: verificar CI final dos presets nomeados (commit 4e32e3bd), corrigir falhas, adicionar testes automatizados; depois continuar a fila Todoist.
 - Segurança da distribuição: assinatura estável de release **bloqueada** até haver keystore privado e configuração de secrets seguros. Nunca gravar chaves no Git.
 - Implementações existentes verificadas no código: calendário mensal nativo, recorrências, histórico de progresso por data, cinco prioridades, filtros, 15 idiomas, armazenamento local e interface offline.
 - 0/15 concorrentes concluídos; não avançar sem registrar cada funcionalidade pendente, implementada ou bloqueada.
@@ -102,3 +102,11 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **Status de validação**: revisão estática da gravação e recuperação realizada; compilação GitHub Actions do novo commit ainda **não confirmada**. Não marcar recurso como validado até verificar CI e corrigir erros. Nenhum teste em dispositivo ou instrumentado. O workflow de push só compila o APK debug.
 - **Pendente Todoist**: presets de filtros **nomeados** e reutilizáveis (esta implementação preserva apenas o estado atual); testes automatizados de persistência; demais recursos já inventariados. Assinatura estável ainda bloqueada por ausência de keystore privado e secrets seguros.
 - **Próximo passo**: consultar GitHub Actions do commit 538256a9, corrigir falhas se houver e depois avançar para presets nomeados, sem duplicar filtros existentes.
+
+## Execução 12 — 2026-11-16
+- **Todoist (1/15)**: consultado este registro e inventário antes de trabalhar; confirmado CI **success** da persistência de filtros do commit [538256a9](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/538256a90bf41cf4ee037f22dbed9328d91f133e): [run 43800680223](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43800680223).
+- **Implementados em código presets nomeados de filtros**: salvar combinação atual de prioridade, projeto, seção, etiqueta, pesquisa e ordenação; restaurar pela lista de nomes; até 20 presets locais em SharedPreferences, nomes limitados a 40 caracteres; sobrescrever preset com mesmo nome. Sem rede, sem Google Agenda, sem alteração do JSON das tarefas. Commit [5e5e4923](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/5e5e4923e6ceaf1805cc912762046b9002077407).
+- **Traduções em 15 idiomas**: botões e mensagens dos presets. Commit [4e32e3bd](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/4e32e3bd214c053b4e70f2beff0b0c3a4f69d769).
+- **CI**: [run 43807297898](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43807297898) do primeiro commit estava em andamento na consulta. O CI do commit final de traduções ainda não foi confirmado. **Não marcar presets como validados** antes do sucesso do CI final.
+- **Limitações**: não existe ainda exclusão/renomeação de presets, testes automatizados de persistência, teste físico ou instrumentado. Revisão estática das alterações: dados das tarefas, recorrências, calendário, barra percentual e backups não foram modificados; compatibilidade funcional não comprovada em dispositivo. Assinatura release estável segue bloqueada por falta de keystore privado/secrets.
+- **Próxima etapa**: conferir CI do commit final, corrigir erros, acrescentar testes automatizados de persistência e então avançar para próxima funcionalidade Todoist ainda ausente.
