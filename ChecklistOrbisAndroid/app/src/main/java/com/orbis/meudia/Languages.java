@@ -10,6 +10,7 @@ final class Languages {
     static final String[] NAMES = {"English", "中文（普通话）", "हिन्दी", "Español", "Français", "العربية الفصحى", "বাংলা", "Русский", "Português", "Bahasa Indonesia", "اردو", "Deutsch", "日本語", "Kiswahili", "मराठी"};
     private static final Map<String, String[]> MESSAGES = new HashMap<>();
     static {
+        put("reschedule_task", "Reschedule task", "重新安排任务", "कार्य की तारीख बदलें", "Reprogramar tarea", "Replanifier la tâche", "إعادة جدولة المهمة", "কাজের সময়সূচি পরিবর্তন", "Перенести задачу", "Reagendar tarefa", "Jadwalkan ulang tugas", "کام کا وقت دوبارہ طے کریں", "Aufgabe neu terminieren", "タスクの日程を変更", "Panga upya kazi", "कार्याचे वेळापत्रक बदला");
         put("duplicate_task", "Duplicate task", "复制任务", "कार्य की प्रति बनाएँ", "Duplicar tarea", "Dupliquer la tâche", "نسخ المهمة", "কাজের অনুলিপি করুন", "Дублировать задачу", "Duplicar tarefa", "Duplikat tugas", "کام کی نقل بنائیں", "Aufgabe duplizieren", "タスクを複製", "Nakili kazi", "कामाची प्रत बनवा");
         put("preset_name", "Preset name", "预设名称", "प्रीसेट नाम", "Nombre del filtro", "Nom du filtre", "اسم الإعداد", "প্রিসেটের নাম", "Название набора", "Nome do filtro", "Nama preset", "پری سیٹ کا نام", "Filtername", "プリセット名", "Jina la kichujio", "फिल्टरचे नाव");
         put("preset_save", "Save filter", "保存筛选", "फ़िल्टर सहेजें", "Guardar filtro", "Enregistrer le filtre", "حفظ المرشح", "ফিল্টার সংরক্ষণ", "Сохранить фильтр", "Salvar filtro", "Simpan filter", "فلٹر محفوظ کریں", "Filter speichern", "フィルターを保存", "Hifadhi kichujio", "फिल्टर जतन करा");
