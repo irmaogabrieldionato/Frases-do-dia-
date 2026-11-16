@@ -127,3 +127,11 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **CI**: [run 43820976270](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43820976270) estava em fila na consulta. **Não afirmar testes aprovados nem disponibilizar APK novo até conclusão.** Compilação anterior da exclusão de filtros aprovada. Nenhum teste físico ou instrumentado realizado.
 - **Regressões**: código de produção não alterado nesta execução. Os testes acrescentados visam preservar calendário/recorrências; ainda não cobrem 15 idiomas, progresso por dia, prioridades, filtros, importação de dados antigos nem restauração real de backup. Nenhum outro concorrente iniciado, nenhuma funcionalidade duplicada.
 - **Próximo passo**: inspecionar resultados/logs do workflow, corrigir eventuais falhas; depois implementar duplicação de tarefa, uma mudança por vez e com CI aprovado.
+
+
+## Execução 15 — 2026-11-16
+- **Todoist (1/15)**: consultados este registro e a pesquisa competitiva antes de qualquer alteração; não duplicadas funcionalidades já verificadas.
+- **CI dos testes de regressão confirmado**: [run 43820976270](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43820976270), job android **completed/success**. Logs mostram `:app:testDebugUnitTest` com `BUILD SUCCESSFUL` (26 s), seguido de `:app:assembleDebug` com `BUILD SUCCESSFUL` (10 s); etapa de disponibilização do APK também concluída com sucesso. Os cinco testes JVM adicionados na execução 14 passaram no job, mas não substituem testes instrumentados.
+- **Nenhuma nova funcionalidade de produção publicada nesta execução**: verificação de CI e atualização de continuidade; duplicação de tarefas continua na fila, ainda não implementada. Não afirmar que houve teste em aparelho, que backup/restauração foram exercitados ou que todos os 15 idiomas e filtros passaram por testes funcionais.
+- **Regressões**: não detectadas falhas de build/testes neste workflow; cobertura continua parcial, sem validação física de calendário, dados legados, filtros, backup e interface.
+- **Bloqueio**: assinatura estável requer keystore privado e secrets seguros fora do Git; APK do workflow é debug, não release estável. Próximo passo: implementar duplicação de tarefas com ID independente, histórico diário zerado e confirmação de CI, sem alterar `main` nem outros aplicativos.
