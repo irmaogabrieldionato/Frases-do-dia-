@@ -1401,9 +1401,8 @@ public class MainActivity extends Activity {
             return;
         }
         pickDate(item.optString("start",selectedDay),newDay->{
-            if(newDay.equals(item.optString("start","")))return;
             try{
-                item.put("start",newDay);
+                if(!TaskRescheduler.moveOnce(item,newDay))return;
                 save();
                 selectedDay=newDay;
                 shownMonth=Schedule.date(newDay);
