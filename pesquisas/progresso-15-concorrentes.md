@@ -4,7 +4,7 @@ Atualizado em 2026-11-15. Branch exclusiva: `checklist-orbis`. Não alterar `mai
 
 ## Estado
 - Concorrente atual: **1/15 — Todoist**, em análise e implementação incremental.
-- Próxima ação: verificar CI final dos presets nomeados (commit 4e32e3bd), corrigir falhas, adicionar testes automatizados; depois continuar a fila Todoist.
+- Próxima ação: verificar CI final da exclusão de presets (commit 2d182cd3), corrigir falhas, adicionar testes automatizados; depois continuar a fila Todoist.
 - Segurança da distribuição: assinatura estável de release **bloqueada** até haver keystore privado e configuração de secrets seguros. Nunca gravar chaves no Git.
 - Implementações existentes verificadas no código: calendário mensal nativo, recorrências, histórico de progresso por data, cinco prioridades, filtros, 15 idiomas, armazenamento local e interface offline.
 - 0/15 concorrentes concluídos; não avançar sem registrar cada funcionalidade pendente, implementada ou bloqueada.
@@ -110,3 +110,11 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **CI**: [run 43807297898](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43807297898) do primeiro commit estava em andamento na consulta. O CI do commit final de traduções ainda não foi confirmado. **Não marcar presets como validados** antes do sucesso do CI final.
 - **Limitações**: não existe ainda exclusão/renomeação de presets, testes automatizados de persistência, teste físico ou instrumentado. Revisão estática das alterações: dados das tarefas, recorrências, calendário, barra percentual e backups não foram modificados; compatibilidade funcional não comprovada em dispositivo. Assinatura release estável segue bloqueada por falta de keystore privado/secrets.
 - **Próxima etapa**: conferir CI do commit final, corrigir erros, acrescentar testes automatizados de persistência e então avançar para próxima funcionalidade Todoist ainda ausente.
+
+
+## Execução 13 — 2026-11-16
+- **Todoist (1/15)**: confirmado sucesso das compilações de presets nomeados [43807297898](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43807297898) e traduções [43807321501](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43807321501). Compilação não substitui teste em aparelho.
+- **Implementada exclusão local de presets nomeados**: pressionar longamente o botão de carregar filtros abre lista de presets; após seleção, diálogo de confirmação remove somente o preset escolhido de SharedPreferences. O filtro ativo e as tarefas permanecem intactos. Código original, sem rede. Commits [5dc634ae](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/5dc634ae36f8fd77c3cb5e85e7e62f04da9e3398) e [2d182cd3](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/2d182cd3c52cb3c8e720ad0caf25ee17cdcce975).
+- **CI**: execução [43813274381](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43813274381) do primeiro commit ainda em andamento na consulta; verificar especialmente a compilação do commit final 2d182cd3. Não marcar a exclusão como validada até CI final aprovado.
+- **Regressões**: inspeção estática: alteração isolada à UI e à preferência de presets, sem mudança no calendário, 15 idiomas, recorrências, progresso diário, cores/filtros ou JSON das tarefas. Não executados testes instrumentados ou físicos. Próxima etapa: conferir CI, testar exclusão/persistência e avançar à duplicação de tarefas somente após validação.
+- **Bloqueio**: assinatura release estável ainda depende de keystore privado e secrets seguros; não adicionar credenciais ao repositório.
