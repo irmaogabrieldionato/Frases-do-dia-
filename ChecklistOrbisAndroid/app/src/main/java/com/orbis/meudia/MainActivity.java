@@ -256,7 +256,7 @@ public class MainActivity extends Activity {
             .setItems(labels,(dialog,which)->{
                 String selected=labels[which];
                 new AlertDialog.Builder(this).setTitle(selected)
-                    .setMessage(tr("preset_delete_confirm"))
+                    .setMessage(selected + "?")
                     .setNegativeButton(android.R.string.cancel,null)
                     .setPositiveButton(android.R.string.ok,(confirm,button)->{
                         JSONObject latest=readFilterPresets();
