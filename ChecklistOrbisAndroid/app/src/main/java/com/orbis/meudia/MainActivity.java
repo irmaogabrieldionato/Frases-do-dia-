@@ -1381,6 +1381,33 @@ public class MainActivity extends Activity {
         dialog.show();
     }
 
+    /** Duplicate the plan, not its completion history. All IDs must be independent. */
+    private void duplicateTask(JSONObject source){
+        try{
+            JSONObject copy=new JSONObject(source.toString());
+            copy.put("id",UUID.randomUUID().toString());
+            copy.put("start",selectedDay);
+            copy.put("history",new JSONObject());
+            copy.remove("skips");
+            JSONArray subtasks=copy.optJSONArray("subtasks");
+            if(subtasks!=null){
+                for(int i=0;i<subtasks.length();i++){
+                    JSONObject sub=subtasks.optJSONObject(i);
+                    if(sub!=null){
+                        sub.put("id",UUID.randomUUID().toString());
+                        sub.put("history",new JSONObject());
+                    }
+                }
+            }
+            tasks.put(copy);
+            save();
+            render();
+        }catch(JSONException error){
+            new AlertDialog.Builder(this).setMessage(tr("backup_error"))
+                    .setPositiveButton(android.R.string.ok,null).show();
+        }
+    }
+
     private void deleteOccurrence(JSONObject item){
         if("once".equals(item.optString("mode","once"))){
             removeSeries(item);return;
@@ -1618,6 +1645,11 @@ public class MainActivity extends Activity {
         edit.setContentDescription(tr("edit_schedule"));
         edit.setOnClickListener(v->showScheduleEditor(job,false));
         row.addView(edit,lp(33,33));
+        TextView duplicate=text("⧉",21,TEAL,true);
+        duplicate.setGravity(Gravity.CENTER);
+        duplicate.setContentDescription(tr("duplicate_task")+": "+title);
+        duplicate.setOnClickListener(v->duplicateTask(job));
+        row.addView(duplicate,lp(33,33));
 
         String sectionName=job.optString("section","").trim();
         if(!sectionName.isEmpty()){
