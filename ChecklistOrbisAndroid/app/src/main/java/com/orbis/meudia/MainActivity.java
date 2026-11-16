@@ -1384,21 +1384,7 @@ public class MainActivity extends Activity {
     /** Duplicate the plan, not its completion history. All IDs must be independent. */
     private void duplicateTask(JSONObject source){
         try{
-            JSONObject copy=new JSONObject(source.toString());
-            copy.put("id",UUID.randomUUID().toString());
-            copy.put("start",selectedDay);
-            copy.put("history",new JSONObject());
-            copy.remove("skips");
-            JSONArray subtasks=copy.optJSONArray("subtasks");
-            if(subtasks!=null){
-                for(int i=0;i<subtasks.length();i++){
-                    JSONObject sub=subtasks.optJSONObject(i);
-                    if(sub!=null){
-                        sub.put("id",UUID.randomUUID().toString());
-                        sub.put("history",new JSONObject());
-                    }
-                }
-            }
+            JSONObject copy=TaskDuplicator.duplicate(source,selectedDay);
             tasks.put(copy);
             save();
             render();
