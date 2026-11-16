@@ -195,6 +195,79 @@ public class MainActivity extends Activity {
         }
     }
 
+
+    /** Named local filter presets are separate from task backups and never modify task data. */
+    private JSONObject currentFilterSnapshot() throws JSONException {
+        JSONObject state=new JSONObject();
+        state.put("priority",priorityFilter);
+        state.put("project",projectFilter);
+        state.put("section",sectionFilter);
+        state.put("tag",tagFilter);
+        state.put("search",taskSearch);
+        state.put("sort",sortMode);
+        return state;
+    }
+
+    private JSONObject readFilterPresets() {
+        try {
+            return new JSONObject(preferences.getString("named-filter-presets-v1","{}"));
+        } catch (JSONException ignored) {
+            return new JSONObject();
+        }
+    }
+
+    private void saveNamedFilterPreset() {
+        EditText name=new EditText(this);
+        name.setSingleLine(true);
+        name.setHint(tr("preset_name"));
+        name.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(40)});
+        new AlertDialog.Builder(this).setTitle(tr("preset_save"))
+            .setView(name).setNegativeButton(android.R.string.cancel,null)
+            .setPositiveButton(android.R.string.ok,(dialog,which)->{
+                String key=name.getText().toString().trim();
+                if(key.isEmpty())return;
+                try {
+                    JSONObject presets=readFilterPresets();
+                    if(!presets.has(key) && presets.length()>=20){
+                        new AlertDialog.Builder(this).setMessage(tr("preset_limit"))
+                            .setPositiveButton(android.R.string.ok,null).show();
+                        return;
+                    }
+                    presets.put(key,currentFilterSnapshot());
+                    preferences.edit().putString("named-filter-presets-v1",presets.toString()).apply();
+                } catch(JSONException ignored){}
+            }).show();
+    }
+
+    private void loadNamedFilterPreset() {
+        JSONObject presets=readFilterPresets();
+        java.util.ArrayList<String> names=new java.util.ArrayList<>();
+        java.util.Iterator<String> keys=presets.keys();
+        while(keys.hasNext())names.add(keys.next());
+        java.util.Collections.sort(names,String.CASE_INSENSITIVE_ORDER);
+        if(names.isEmpty()){
+            new AlertDialog.Builder(this).setMessage(tr("preset_empty"))
+                .setPositiveButton(android.R.string.ok,null).show();
+            return;
+        }
+        String[] labels=names.toArray(new String[0]);
+        new AlertDialog.Builder(this).setTitle(tr("preset_load"))
+            .setItems(labels,(dialog,which)->{
+                JSONObject saved=presets.optJSONObject(labels[which]);
+                if(saved==null)return;
+                priorityFilter=Math.max(0,Math.min(5,saved.optInt("priority",0)));
+                projectFilter=saved.optString("project","");
+                sectionFilter=saved.optString("section","");
+                tagFilter=saved.optString("tag","");
+                taskSearch=saved.optString("search","");
+                if(taskSearch.length()>200)taskSearch=taskSearch.substring(0,200);
+                sortMode=Math.max(0,Math.min(3,saved.optInt("sort",0)));
+                persistFilterState();
+                makeInterface();
+                render();
+            }).setNegativeButton(android.R.string.cancel,null).show();
+    }
+
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
@@ -700,6 +773,18 @@ public class MainActivity extends Activity {
             @Override public void onNothingSelected(android.widget.AdapterView<?> parent){}
         });
         content.addView(sortSpinner,lp(-1,48));
+
+        LinearLayout presetActions=horizontal();
+        TextView savePreset=action(tr("preset_save"));
+        savePreset.setOnClickListener(v->saveNamedFilterPreset());
+        presetActions.addView(savePreset,new LinearLayout.LayoutParams(0,dp(43),1f));
+        TextView loadPreset=action(tr("preset_load"));
+        loadPreset.setOnClickListener(v->loadNamedFilterPreset());
+        LinearLayout.LayoutParams presetLp=new LinearLayout.LayoutParams(0,dp(43),1f);
+        presetLp.leftMargin=dp(8);
+        presetActions.addView(loadPreset,presetLp);
+        content.addView(presetActions,lp(-1,-2));
+
 
         LinearLayout form = horizontal();
         taskInput = new EditText(this);
