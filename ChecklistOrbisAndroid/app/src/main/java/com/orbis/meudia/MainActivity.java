@@ -150,6 +150,7 @@ public class MainActivity extends Activity {
     private String projectFilter="";
     private String sectionFilter="";
     private String tagFilter="";
+    private int sortMode=0; // creation, priority, name, progress
     private Spinner tagFilterSpinner;
     private Spinner sectionFilterSpinner;
     private Spinner projectFilterSpinner;
@@ -654,6 +655,19 @@ public class MainActivity extends Activity {
         tagFilterSpinner=new Spinner(this);
         content.addView(tagFilterSpinner,lp(-1,48));
         refreshTagFilter();
+
+        content.addView(text(tr("sort_tasks"),13,MUTED,true),lp(-1,-2));
+        Spinner sortSpinner=new Spinner(this);
+        String[] sortLabels={tr("sort_created"),tr("sort_priority"),tr("sort_name"),tr("sort_pending")};
+        sortSpinner.setAdapter(new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item,sortLabels));
+        sortSpinner.setSelection(sortMode);
+        sortSpinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){
+            @Override public void onItemSelected(android.widget.AdapterView<?> parent,View view,int pos,long id){
+                if(sortMode!=pos){sortMode=pos;renderTaskResults();}
+            }
+            @Override public void onNothingSelected(android.widget.AdapterView<?> parent){}
+        });
+        content.addView(sortSpinner,lp(-1,48));
 
         LinearLayout form = horizontal();
         taskInput = new EditText(this);
@@ -1407,11 +1421,16 @@ public class MainActivity extends Activity {
         if(tasksBox==null || emptyLabel==null)return;
         updateSummary();
         tasksBox.removeAllViews();
-        int count=0;
+        java.util.ArrayList<JSONObject> shown=new java.util.ArrayList<>();
         for(int i=0;i<tasks.length();i++){
             JSONObject item=tasks.optJSONObject(i);
-            if(visible(item)){addTaskRow(item);count++;}
+            if(visible(item))shown.add(item);
         }
+        if(sortMode==1)shown.sort((a,b)->Integer.compare(priority(b),priority(a)));
+        else if(sortMode==2)shown.sort((a,b)->a.optString("title","").compareToIgnoreCase(b.optString("title","")));
+        else if(sortMode==3)shown.sort((a,b)->Integer.compare(progress(a),progress(b)));
+        for(JSONObject item:shown)addTaskRow(item);
+        int count=shown.size();
         emptyLabel.setText(count==0 && !taskSearch.isEmpty()
                 ?tr("no_search_results"):tr("empty"));
         emptyLabel.setVisibility(count==0?View.VISIBLE:View.GONE);
