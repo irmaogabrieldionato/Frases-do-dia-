@@ -4,7 +4,7 @@ Atualizado em 2026-11-15. Branch exclusiva: `checklist-orbis`. Não alterar `mai
 
 ## Estado
 - Concorrente atual: **1/15 — Todoist**, em análise e implementação incremental.
-- Próxima ação: verificar CI das etiquetas e corrigir eventuais falhas; depois implementar ordenação de tarefas e filtros avançados do Todoist.
+- Próxima ação: verificar CI da correção de compilação das traduções de ordenação; só depois implementar filtros avançados salvos do Todoist.
 - Segurança da distribuição: assinatura estável de release **bloqueada** até haver keystore privado e configuração de secrets seguros. Nunca gravar chaves no Git.
 - Implementações existentes verificadas no código: calendário mensal nativo, recorrências, histórico de progresso por data, cinco prioridades, filtros, 15 idiomas, armazenamento local e interface offline.
 - 0/15 concorrentes concluídos; não avançar sem registrar cada funcionalidade pendente, implementada ou bloqueada.
@@ -83,3 +83,9 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **Revisão de regressões**: o código de ordenação só cria lista temporária de objetos visíveis, sem mutação de tarefas, recorrências ou histórico. Não altera o calendário, filtros, barra percentual, backups ou dados legados. Revisão estática, não prova funcional em dispositivo.
 - **Pendentes**: filtros avançados salvos, duplicação, reagendamento, lembretes, prazo separado, tempo/duração, estatísticas e demais funcionalidades do Todoist inventariadas. **Bloqueio** de assinatura estável persiste por ausência de keystore/segredos privados.
 - **Próximo passo**: verificar a compilação final; corrigir falhas, depois implementar filtros combinados salvos, uma funcionalidade por vez.
+
+## Execução 9 — 2026-11-15
+- **Todoist (1/15)**: investigados os workflows de ordenação. [43783381364](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43783381364) compilou com sucesso o código inicial, mas [43783385368](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43783385368) e [43783406158](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43783406158) **falharam** em compileDebugJavaWithJavac: cinco chamadas `put("sort_*", ...)` foram inseridas fora do bloco de inicialização estática de `Languages.java` (10 erros de compilação). 
+- **Correção aplicada**: movidas as cinco traduções existentes para dentro do inicializador estático, preservando os 15 idiomas e a lógica de ordenação. Commit [744aff5e](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/744aff5ed59997bd3ca99659fd390671c99836fd).
+- **Validação**: causa confirmada pelos logs do GitHub Actions; compilação da correção ainda não apareceu como concluída na consulta. Não declarar o novo APK aprovado antes do CI. Nenhum teste em aparelho ou instrumentado realizado.
+- **Próximo passo**: verificar o workflow do commit 744aff5e e corrigir qualquer erro remanescente. Depois implementar filtros combinados salvos, com teste de persistência e regressão. Assinatura release estável permanece bloqueada por falta de keystore privado.
