@@ -164,6 +164,37 @@ public class MainActivity extends Activity {
     private View progressFill;
     private EditText taskInput;
 
+    /** Persist only view preferences, never task data or completion history. */
+    private void restoreFilterState() {
+        try {
+            JSONObject state=new JSONObject(preferences.getString("saved-filter-state-v1","{}"));
+            priorityFilter=Math.max(0,Math.min(5,state.optInt("priority",0)));
+            projectFilter=state.optString("project","");
+            sectionFilter=state.optString("section","");
+            tagFilter=state.optString("tag","");
+            taskSearch=state.optString("search","");
+            if(taskSearch.length()>200)taskSearch=taskSearch.substring(0,200);
+            sortMode=Math.max(0,Math.min(3,state.optInt("sort",0)));
+        } catch (org.json.JSONException ignored) {
+            // Invalid preferences must not prevent opening the task list.
+        }
+    }
+
+    private void persistFilterState() {
+        JSONObject state=new JSONObject();
+        try {
+            state.put("priority",priorityFilter);
+            state.put("project",projectFilter);
+            state.put("section",sectionFilter);
+            state.put("tag",tagFilter);
+            state.put("search",taskSearch);
+            state.put("sort",sortMode);
+            preferences.edit().putString("saved-filter-state-v1",state.toString()).apply();
+        } catch (org.json.JSONException ignored) {
+            // Display filtering remains usable even if preferences cannot serialize.
+        }
+    }
+
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
@@ -173,6 +204,7 @@ public class MainActivity extends Activity {
                 View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
         preferences = getSharedPreferences("meu-dia-dados-v1", MODE_PRIVATE);
         selectedLanguage = preferences.getString("app-language", null);
+        restoreFilterState();
         if (Languages.index(selectedLanguage) < 0) {
             showLanguagePicker(true);
         } else {
@@ -1419,6 +1451,7 @@ public class MainActivity extends Activity {
     /** Rebuild results only; do not reconstruct the search field while typing. */
     private void renderTaskResults(){
         if(tasksBox==null || emptyLabel==null)return;
+        persistFilterState();
         updateSummary();
         tasksBox.removeAllViews();
         java.util.ArrayList<JSONObject> shown=new java.util.ArrayList<>();
