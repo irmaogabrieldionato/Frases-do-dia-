@@ -1394,6 +1394,24 @@ public class MainActivity extends Activity {
         }
     }
 
+    /** Replan a one-time task without rewriting completion history for past dates. */
+    private void rescheduleTask(JSONObject item){
+        if(!"once".equals(item.optString("mode","once"))){
+            showScheduleEditor(item,false);
+            return;
+        }
+        pickDate(item.optString("start",selectedDay),newDay->{
+            if(newDay.equals(item.optString("start","")))return;
+            try{
+                item.put("start",newDay);
+                save();
+                selectedDay=newDay;
+                shownMonth=Schedule.date(newDay);
+                render();
+            }catch(JSONException ignored){}
+        });
+    }
+
     private void deleteOccurrence(JSONObject item){
         if("once".equals(item.optString("mode","once"))){
             removeSeries(item);return;
@@ -1635,6 +1653,11 @@ public class MainActivity extends Activity {
         duplicate.setGravity(Gravity.CENTER);
         duplicate.setContentDescription(tr("duplicate_task")+": "+title);
         duplicate.setOnClickListener(v->duplicateTask(job));
+        TextView replan=text("↪",21,TEAL,true);
+        replan.setGravity(Gravity.CENTER);
+        replan.setContentDescription(tr("start_date")+": "+title);
+        replan.setOnClickListener(v->rescheduleTask(job));
+        row.addView(replan,lp(33,33));
         row.addView(duplicate,lp(33,33));
 
         String sectionName=job.optString("section","").trim();
