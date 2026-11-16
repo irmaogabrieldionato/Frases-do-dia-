@@ -95,13 +95,13 @@ final class Languages {
         put("tags_hint", "Comma-separated tags (up to 12)", "用逗号分隔标签（最多12个）", "कॉमा से अलग टैग (अधिकतम 12)", "Etiquetas separadas por comas (hasta 12)", "Étiquettes séparées par des virgules (12 max.)", "وسوم مفصولة بفواصل (حتى 12)", "কমা দিয়ে ট্যাগ লিখুন (সর্বোচ্চ ১২)", "Метки через запятую (до 12)", "Etiquetas separadas por vírgulas (até 12)", "Pisahkan label dengan koma (maks. 12)", "کاما سے الگ ٹیگز (زیادہ سے زیادہ 12)", "Schlagwörter mit Komma trennen (max. 12)", "カンマ区切りのタグ（最大12個）", "Lebo zitenganishwe kwa koma (hadi 12)", "स्वल्पविरामाने वेगळे टॅग (कमाल १२)");
         put("filter_tags", "Filter by tag", "按标签筛选", "टैग से फ़िल्टर", "Filtrar por etiqueta", "Filtrer par étiquette", "تصفية حسب الوسم", "ট্যাগ অনুযায়ী ফিল্টার", "Фильтр по метке", "Filtrar por etiqueta", "Filter berdasarkan label", "ٹیگ کے لحاظ سے فلٹر", "Nach Schlagwort filtern", "タグで絞り込む", "Chuja kwa lebo", "टॅगनुसार फिल्टर");
         put("all_tags", "All tags", "所有标签", "सभी टैग", "Todas las etiquetas", "Toutes les étiquettes", "كل الوسوم", "সব ট্যাগ", "Все метки", "Todas as etiquetas", "Semua label", "تمام ٹیگز", "Alle Schlagwörter", "すべてのタグ", "Lebo zote", "सर्व टॅग");
-    }
-
         put("sort_tasks", "Sort tasks", "任务排序", "कार्य क्रमबद्ध करें", "Ordenar tareas", "Trier les tâches", "ترتيب المهام", "কাজ সাজান", "Сортировка задач", "Ordenar tarefas", "Urutkan tugas", "کام ترتیب دیں", "Aufgaben sortieren", "タスクの並べ替え", "Panga kazi", "कामांची क्रमवारी");
         put("sort_created", "Creation order", "创建顺序", "बनाने का क्रम", "Orden de creación", "Ordre de création", "ترتيب الإنشاء", "তৈরির ক্রম", "Порядок создания", "Ordem de criação", "Urutan dibuat", "بنانے کی ترتیب", "Erstellungsreihenfolge", "作成順", "Mpangilio wa kuundwa", "निर्मितीचा क्रम");
         put("sort_priority", "Highest priority first", "高优先级优先", "उच्च प्राथमिकता पहले", "Mayor prioridad primero", "Priorité haute d’abord", "الأعلى أولوية أولاً", "উচ্চ অগ্রাধিকার আগে", "Высокий приоритет сначала", "Maior prioridade primeiro", "Prioritas tertinggi dulu", "زیادہ ترجیح پہلے", "Höchste Priorität zuerst", "優先度が高い順", "Kipaumbele kikubwa kwanza", "उच्च प्राधान्य आधी");
         put("sort_name", "Name A–Z", "名称 A–Z", "नाम A–Z", "Nombre A–Z", "Nom A–Z", "الاسم أ–ي", "নাম A–Z", "Название А–Я", "Nome A–Z", "Nama A–Z", "نام الف تا ی", "Name A–Z", "名前順", "Jina A–Z", "नाव A–Z");
         put("sort_pending", "Least progress first", "进度低的优先", "कम प्रगति पहले", "Menor progreso primero", "Moins avancées d’abord", "الأقل تقدماً أولاً", "কম অগ্রগতি আগে", "Меньший прогресс сначала", "Menor progresso primeiro", "Progres terendah dulu", "کم پیشرفت پہلے", "Geringster Fortschritt zuerst", "進捗が低い順", "Maendeleo kidogo kwanza", "कमी प्रगती आधी");
+    }
+
     private static void put(String key, String... values) {
         if (values.length != CODES.length) throw new IllegalArgumentException(key);
         MESSAGES.put(key, values);
