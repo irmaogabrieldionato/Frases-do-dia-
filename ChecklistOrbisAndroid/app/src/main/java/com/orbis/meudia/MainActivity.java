@@ -1426,9 +1426,9 @@ public class MainActivity extends Activity {
             JSONObject item=tasks.optJSONObject(i);
             if(visible(item))shown.add(item);
         }
-        if(sortMode==1)shown.sort((a,b)->Integer.compare(priority(b),priority(a)));
-        else if(sortMode==2)shown.sort((a,b)->a.optString("title","").compareToIgnoreCase(b.optString("title","")));
-        else if(sortMode==3)shown.sort((a,b)->Integer.compare(progress(a),progress(b)));
+        if(sortMode==1)java.util.Collections.sort(shown,(a,b)->Integer.compare(priority(b),priority(a)));
+        else if(sortMode==2)java.util.Collections.sort(shown,(a,b)->a.optString("title","").compareToIgnoreCase(b.optString("title","")));
+        else if(sortMode==3)java.util.Collections.sort(shown,(a,b)->Integer.compare(progress(a),progress(b)));
         for(JSONObject item:shown)addTaskRow(item);
         int count=shown.size();
         emptyLabel.setText(count==0 && !taskSearch.isEmpty()
