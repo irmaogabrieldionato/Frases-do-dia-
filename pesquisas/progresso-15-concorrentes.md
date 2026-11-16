@@ -4,7 +4,7 @@ Atualizado em 2026-11-15. Branch exclusiva: `checklist-orbis`. Não alterar `mai
 
 ## Estado
 - Concorrente atual: **1/15 — Todoist**, em análise e implementação incremental.
-- Próxima ação: verificar CI final da exclusão de presets (commit 2d182cd3), corrigir falhas, adicionar testes automatizados; depois continuar a fila Todoist.
+- Próxima ação: confirmar CI dos testes unitários (commit e92debf7), corrigir falhas e só depois implementar duplicação de tarefas; continuar a fila Todoist.
 - Segurança da distribuição: assinatura estável de release **bloqueada** até haver keystore privado e configuração de secrets seguros. Nunca gravar chaves no Git.
 - Implementações existentes verificadas no código: calendário mensal nativo, recorrências, histórico de progresso por data, cinco prioridades, filtros, 15 idiomas, armazenamento local e interface offline.
 - 0/15 concorrentes concluídos; não avançar sem registrar cada funcionalidade pendente, implementada ou bloqueada.
@@ -118,3 +118,12 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **CI**: execução [43813274381](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43813274381) do primeiro commit ainda em andamento na consulta; verificar especialmente a compilação do commit final 2d182cd3. Não marcar a exclusão como validada até CI final aprovado.
 - **Regressões**: inspeção estática: alteração isolada à UI e à preferência de presets, sem mudança no calendário, 15 idiomas, recorrências, progresso diário, cores/filtros ou JSON das tarefas. Não executados testes instrumentados ou físicos. Próxima etapa: conferir CI, testar exclusão/persistência e avançar à duplicação de tarefas somente após validação.
 - **Bloqueio**: assinatura release estável ainda depende de keystore privado e secrets seguros; não adicionar credenciais ao repositório.
+
+
+## Execução 14 — 2026-11-16
+- **Todoist (1/15)**: lidos registro e pesquisa inicial antes de alterar o código. CI final da exclusão de filtros nomeados [43813286546](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43813286546) confirmado **success**, commit 2d182cd3. Exclusão considerada compilada, mas não testada em dispositivo.
+- **Prioridade de segurança**: assinatura de release segue bloqueada por falta de keystore privado e configuração segura de secrets; backup JSON já existe. Não inserir credenciais.
+- **Nova cobertura automatizada, sem funcionalidade de interface**: dependências de teste JUnit 4 e org.json [09ac0c19](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/09ac0c19554a027f8f35238b357234ca7f40a5f1); cinco testes JVM para recorrência mensal em meses curtos, anual em 29/02, máscara semanal e limite, exclusões/data final, contagem de dias em transições DST [8fec5339](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/8fec533921f218c2fd26b75246adea8c3d2c0b12); workflow alterado para executar testDebugUnitTest antes de assembleDebug [e92debf7](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/e92debf7670c7bc014e69071246a8d7e65ec246a).
+- **CI**: [run 43820976270](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43820976270) estava em fila na consulta. **Não afirmar testes aprovados nem disponibilizar APK novo até conclusão.** Compilação anterior da exclusão de filtros aprovada. Nenhum teste físico ou instrumentado realizado.
+- **Regressões**: código de produção não alterado nesta execução. Os testes acrescentados visam preservar calendário/recorrências; ainda não cobrem 15 idiomas, progresso por dia, prioridades, filtros, importação de dados antigos nem restauração real de backup. Nenhum outro concorrente iniciado, nenhuma funcionalidade duplicada.
+- **Próximo passo**: inspecionar resultados/logs do workflow, corrigir eventuais falhas; depois implementar duplicação de tarefa, uma mudança por vez e com CI aprovado.
