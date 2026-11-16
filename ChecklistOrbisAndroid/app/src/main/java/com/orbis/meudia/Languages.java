@@ -10,6 +10,7 @@ final class Languages {
     static final String[] NAMES = {"English", "中文（普通话）", "हिन्दी", "Español", "Français", "العربية الفصحى", "বাংলা", "Русский", "Português", "Bahasa Indonesia", "اردو", "Deutsch", "日本語", "Kiswahili", "मराठी"};
     private static final Map<String, String[]> MESSAGES = new HashMap<>();
     static {
+        put("duplicate_task", "Duplicate task", "复制任务", "कार्य की प्रति बनाएँ", "Duplicar tarea", "Dupliquer la tâche", "نسخ المهمة", "কাজের অনুলিপি করুন", "Дублировать задачу", "Duplicar tarefa", "Duplikat tugas", "کام کی نقل بنائیں", "Aufgabe duplizieren", "タスクを複製", "Nakili kazi", "कामाची प्रत बनवा");
         put("preset_name", "Preset name", "预设名称", "प्रीसेट नाम", "Nombre del filtro", "Nom du filtre", "اسم الإعداد", "প্রিসেটের নাম", "Название набора", "Nome do filtro", "Nama preset", "پری سیٹ کا نام", "Filtername", "プリセット名", "Jina la kichujio", "फिल्टरचे नाव");
         put("preset_save", "Save filter", "保存筛选", "फ़िल्टर सहेजें", "Guardar filtro", "Enregistrer le filtre", "حفظ المرشح", "ফিল্টার সংরক্ষণ", "Сохранить фильтр", "Salvar filtro", "Simpan filter", "فلٹر محفوظ کریں", "Filter speichern", "フィルターを保存", "Hifadhi kichujio", "फिल्टर जतन करा");
         put("preset_load", "Load filter", "加载筛选", "फ़िल्टर खोलें", "Cargar filtro", "Charger un filtre", "تحميل المرشح", "ফিল্টার খুলুন", "Загрузить фильтр", "Carregar filtro", "Muat filter", "فلٹر لوڈ کریں", "Filter laden", "フィルターを読み込む", "Pakia kichujio", "फिल्टर उघडा");
