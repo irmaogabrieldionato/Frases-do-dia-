@@ -35,6 +35,18 @@ public class TaskReschedulerTest {
         assertEquals(30, recurring.getJSONObject("history").getInt("2026-11-01"));
     }
 
+    @Test public void invalidCalendarDatesAreRejectedWithoutMutation() throws Exception {
+        JSONObject task = new JSONObject().put("mode", "once").put("start", "2026-11-01")
+                .put("history", new JSONObject().put("2026-11-01", 40));
+        for (String invalid : new String[]{"2026-02-29", "2026-04-31", "2026-13-01", "2026-00-01", "2026-11-00"}) {
+            assertFalse(TaskRescheduler.moveOnce(task, invalid));
+            assertEquals("2026-11-01", task.getString("start"));
+            assertEquals(40, task.getJSONObject("history").getInt("2026-11-01"));
+        }
+        assertTrue(TaskRescheduler.moveOnce(task, "2028-02-29"));
+        assertEquals("2028-02-29", task.getString("start"));
+    }
+
     @Test public void legacyTaskWithoutHistoryCanMove() throws Exception {
         JSONObject old = new JSONObject().put("title", "legacy").put("start", "2026-01-01");
         assertTrue(TaskRescheduler.moveOnce(old, "2026-11-16"));
