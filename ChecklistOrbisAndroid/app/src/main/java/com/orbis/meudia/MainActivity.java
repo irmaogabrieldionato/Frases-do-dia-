@@ -1655,7 +1655,7 @@ public class MainActivity extends Activity {
         duplicate.setOnClickListener(v->duplicateTask(job));
         TextView replan=text("↪",21,TEAL,true);
         replan.setGravity(Gravity.CENTER);
-        replan.setContentDescription(tr("start_date")+": "+title);
+        replan.setContentDescription(tr("reschedule_task")+": "+title);
         replan.setOnClickListener(v->rescheduleTask(job));
         row.addView(replan,lp(33,33));
         row.addView(duplicate,lp(33,33));
