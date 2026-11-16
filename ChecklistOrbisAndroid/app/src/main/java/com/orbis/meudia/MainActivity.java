@@ -239,6 +239,33 @@ public class MainActivity extends Activity {
             }).show();
     }
 
+    /** Long-press the preset load control to remove a saved filter after confirmation. */
+    private void deleteNamedFilterPreset() {
+        JSONObject presets=readFilterPresets();
+        java.util.ArrayList<String> names=new java.util.ArrayList<>();
+        java.util.Iterator<String> keys=presets.keys();
+        while(keys.hasNext())names.add(keys.next());
+        java.util.Collections.sort(names,String.CASE_INSENSITIVE_ORDER);
+        if(names.isEmpty()){
+            new AlertDialog.Builder(this).setMessage(tr("preset_empty"))
+                .setPositiveButton(android.R.string.ok,null).show();
+            return;
+        }
+        String[] labels=names.toArray(new String[0]);
+        new AlertDialog.Builder(this).setTitle(tr("preset_load"))
+            .setItems(labels,(dialog,which)->{
+                String selected=labels[which];
+                new AlertDialog.Builder(this).setTitle(selected)
+                    .setMessage(tr("preset_delete_confirm"))
+                    .setNegativeButton(android.R.string.cancel,null)
+                    .setPositiveButton(android.R.string.ok,(confirm,button)->{
+                        JSONObject latest=readFilterPresets();
+                        latest.remove(selected);
+                        preferences.edit().putString("named-filter-presets-v1",latest.toString()).apply();
+                    }).show();
+            }).setNegativeButton(android.R.string.cancel,null).show();
+    }
+
     private void loadNamedFilterPreset() {
         JSONObject presets=readFilterPresets();
         java.util.ArrayList<String> names=new java.util.ArrayList<>();
@@ -780,6 +807,7 @@ public class MainActivity extends Activity {
         presetActions.addView(savePreset,new LinearLayout.LayoutParams(0,dp(43),1f));
         TextView loadPreset=action(tr("preset_load"));
         loadPreset.setOnClickListener(v->loadNamedFilterPreset());
+        loadPreset.setOnLongClickListener(v->{deleteNamedFilterPreset();return true;});
         LinearLayout.LayoutParams presetLp=new LinearLayout.LayoutParams(0,dp(43),1f);
         presetLp.leftMargin=dp(8);
         presetActions.addView(loadPreset,presetLp);
