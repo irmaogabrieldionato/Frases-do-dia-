@@ -4,7 +4,7 @@ Atualizado em 2026-11-15. Branch exclusiva: `checklist-orbis`. Não alterar `mai
 
 ## Estado
 - Concorrente atual: **1/15 — Todoist**, em análise e implementação incremental.
-- Próxima ação: verificar CI da correção de compilação das traduções de ordenação; só depois implementar filtros avançados salvos do Todoist.
+- Próxima ação: verificar CI da persistência local dos filtros (commit 538256a9); depois implementar presets nomeados e testes automatizados.
 - Segurança da distribuição: assinatura estável de release **bloqueada** até haver keystore privado e configuração de secrets seguros. Nunca gravar chaves no Git.
 - Implementações existentes verificadas no código: calendário mensal nativo, recorrências, histórico de progresso por data, cinco prioridades, filtros, 15 idiomas, armazenamento local e interface offline.
 - 0/15 concorrentes concluídos; não avançar sem registrar cada funcionalidade pendente, implementada ou bloqueada.
@@ -95,3 +95,10 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **Auditoria de continuidade**: lidos o inventário competitivo, este registro, a lista real de arquivos Java e o código atual de MainActivity.java na branch checklist-orbis. Campos existentes confirmados: filtros de prioridade, projeto, seção, etiqueta, pesquisa e ordenação. Não duplicar esses recursos.
 - **Nenhuma funcionalidade nova publicada nesta execução**: não foi possível completar implementação + teste + CI de filtros salvos dentro desta janela; não registrar recurso como concluído prematuramente. A execução verificou e desbloqueou a fila após a correção anterior.
 - **Próxima funcionalidade**: filtros combinados salvos e restauráveis localmente (preferências), incluindo testes de persistência, sem mudar histórico, recorrências, calendário, idiomas e backup de tarefas. Não há testes instrumentados ou físicos novos; assinatura estável segue condicionada a keystore privado.
+
+## Execução 11 — 2026-11-16
+- **Todoist (1/15)**: conferido este registro e o inventário antes da alteração; a compilação de correção anterior [43789335033](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/43789335033) permanece aprovada.
+- **Implementação incremental de filtros persistentes**: o aplicativo agora grava localmente, em SharedPreferences, a combinação atual de prioridade, projeto, seção, etiqueta, texto pesquisado e ordenação, restaurando-a na abertura. Campos limitados/validados ao restaurar; JSON inválido não impede abrir o app. Não altera tarefas, backups, recorrências nem histórico por data. Commit [538256a9](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/538256a90bf41cf4ee037f22dbed9328d91f133e).
+- **Status de validação**: revisão estática da gravação e recuperação realizada; compilação GitHub Actions do novo commit ainda **não confirmada**. Não marcar recurso como validado até verificar CI e corrigir erros. Nenhum teste em dispositivo ou instrumentado. O workflow de push só compila o APK debug.
+- **Pendente Todoist**: presets de filtros **nomeados** e reutilizáveis (esta implementação preserva apenas o estado atual); testes automatizados de persistência; demais recursos já inventariados. Assinatura estável ainda bloqueada por ausência de keystore privado e secrets seguros.
+- **Próximo passo**: consultar GitHub Actions do commit 538256a9, corrigir falhas se houver e depois avançar para presets nomeados, sem duplicar filtros existentes.
