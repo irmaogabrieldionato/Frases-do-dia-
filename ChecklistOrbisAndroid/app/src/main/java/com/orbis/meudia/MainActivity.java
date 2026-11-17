@@ -1194,6 +1194,24 @@ public class MainActivity extends Activity {
             updateStart.run();
         }));
 
+        // Optional deadline belongs to the task, not to any occurrence or progress history.
+        final String[] deadline={TaskDeadline.get(item)};
+        TextView deadlineButton=action("");
+        Runnable refreshDeadline=()->deadlineButton.setText(tr("deadline")+": "+
+                (deadline[0].isEmpty()?tr("no_deadline"):formatDay(deadline[0])));
+        refreshDeadline.run();
+        LinearLayout.LayoutParams deadlineLp=lp(-1,52);
+        deadlineLp.topMargin=dp(8);
+        form.addView(deadlineButton,deadlineLp);
+        deadlineButton.setOnClickListener(v->pickDate(
+                deadline[0].isEmpty()?start[0]:deadline[0],day->{
+                    deadline[0]=day;
+                    refreshDeadline.run();
+                }));
+        TextView clearDeadline=action(tr("clear_deadline"));
+        form.addView(clearDeadline,lp(-1,44));
+        clearDeadline.setOnClickListener(v->{deadline[0]="";refreshDeadline.run();});
+
         TextView repeatLabel=text(tr("repeat"),14,INK,true);
         LinearLayout.LayoutParams repeatLp=lp(-1,-2);
         repeatLp.topMargin=dp(10);
@@ -1358,6 +1376,8 @@ public class MainActivity extends Activity {
                     for(String tag:uniqueTags)newTags.put(tag);
                     if(newTags.length()==0)item.remove("tags");
                     else item.put("tags",newTags);
+                    if(deadline[0].isEmpty())TaskDeadline.clear(item);
+                    else TaskDeadline.set(item,deadline[0]);
                     item.put("start",start[0]);
                     item.put("mode",modes[modeIndex]);
                     item.put("priority",prioritySpinner.getSelectedItemPosition()+1);
@@ -1694,6 +1714,13 @@ public class MainActivity extends Activity {
         metadata.addView(priorityTag,lp(-2,-2));
         metadata.addView(rule,lp(-2,-2));
         card.addView(metadata,lp(-1,-2));
+
+        String deadlineDay=TaskDeadline.get(job);
+        if(!deadlineDay.isEmpty()){
+            TextView deadlineTag=text(tr("deadline")+": "+formatDay(deadlineDay),12,MUTED,true);
+            deadlineTag.setPadding(dp(40),dp(4),0,0);
+            card.addView(deadlineTag,lp(-1,-2));
+        }
 
         String detailsText=job.optString("description","").trim();
         if(!detailsText.isEmpty()){
