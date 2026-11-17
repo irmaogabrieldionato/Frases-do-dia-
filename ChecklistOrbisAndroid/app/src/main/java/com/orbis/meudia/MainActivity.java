@@ -1212,6 +1212,29 @@ public class MainActivity extends Activity {
         form.addView(clearDeadline,lp(-1,44));
         clearDeadline.setOnClickListener(v->{deadline[0]="";refreshDeadline.run();});
 
+        // Optional wall-clock time is independent of date, deadline and recurrence.
+        final String[] localTime={TaskTime.getTime(item)};
+        TextView timeButton=action("");
+        Runnable refreshTime=()->timeButton.setText(tr("task_time")+": "+
+                (localTime[0].isEmpty()?tr("no_task_time"):localTime[0]));
+        refreshTime.run();
+        form.addView(timeButton,lp(-1,52));
+        timeButton.setOnClickListener(v->{
+            Calendar now=Calendar.getInstance();
+            int hour=now.get(Calendar.HOUR_OF_DAY),minute=now.get(Calendar.MINUTE);
+            if(!localTime[0].isEmpty()){
+                hour=Integer.parseInt(localTime[0].substring(0,2));
+                minute=Integer.parseInt(localTime[0].substring(3,5));
+            }
+            new android.app.TimePickerDialog(this,(picker,h,m)->{
+                localTime[0]=String.format(Locale.ROOT,"%02d:%02d",h,m);
+                refreshTime.run();
+            },hour,minute,true).show();
+        });
+        TextView clearTime=action(tr("clear_task_time"));
+        form.addView(clearTime,lp(-1,44));
+        clearTime.setOnClickListener(v->{localTime[0]="";refreshTime.run();});
+
         TextView repeatLabel=text(tr("repeat"),14,INK,true);
         LinearLayout.LayoutParams repeatLp=lp(-1,-2);
         repeatLp.topMargin=dp(10);
@@ -1378,6 +1401,8 @@ public class MainActivity extends Activity {
                     else item.put("tags",newTags);
                     if(deadline[0].isEmpty())TaskDeadline.clear(item);
                     else TaskDeadline.set(item,deadline[0]);
+                    if(localTime[0].isEmpty())TaskTime.clearTime(item);
+                    else TaskTime.setTime(item,localTime[0]);
                     item.put("start",start[0]);
                     item.put("mode",modes[modeIndex]);
                     item.put("priority",prioritySpinner.getSelectedItemPosition()+1);
@@ -1720,6 +1745,13 @@ public class MainActivity extends Activity {
             TextView deadlineTag=text(tr("deadline")+": "+formatDay(deadlineDay),12,MUTED,true);
             deadlineTag.setPadding(dp(40),dp(4),0,0);
             card.addView(deadlineTag,lp(-1,-2));
+        }
+
+        String taskTime=TaskTime.getTime(job);
+        if(!taskTime.isEmpty()){
+            TextView timeTag=text(tr("task_time")+": "+taskTime,12,MUTED,true);
+            timeTag.setPadding(dp(40),dp(4),0,0);
+            card.addView(timeTag,lp(-1,-2));
         }
 
         String detailsText=job.optString("description","").trim();
