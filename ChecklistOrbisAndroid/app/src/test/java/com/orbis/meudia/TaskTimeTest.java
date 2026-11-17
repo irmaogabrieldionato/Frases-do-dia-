@@ -48,5 +48,11 @@ public class TaskTimeTest {
         assertEquals(0, TaskTime.getDurationMinutes(legacy));
         assertTrue(TaskTime.clearTime(legacy));
         assertTrue(TaskTime.clearDuration(legacy));
+        legacy.put("durationMinutes", 4294967297L);
+        assertEquals(0, TaskTime.getDurationMinutes(legacy));
+        legacy.put("durationMinutes", -4294967295L);
+        assertEquals(0, TaskTime.getDurationMinutes(legacy));
+        legacy.put("durationMinutes", 90.5);
+        assertEquals(0, TaskTime.getDurationMinutes(legacy));
     }
 }
