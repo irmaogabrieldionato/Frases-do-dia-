@@ -27,7 +27,7 @@ final class TaskTime {
         if (!(value instanceof Number)) return 0;
         Number number = (Number) value;
         double decimal = number.doubleValue();
-        if (!Double.isFinite(decimal) || decimal != Math.rint(decimal)) return 0;
+        if (!Double.isFinite(decimal) || decimal != Math.rint(decimal) || decimal < 1 || decimal > 1440) return 0;
         int minutes = number.intValue();
         return minutes >= 1 && minutes <= 1440 ? minutes : 0;
     }
