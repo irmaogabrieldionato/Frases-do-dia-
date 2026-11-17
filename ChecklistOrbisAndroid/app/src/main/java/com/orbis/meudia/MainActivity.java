@@ -1235,6 +1235,31 @@ public class MainActivity extends Activity {
         form.addView(clearTime,lp(-1,44));
         clearTime.setOnClickListener(v->{localTime[0]="";refreshTime.run();});
 
+        // Estimated duration is optional and stored separately from progress and recurrence.
+        final int[] durationMinutes={TaskTime.getDurationMinutes(item)};
+        TextView durationButton=action("");
+        Runnable refreshDuration=()->durationButton.setText(tr("task_duration")+": "+
+                (durationMinutes[0]==0?tr("no_task_duration"):durationMinutes[0]+" "+tr("duration_minutes")));
+        refreshDuration.run();
+        form.addView(durationButton,lp(-1,52));
+        durationButton.setOnClickListener(v->{
+            android.widget.NumberPicker picker=new android.widget.NumberPicker(this);
+            picker.setMinValue(1);
+            picker.setMaxValue(1440);
+            picker.setValue(durationMinutes[0]==0?30:durationMinutes[0]);
+            picker.setWrapSelectorWheel(false);
+            new AlertDialog.Builder(this).setTitle(tr("task_duration"))
+                    .setView(picker)
+                    .setPositiveButton(tr("save"),(dialog,which)->{
+                        durationMinutes[0]=picker.getValue();
+                        refreshDuration.run();
+                    })
+                    .setNegativeButton(android.R.string.cancel,null).show();
+        });
+        TextView clearDuration=action(tr("clear_task_duration"));
+        form.addView(clearDuration,lp(-1,44));
+        clearDuration.setOnClickListener(v->{durationMinutes[0]=0;refreshDuration.run();});
+
         TextView repeatLabel=text(tr("repeat"),14,INK,true);
         LinearLayout.LayoutParams repeatLp=lp(-1,-2);
         repeatLp.topMargin=dp(10);
@@ -1403,6 +1428,8 @@ public class MainActivity extends Activity {
                     else TaskDeadline.set(item,deadline[0]);
                     if(localTime[0].isEmpty())TaskTime.clearTime(item);
                     else TaskTime.setTime(item,localTime[0]);
+                    if(durationMinutes[0]==0)TaskTime.clearDuration(item);
+                    else TaskTime.setDurationMinutes(item,durationMinutes[0]);
                     item.put("start",start[0]);
                     item.put("mode",modes[modeIndex]);
                     item.put("priority",prioritySpinner.getSelectedItemPosition()+1);
@@ -1752,6 +1779,13 @@ public class MainActivity extends Activity {
             TextView timeTag=text(tr("task_time")+": "+taskTime,12,MUTED,true);
             timeTag.setPadding(dp(40),dp(4),0,0);
             card.addView(timeTag,lp(-1,-2));
+        }
+
+        int duration=TaskTime.getDurationMinutes(job);
+        if(duration>0){
+            TextView durationTag=text(tr("task_duration")+": "+duration+" "+tr("duration_minutes"),12,MUTED,true);
+            durationTag.setPadding(dp(40),dp(4),0,0);
+            card.addView(durationTag,lp(-1,-2));
         }
 
         String detailsText=job.optString("description","").trim();
