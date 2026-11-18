@@ -418,3 +418,11 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **Validação**: commit publicado, mas CI/testDebugUnitTest/assembleDebug e APK do SHA exato **ainda não confirmados**. Não afirmar funcionamento em dispositivo ou regressão integral. Necessário verificar se o campo de título corresponde ao esquema real, testar alteração de nome, horário, restauração, cancelamento e mudanças simultâneas.
 - **Risco ainda aberto**: IDs de PendingIntent baseados em `String.hashCode()` podem colidir (ex.: `Aa`/`BB`); esta correção não resolve colisões. Tratar separadamente com migração/cancelamento dos alarmes antigos e testes. Recorrências, reboot/fuso, testes instrumentados/físicos e assinatura release segura permanecem pendentes.
 - Agenda original offline sem Google Agenda, serviços externos ou alteração em `main`; **0/15 concorrentes concluídos**.
+
+
+## Execução 53 — 2026-11-18
+- **Todoist (1/15)**: consultados primeiro este progresso e `pesquisas/concorrentes-checklist-orbis-2026-11-15.md`, ambos da branch `checklist-orbis`.
+- **Gate de CI da correção anterior resolvido**: [commit eead5d5a](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/eead5d5af17bc419c8fcf822ee77087589bee532) validado pelo [workflow de push 44318925202](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/44318925202), criado 2026-11-18 13:56 UTC, `completed/success`, head SHA exato `eead5d5af17bc419c8fcf822ee77087589bee532`. Job 134852358789: testes unitários existentes, compilação nativa e upload de APK todos `success`.
+- **APK debug**: [artefato 14433093586](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/44318925202/artifacts/14433093586), `Checklist-Orbis-Android-APK`, `expired=false` na consulta. A aprovação não prova entrega real de notificação nem teste instrumentado/físico.
+- **Próximo incremento isolado**: corrigir colisões de IDs de PendingIntent (`String.hashCode()`), migrar/cancelar alarmes antigos e adicionar testes de IDs estáveis/restauração antes de avançar para recorrências e reboot/fuso. Não foi publicado novo código funcional nesta execução.
+- **Pendências**: teste físico/instrumentado, assinatura release segura com keystore privado, recorrências e reinicialização; sem integração Google Agenda, serviços externos ou alterações em `main`. **0/15 concorrentes concluídos**.
