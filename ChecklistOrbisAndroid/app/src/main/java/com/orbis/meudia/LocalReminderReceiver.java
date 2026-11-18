@@ -44,7 +44,9 @@ public final class LocalReminderReceiver extends BroadcastReceiver {
         }
         Intent launch = new Intent(context, MainActivity.class);
         launch.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent open = PendingIntent.getActivity(context, id, launch,
+        // Every reminder opens the same home screen, without task-specific extras.
+        // Reuse one launch PendingIntent instead of allocating hash-derived identities.
+        PendingIntent open = PendingIntent.getActivity(context, 0, launch,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification.Builder builder = Build.VERSION.SDK_INT >= 26
                 ? new Notification.Builder(context, CHANNEL_ID)
