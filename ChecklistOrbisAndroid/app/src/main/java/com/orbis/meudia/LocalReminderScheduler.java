@@ -69,6 +69,7 @@ final class LocalReminderScheduler {
         int notificationId = taskId.hashCode() & 0x7fffffff;
         if (notificationId == 0) notificationId = 1;
         intent.putExtra(LocalReminderReceiver.EXTRA_ID, notificationId);
+        intent.putExtra(LocalReminderReceiver.EXTRA_TASK_ID, taskId);
         intent.putExtra(LocalReminderReceiver.EXTRA_TITLE, title);
         return PendingIntent.getBroadcast(context, 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
