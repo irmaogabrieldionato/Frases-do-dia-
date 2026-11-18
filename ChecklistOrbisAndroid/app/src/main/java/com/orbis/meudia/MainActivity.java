@@ -552,7 +552,9 @@ public class MainActivity extends Activity {
                     .setNegativeButton(tr("cancel"),(dialog,which)->{})
                     .setPositiveButton(tr("restore_backup"),(dialog,which)->{
                         tasks=restored;
-                        save();
+                        // A restored backup may contain unchanged IDs while Android alarms
+                        // have been cleared; always rebuild their local schedules.
+                        save(true);
                         loadTasks();
                         render();
                         android.widget.Toast.makeText(this,tr("backup_restored"),
@@ -568,7 +570,7 @@ public class MainActivity extends Activity {
     }
 
     /** Reconcile local alarms for one-time tasks only; recurrence support is separate. */
-    private void syncOneTimeReminders(String previousJson) {
+    private void syncOneTimeReminders(String previousJson, boolean forceReschedule) {
         JSONArray previous;
         try { previous = new JSONArray(previousJson == null ? "[]" : previousJson); }
         catch (JSONException ignored) { previous = new JSONArray(); }
@@ -597,14 +599,14 @@ public class MainActivity extends Activity {
         }
         for (java.util.Map.Entry<String, JSONObject> entry : oldOnce.entrySet()) {
             JSONObject current = newOnce.get(entry.getKey());
-            if (migrate || current == null || !sameReminder(entry.getValue(), current)) {
+            if (forceReschedule || migrate || current == null || !sameReminder(entry.getValue(), current)) {
                 LocalReminderScheduler.cancel(this, entry.getKey());
             }
         }
         long now = System.currentTimeMillis();
         for (java.util.Map.Entry<String, JSONObject> entry : newOnce.entrySet()) {
             JSONObject old = oldOnce.get(entry.getKey());
-            if (!migrate && old != null && sameReminder(old, entry.getValue())) continue;
+            if (!forceReschedule && !migrate && old != null && sameReminder(old, entry.getValue())) continue;
             JSONObject item = entry.getValue();
             LocalReminderScheduler.schedule(this, item, item.optString("start"),
                     entry.getKey(), now);
@@ -618,11 +620,13 @@ public class MainActivity extends Activity {
                 && a.optString("time").equals(b.optString("time"));
     }
 
-    private void save() {
+    private void save() { save(false); }
+
+    private void save(boolean forceReschedule) {
         String previous = preferences.getString("tasks", null);
         preferences.edit().putString("day",today())
                 .putString("tasks",tasks.toString()).apply();
-        syncOneTimeReminders(previous);
+        syncOneTimeReminders(previous, forceReschedule);
     }
 
     private GradientDrawable rounded(int color, float radius, int border) {
