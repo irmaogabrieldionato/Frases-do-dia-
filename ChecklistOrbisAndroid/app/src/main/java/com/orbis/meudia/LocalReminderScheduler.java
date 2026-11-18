@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.net.Uri;
 import org.json.JSONObject;
 import java.util.TimeZone;
 
@@ -19,14 +20,14 @@ final class LocalReminderScheduler {
     private LocalReminderScheduler() {}
 
     static boolean schedule(Context context, JSONObject task, String occurrenceDate,
-                            int reminderId, long nowMillis) {
-        if (context == null || task == null || reminderId <= 0) return false;
+                            String taskId, long nowMillis) {
+        if (context == null || task == null || taskId == null || taskId.isEmpty()) return false;
         long when = LocalReminderTime.occurrenceMillis(
                 task, occurrenceDate, TimeZone.getDefault(), nowMillis);
         if (when < 0L) return false;
         AlarmManager alarms = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (alarms == null) return false;
-        PendingIntent pending = reminderIntent(context, reminderId,
+        PendingIntent pending = reminderIntent(context, taskId,
                 task.optString("title", ""));
         if (Build.VERSION.SDK_INT >= 23) {
             alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, when, pending);
@@ -36,26 +37,40 @@ final class LocalReminderScheduler {
         return true;
     }
 
-    static void cancel(Context context, int reminderId) {
-        if (context == null || reminderId <= 0) return;
+    static void cancel(Context context, String taskId) {
+        if (context == null || taskId == null || taskId.isEmpty()) return;
         AlarmManager alarms = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (alarms == null) return;
         Intent intent = new Intent(context, LocalReminderReceiver.class);
         intent.setAction(LocalReminderReceiver.ACTION_REMIND);
-        PendingIntent pending = PendingIntent.getBroadcast(context, reminderId, intent,
+        intent.setData(Uri.parse("orbis-reminder://task/" + Uri.encode(taskId)));
+        PendingIntent pending = PendingIntent.getBroadcast(context, 0, intent,
                 PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE);
-        if (pending != null) {
-            alarms.cancel(pending);
-            pending.cancel();
-        }
+        if (pending != null) { alarms.cancel(pending); pending.cancel(); }
     }
 
-    private static PendingIntent reminderIntent(Context context, int id, String title) {
+    static void cancelLegacy(Context context, String taskId) {
+        if (context == null || taskId == null || taskId.isEmpty()) return;
+        AlarmManager alarms = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarms == null) return;
+        int id = taskId.hashCode() & 0x7fffffff;
+        if (id == 0) id = 1;
         Intent intent = new Intent(context, LocalReminderReceiver.class);
         intent.setAction(LocalReminderReceiver.ACTION_REMIND);
-        intent.putExtra(LocalReminderReceiver.EXTRA_ID, id);
+        PendingIntent pending = PendingIntent.getBroadcast(context, id, intent,
+                PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE);
+        if (pending != null) { alarms.cancel(pending); pending.cancel(); }
+    }
+
+    private static PendingIntent reminderIntent(Context context, String taskId, String title) {
+        Intent intent = new Intent(context, LocalReminderReceiver.class);
+        intent.setAction(LocalReminderReceiver.ACTION_REMIND);
+        intent.setData(Uri.parse("orbis-reminder://task/" + Uri.encode(taskId)));
+        int notificationId = taskId.hashCode() & 0x7fffffff;
+        if (notificationId == 0) notificationId = 1;
+        intent.putExtra(LocalReminderReceiver.EXTRA_ID, notificationId);
         intent.putExtra(LocalReminderReceiver.EXTRA_TITLE, title);
-        return PendingIntent.getBroadcast(context, id, intent,
+        return PendingIntent.getBroadcast(context, 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 }
