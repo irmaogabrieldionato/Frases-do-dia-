@@ -572,23 +572,47 @@ public class MainActivity extends Activity {
         JSONArray previous;
         try { previous = new JSONArray(previousJson == null ? "[]" : previousJson); }
         catch (JSONException ignored) { previous = new JSONArray(); }
+
+        // Compare reminder-relevant fields so progress-only saves do not reset alarms.
+        java.util.Map<String, JSONObject> oldOnce = new java.util.HashMap<>();
+        java.util.Map<String, JSONObject> newOnce = new java.util.HashMap<>();
         for (int i = 0; i < previous.length(); i++) {
-            JSONObject old = previous.optJSONObject(i);
-            if (old == null || !"once".equals(old.optString("mode"))) continue;
-            int id = reminderId(old.optString("id", ""));
-            if (id > 0) LocalReminderScheduler.cancel(this, id);
+            JSONObject item = previous.optJSONObject(i);
+            if (item != null && "once".equals(item.optString("mode"))
+                    && !item.optString("id").isEmpty()) {
+                oldOnce.put(item.optString("id"), item);
+            }
         }
-        long now = System.currentTimeMillis();
         for (int i = 0; i < tasks.length(); i++) {
             JSONObject item = tasks.optJSONObject(i);
-            if (item == null || !"once".equals(item.optString("mode"))) continue;
-            int id = reminderId(item.optString("id", ""));
-            if (id > 0) LocalReminderScheduler.schedule(
-                    this, item, item.optString("start"), id, now);
+            if (item != null && "once".equals(item.optString("mode"))
+                    && !item.optString("id").isEmpty()) {
+                newOnce.put(item.optString("id"), item);
+            }
+        }
+        for (java.util.Map.Entry<String, JSONObject> entry : oldOnce.entrySet()) {
+            JSONObject current = newOnce.get(entry.getKey());
+            if (current == null || !sameReminder(entry.getValue(), current)) {
+                LocalReminderScheduler.cancel(this, reminderId(entry.getKey()));
+            }
+        }
+        long now = System.currentTimeMillis();
+        for (java.util.Map.Entry<String, JSONObject> entry : newOnce.entrySet()) {
+            JSONObject old = oldOnce.get(entry.getKey());
+            if (old != null && sameReminder(old, entry.getValue())) continue;
+            JSONObject item = entry.getValue();
+            LocalReminderScheduler.schedule(this, item, item.optString("start"),
+                    reminderId(entry.getKey()), now);
         }
     }
 
-    private static int reminderId(String taskId) {
+    private static boolean sameReminder(JSONObject a, JSONObject b) {
+        return a.optString("start").equals(b.optString("start"))
+                && a.optString("title").equals(b.optString("title"))
+                && a.optString("time").equals(b.optString("time"));
+    }
+
+        private static int reminderId(String taskId) {
         if (taskId.isEmpty()) return 0;
         int id = taskId.hashCode() & 0x7fffffff;
         return id == 0 ? 1 : id;
