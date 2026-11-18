@@ -567,9 +567,38 @@ public class MainActivity extends Activity {
                 .setPositiveButton("OK",(dialog,which)->{}).show();
     }
 
+    /** Reconcile local alarms for one-time tasks only; recurrence support is separate. */
+    private void syncOneTimeReminders(String previousJson) {
+        JSONArray previous;
+        try { previous = new JSONArray(previousJson == null ? "[]" : previousJson); }
+        catch (JSONException ignored) { previous = new JSONArray(); }
+        for (int i = 0; i < previous.length(); i++) {
+            JSONObject old = previous.optJSONObject(i);
+            if (old == null || !"once".equals(old.optString("mode"))) continue;
+            int id = reminderId(old.optString("id", ""));
+            if (id > 0) LocalReminderScheduler.cancel(this, id);
+        }
+        long now = System.currentTimeMillis();
+        for (int i = 0; i < tasks.length(); i++) {
+            JSONObject item = tasks.optJSONObject(i);
+            if (item == null || !"once".equals(item.optString("mode"))) continue;
+            int id = reminderId(item.optString("id", ""));
+            if (id > 0) LocalReminderScheduler.schedule(
+                    this, item, item.optString("start"), id, now);
+        }
+    }
+
+    private static int reminderId(String taskId) {
+        if (taskId.isEmpty()) return 0;
+        int id = taskId.hashCode() & 0x7fffffff;
+        return id == 0 ? 1 : id;
+    }
+
     private void save() {
+        String previous = preferences.getString("tasks", null);
         preferences.edit().putString("day",today())
                 .putString("tasks",tasks.toString()).apply();
+        syncOneTimeReminders(previous);
     }
 
     private GradientDrawable rounded(int color, float radius, int border) {
