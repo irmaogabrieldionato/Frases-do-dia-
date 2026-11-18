@@ -1235,6 +1235,19 @@ public class MainActivity extends Activity {
         form.addView(clearTime,lp(-1,44));
         clearTime.setOnClickListener(v->{localTime[0]="";refreshTime.run();});
 
+        // Explicit user action only: never request notification access on app launch.
+        // Scheduling is a separate increment; this control grants permission, not an alarm.
+        if (Build.VERSION.SDK_INT >= 33) {
+            TextView notificationPermission=action(tr("task_time")+" · 🔔");
+            form.addView(notificationPermission,lp(-1,44));
+            notificationPermission.setOnClickListener(v->{
+                if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+                        != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS},7103);
+                }
+            });
+        }
+
         // Estimated duration is optional and stored separately from progress and recurrence.
         final int[] durationMinutes={TaskTime.getDurationMinutes(item)};
         TextView durationButton=action("");
