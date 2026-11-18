@@ -590,32 +590,32 @@ public class MainActivity extends Activity {
                 newOnce.put(item.optString("id"), item);
             }
         }
+        boolean migrate = !preferences.getBoolean("reminder_uri_identity_v1", false);
+        if (migrate) {
+            for (String id : oldOnce.keySet()) LocalReminderScheduler.cancelLegacy(this, id);
+            for (String id : newOnce.keySet()) LocalReminderScheduler.cancelLegacy(this, id);
+        }
         for (java.util.Map.Entry<String, JSONObject> entry : oldOnce.entrySet()) {
             JSONObject current = newOnce.get(entry.getKey());
-            if (current == null || !sameReminder(entry.getValue(), current)) {
-                LocalReminderScheduler.cancel(this, reminderId(entry.getKey()));
+            if (migrate || current == null || !sameReminder(entry.getValue(), current)) {
+                LocalReminderScheduler.cancel(this, entry.getKey());
             }
         }
         long now = System.currentTimeMillis();
         for (java.util.Map.Entry<String, JSONObject> entry : newOnce.entrySet()) {
             JSONObject old = oldOnce.get(entry.getKey());
-            if (old != null && sameReminder(old, entry.getValue())) continue;
+            if (!migrate && old != null && sameReminder(old, entry.getValue())) continue;
             JSONObject item = entry.getValue();
             LocalReminderScheduler.schedule(this, item, item.optString("start"),
-                    reminderId(entry.getKey()), now);
+                    entry.getKey(), now);
         }
+        if (migrate) preferences.edit().putBoolean("reminder_uri_identity_v1", true).apply();
     }
 
     private static boolean sameReminder(JSONObject a, JSONObject b) {
         return a.optString("start").equals(b.optString("start"))
                 && a.optString("title").equals(b.optString("title"))
                 && a.optString("time").equals(b.optString("time"));
-    }
-
-        private static int reminderId(String taskId) {
-        if (taskId.isEmpty()) return 0;
-        int id = taskId.hashCode() & 0x7fffffff;
-        return id == 0 ? 1 : id;
     }
 
     private void save() {
