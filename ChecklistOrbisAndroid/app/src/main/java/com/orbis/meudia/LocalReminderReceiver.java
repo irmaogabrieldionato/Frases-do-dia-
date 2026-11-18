@@ -19,6 +19,7 @@ public final class LocalReminderReceiver extends BroadcastReceiver {
     static final String ACTION_REMIND = "com.orbis.meudia.LOCAL_REMINDER";
     static final String EXTRA_TITLE = "reminder_title";
     static final String EXTRA_ID = "reminder_id";
+    static final String EXTRA_TASK_ID = "reminder_task_id";
     private static final String CHANNEL_ID = "orbis_local_reminders";
 
     @Override public void onReceive(Context context, Intent intent) {
@@ -53,6 +54,13 @@ public final class LocalReminderReceiver extends BroadcastReceiver {
                 .setContentText(title)
                 .setAutoCancel(true)
                 .setContentIntent(open);
-        manager.notify(id, builder.build());
+        // A stable tag distinguishes task IDs even when their Java hashes collide.
+        // Legacy broadcasts without a task ID retain the original notification behavior.
+        String taskId = intent.getStringExtra(EXTRA_TASK_ID);
+        if (taskId != null && !taskId.isEmpty()) {
+            manager.notify(taskId, id, builder.build());
+        } else {
+            manager.notify(id, builder.build());
+        }
     }
 }
