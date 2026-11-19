@@ -569,55 +569,64 @@ public class MainActivity extends Activity {
                 .setPositiveButton("OK",(dialog,which)->{}).show();
     }
 
-    /** Reconcile local alarms for one-time tasks only; recurrence support is separate. */
+    /** Reconcile offline alarms after task edits, deletions and backup restoration. */
     private void syncOneTimeReminders(String previousJson, boolean forceReschedule) {
         JSONArray previous;
         try { previous = new JSONArray(previousJson == null ? "[]" : previousJson); }
         catch (JSONException ignored) { previous = new JSONArray(); }
 
-        // Compare reminder-relevant fields so progress-only saves do not reset alarms.
-        java.util.Map<String, JSONObject> oldOnce = new java.util.HashMap<>();
-        java.util.Map<String, JSONObject> newOnce = new java.util.HashMap<>();
-        for (int i = 0; i < previous.length(); i++) {
-            JSONObject item = previous.optJSONObject(i);
-            if (item != null && "once".equals(item.optString("mode"))
-                    && !item.optString("id").isEmpty()) {
-                oldOnce.put(item.optString("id"), item);
-            }
-        }
-        for (int i = 0; i < tasks.length(); i++) {
-            JSONObject item = tasks.optJSONObject(i);
-            if (item != null && "once".equals(item.optString("mode"))
-                    && !item.optString("id").isEmpty()) {
-                newOnce.put(item.optString("id"), item);
-            }
-        }
+        java.util.Map<String, JSONObject> oldTasks = reminderTasks(previous);
+        java.util.Map<String, JSONObject> newTasks = reminderTasks(tasks);
         boolean migrate = !preferences.getBoolean("reminder_uri_identity_v1", false);
         if (migrate) {
-            for (String id : oldOnce.keySet()) LocalReminderScheduler.cancelLegacy(this, id);
-            for (String id : newOnce.keySet()) LocalReminderScheduler.cancelLegacy(this, id);
+            for (String id : oldTasks.keySet()) LocalReminderScheduler.cancelLegacy(this, id);
+            for (String id : newTasks.keySet()) LocalReminderScheduler.cancelLegacy(this, id);
         }
-        for (java.util.Map.Entry<String, JSONObject> entry : oldOnce.entrySet()) {
-            JSONObject current = newOnce.get(entry.getKey());
-            if (forceReschedule || migrate || current == null || !sameReminder(entry.getValue(), current)) {
+        for (java.util.Map.Entry<String, JSONObject> entry : oldTasks.entrySet()) {
+            JSONObject current = newTasks.get(entry.getKey());
+            if (forceReschedule || migrate || current == null
+                    || !sameReminder(entry.getValue(), current)) {
                 LocalReminderScheduler.cancel(this, entry.getKey());
             }
         }
         long now = System.currentTimeMillis();
-        for (java.util.Map.Entry<String, JSONObject> entry : newOnce.entrySet()) {
-            JSONObject old = oldOnce.get(entry.getKey());
-            if (!forceReschedule && !migrate && old != null && sameReminder(old, entry.getValue())) continue;
+        for (java.util.Map.Entry<String, JSONObject> entry : newTasks.entrySet()) {
+            JSONObject old = oldTasks.get(entry.getKey());
+            if (!forceReschedule && !migrate && old != null
+                    && sameReminder(old, entry.getValue())) continue;
             JSONObject item = entry.getValue();
-            LocalReminderScheduler.schedule(this, item, item.optString("start"),
-                    entry.getKey(), now);
+            try {
+                if ("once".equals(item.optString("mode"))) {
+                    LocalReminderScheduler.schedule(this, item, item.optString("start"),
+                            entry.getKey(), now);
+                } else {
+                    LocalReminderScheduler.scheduleNext(this, item, entry.getKey(), now);
+                }
+            } catch (RuntimeException ignored) {
+                // A restricted alarm must not block saving tasks or their histories.
+            }
         }
         if (migrate) preferences.edit().putBoolean("reminder_uri_identity_v1", true).apply();
     }
 
+    private static java.util.Map<String, JSONObject> reminderTasks(JSONArray source) {
+        java.util.Map<String, JSONObject> result = new java.util.HashMap<>();
+        for (int i = 0; i < source.length(); i++) {
+            JSONObject item = source.optJSONObject(i);
+            if (item == null || item.optString("id").isEmpty()
+                    || TaskTime.getTime(item).isEmpty()) continue;
+            result.put(item.optString("id"), item);
+        }
+        return result;
+    }
+
+    /** Ignore progress-only changes, but react to all recurrence-rule edits. */
     private static boolean sameReminder(JSONObject a, JSONObject b) {
-        return a.optString("start").equals(b.optString("start"))
-                && a.optString("title").equals(b.optString("title"))
-                && a.optString("time").equals(b.optString("time"));
+        for (String field : new String[]{"start", "title", "time", "mode", "until",
+                "weekdays", "count", "skips"}) {
+            if (!String.valueOf(a.opt(field)).equals(String.valueOf(b.opt(field)))) return false;
+        }
+        return true;
     }
 
     private void save() { save(false); }
