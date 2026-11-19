@@ -7,7 +7,7 @@ import android.content.SharedPreferences;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-/** Restores local one-time alarms after reboot or a device time-zone change. */
+/** Restores local one-time and recurring alarms after reboot or a clock/time-zone change. */
 public final class LocalReminderRecoveryReceiver extends BroadcastReceiver {
     @Override public void onReceive(Context context, Intent intent) {
         if (context == null || intent == null) return;
@@ -22,7 +22,9 @@ public final class LocalReminderRecoveryReceiver extends BroadcastReceiver {
         long now = System.currentTimeMillis();
         for (int i = 0; i < tasks.length(); i++) {
             JSONObject task = tasks.optJSONObject(i);
-            if (task == null || !"once".equals(task.optString("mode"))) continue;
+            if (task == null) continue;
+            boolean once = "once".equals(task.optString("mode"));
+            if (!once && TaskTime.getTime(task).isEmpty()) continue;
             String id = task.optString("id");
             if (id.isEmpty()) continue;
             // Recompute against the device's current local time zone.
@@ -30,7 +32,11 @@ public final class LocalReminderRecoveryReceiver extends BroadcastReceiver {
             // of unrelated tasks. Keep recovery best-effort and entirely local.
             try {
                 LocalReminderScheduler.cancel(context, id);
-                LocalReminderScheduler.schedule(context, task, task.optString("start"), id, now);
+                if (once) {
+                    LocalReminderScheduler.schedule(context, task, task.optString("start"), id, now);
+                } else {
+                    LocalReminderScheduler.scheduleNext(context, task, id, now);
+                }
             } catch (RuntimeException ignored) {
                 // Device alarm restrictions can vary; retry on the next recovery event.
             }
