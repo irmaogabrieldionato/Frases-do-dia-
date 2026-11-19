@@ -9,6 +9,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.SharedPreferences;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import android.os.Build;
 
 /**
@@ -24,6 +27,16 @@ public final class LocalReminderReceiver extends BroadcastReceiver {
 
     @Override public void onReceive(Context context, Intent intent) {
         if (intent == null || !ACTION_REMIND.equals(intent.getAction())) return;
+        // Renewal must not depend on the notification permission: a denied
+        // notification must not permanently stop the recurrence chain.
+        try {
+            showNotification(context, intent);
+        } finally {
+            renewRecurringReminder(context, intent);
+        }
+    }
+
+    private static void showNotification(Context context, Intent intent) {
         if (Build.VERSION.SDK_INT >= 33 &&
                 context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
                         != PackageManager.PERMISSION_GRANTED) return;
@@ -63,6 +76,29 @@ public final class LocalReminderReceiver extends BroadcastReceiver {
             manager.notify(taskId, id, builder.build());
         } else {
             manager.notify(id, builder.build());
+        }
+    }
+
+    private static void renewRecurringReminder(Context context, Intent intent) {
+        String taskId = intent.getStringExtra(EXTRA_TASK_ID);
+        if (taskId == null || taskId.isEmpty()) return;
+        SharedPreferences prefs = context.getSharedPreferences("meu-dia-dados-v1", Context.MODE_PRIVATE);
+        JSONArray tasks;
+        try { tasks = new JSONArray(prefs.getString("tasks", "[]")); }
+        catch (Exception invalidData) { return; }
+        for (int i = 0; i < tasks.length(); i++) {
+            JSONObject task = tasks.optJSONObject(i);
+            if (task == null || !taskId.equals(task.optString("id"))) continue;
+            if ("once".equals(task.optString("mode")) || TaskTime.getTime(task).isEmpty()) return;
+            try {
+                // Schedule strictly after delivery, not after the originally planned time.
+                // This avoids a burst of stale notifications after device sleep.
+                LocalReminderScheduler.scheduleNext(context, task, taskId,
+                        System.currentTimeMillis());
+            } catch (RuntimeException ignored) {
+                // Alarm restrictions may prevent renewal; reboot/time recovery retries.
+            }
+            return;
         }
     }
 }
