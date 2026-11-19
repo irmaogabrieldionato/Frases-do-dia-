@@ -32,6 +32,15 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+      - name: Diagnosticar acesso aos artefatos de testes Maven Central
+        shell: bash
+        run: |
+          for artifact in \
+            https://repo.maven.apache.org/maven2/junit/junit/4.13.2/junit-4.13.2.pom \
+            https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.pom; do
+            status=$(curl --silent --show-error --location --output /dev/null --write-out '%{http_code}' --connect-timeout 10 --max-time 30 "$artifact") || status="network-error"
+            echo "Maven Central $(basename "$artifact"): HTTP $status"
+          done
       - name: Executar testes unitários de regressão
         run: gradle -p ChecklistOrbisAndroid :app:testDebugUnitTest --no-daemon --refresh-dependencies --info
       - name: Compilar aplicativo nativo
