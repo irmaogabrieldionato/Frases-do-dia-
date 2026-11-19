@@ -43,7 +43,7 @@ final class LocalReminderScheduler {
         if (alarms == null) return;
         Intent intent = new Intent(context, LocalReminderReceiver.class);
         intent.setAction(LocalReminderReceiver.ACTION_REMIND);
-        intent.setData(Uri.parse("orbis-reminder://task/" + Uri.encode(taskId)));
+        intent.setData(Uri.parse(reminderUri(taskId)));
         PendingIntent pending = PendingIntent.getBroadcast(context, 0, intent,
                 PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE);
         if (pending != null) { alarms.cancel(pending); pending.cancel(); }
@@ -60,6 +60,11 @@ final class LocalReminderScheduler {
         PendingIntent pending = PendingIntent.getBroadcast(context, id, intent,
                 PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE);
         if (pending != null) { alarms.cancel(pending); pending.cancel(); }
+    }
+
+    // The full encoded ID, not its hash, is the PendingIntent identity.
+    static String reminderUri(String taskId) {
+        return "orbis-reminder://task/" + Uri.encode(taskId);
     }
 
     private static PendingIntent reminderIntent(Context context, String taskId, String title) {
