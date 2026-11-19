@@ -37,6 +37,22 @@ final class LocalReminderScheduler {
         return true;
     }
 
+    /** Schedules only the next eligible recurrence; caller must renew after delivery. */
+    static boolean scheduleNext(Context context, JSONObject task, String taskId, long nowMillis) {
+        if (context == null || task == null || taskId == null || taskId.isEmpty()) return false;
+        long when = LocalReminderNextOccurrence.find(task, TimeZone.getDefault(), nowMillis);
+        if (when <= nowMillis) return false;
+        AlarmManager alarms = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarms == null) return false;
+        PendingIntent pending = reminderIntent(context, taskId, task.optString("title", ""));
+        if (Build.VERSION.SDK_INT >= 23) {
+            alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, when, pending);
+        } else {
+            alarms.set(AlarmManager.RTC_WAKEUP, when, pending);
+        }
+        return true;
+    }
+
     static void cancel(Context context, String taskId) {
         if (context == null || taskId == null || taskId.isEmpty()) return;
         AlarmManager alarms = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
