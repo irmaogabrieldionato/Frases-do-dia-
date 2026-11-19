@@ -26,8 +26,14 @@ public final class LocalReminderRecoveryReceiver extends BroadcastReceiver {
             String id = task.optString("id");
             if (id.isEmpty()) continue;
             // Recompute against the device's current local time zone.
-            LocalReminderScheduler.cancel(context, id);
-            LocalReminderScheduler.schedule(context, task, task.optString("start"), id, now);
+            // A single malformed or restricted alarm must not prevent recovery
+            // of unrelated tasks. Keep recovery best-effort and entirely local.
+            try {
+                LocalReminderScheduler.cancel(context, id);
+                LocalReminderScheduler.schedule(context, task, task.optString("start"), id, now);
+            } catch (RuntimeException ignored) {
+                // Device alarm restrictions can vary; retry on the next recovery event.
+            }
         }
     }
 }
