@@ -70,7 +70,7 @@ final class LocalReminderScheduler {
     private static PendingIntent reminderIntent(Context context, String taskId, String title) {
         Intent intent = new Intent(context, LocalReminderReceiver.class);
         intent.setAction(LocalReminderReceiver.ACTION_REMIND);
-        intent.setData(Uri.parse("orbis-reminder://task/" + Uri.encode(taskId)));
+        intent.setData(Uri.parse(reminderUri(taskId)));
         int notificationId = taskId.hashCode() & 0x7fffffff;
         if (notificationId == 0) notificationId = 1;
         intent.putExtra(LocalReminderReceiver.EXTRA_ID, notificationId);
