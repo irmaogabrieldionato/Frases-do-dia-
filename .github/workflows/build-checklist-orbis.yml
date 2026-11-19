@@ -33,7 +33,7 @@ jobs:
         with:
           gradle-version: '8.9'
       - name: Executar testes unitários de regressão
-        run: gradle -p ChecklistOrbisAndroid :app:testDebugUnitTest --no-daemon
+        run: gradle -p ChecklistOrbisAndroid :app:testDebugUnitTest --no-daemon --refresh-dependencies --info
       - name: Compilar aplicativo nativo
         run: gradle -p ChecklistOrbisAndroid :app:assembleDebug --no-daemon
       - name: Disponibilizar APK
