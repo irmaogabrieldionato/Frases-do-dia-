@@ -84,6 +84,22 @@ public class BackupJsonValidationTest {
         assertEquals(30,result.getJSONObject(0).getInt("progress"));
     }
 
+
+    @Test public void retainsMultipleTasksAndExtendedFieldsAcrossValidation() throws Exception {
+        String json="{\\\"format\\\":\\\"checklist-orbis-backup\\\",\\\"version\\\":1,\\\"tasks\\\":["
+            +"{\\\"title\\\":\\\"Original\\\",\\\"mode\\\":\\\"daily\\\",\\\"start\\\":\\\"2024-02-29\\\","
+            +"\\\"project\\\":\\\"Study\\\",\\\"section\\\":\\\"Reading\\\",\\\"tags\\\":[\\\"books\\\",\\\"home\\\"],"
+            +"\\\"history\\\":{\\\"2024-02-29\\\":35}},"
+            +"{\\\"title\\\":\\\"Legacy\\\",\\\"mode\\\":\\\"once\\\",\\\"start\\\":\\\"2020-01-01\\\"}]}";
+        JSONArray result=validate(json);
+        assertEquals(2,result.length());
+        assertEquals("Study",result.getJSONObject(0).getString("project"));
+        assertEquals("Reading",result.getJSONObject(0).getString("section"));
+        assertEquals(2,result.getJSONObject(0).getJSONArray("tags").length());
+        assertEquals(35,result.getJSONObject(0).getJSONObject("history").getInt("2024-02-29"));
+        assertFalse(result.getJSONObject(1).has("history"));
+    }
+
     private void assertInvalid(String json) throws Exception {
         try {validate(json);fail("Expected invalid backup: "+json);}
         catch(JSONException expected) { /* validation rejects before restoration */ }
