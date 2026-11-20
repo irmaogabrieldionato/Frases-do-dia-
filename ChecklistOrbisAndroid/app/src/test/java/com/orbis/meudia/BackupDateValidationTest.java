@@ -35,6 +35,21 @@ public class BackupDateValidationTest {
         assertTrue(valid("1600-02-29"));
     }
 
+    @Test public void validationDoesNotDependOnDeviceTimezone() throws Exception {
+        java.util.TimeZone previous=java.util.TimeZone.getDefault();
+        try {
+            for(String zone:new String[]{"Pacific/Kiritimati","Pacific/Honolulu","UTC"}) {
+                java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone(zone));
+                assertTrue(zone,valid("2024-02-29"));
+                assertTrue(zone,valid("1582-10-10"));
+                assertFalse(zone,valid("2026-02-29"));
+                assertFalse(zone,valid("1500-02-29"));
+            }
+        } finally {
+            java.util.TimeZone.setDefault(previous);
+        }
+    }
+
     @Test public void rejectsImpossibleOrMalformedDates() throws Exception {
         for(String date:new String[]{"2026-02-29","2026-02-31","2026-13-40",
                 "1900-02-29","2026-04-31","0000-01-01","2026-00-10",
