@@ -54,31 +54,31 @@ import java.text.DateFormatSymbols;
 import android.text.InputType;
 
 public class MainActivity extends Activity {
-    private static final int TEAL = Color.rgb(20, 108, 99);
-    private static final int INK = Color.rgb(25, 51, 58);
-    private static final int MUTED = Color.rgb(101, 124, 131);
-    private static final int BG = Color.rgb(243, 247, 245);
-    private static final int LINE = Color.rgb(228, 238, 234);
+    private static final int TEAL = 0xFF146C63;
+    private static final int INK = 0xFF19333A;
+    private static final int MUTED = 0xFF657C83;
+    private static final int BG = 0xFFF3F7F5;
+    private static final int LINE = 0xFFE4EEEA;
     private static final int WHITE = Color.WHITE;
     private static final int EXPORT_REQUEST=7101;
     private static final int IMPORT_REQUEST=7102;
     private static final int MAX_BACKUP_BYTES=5*1024*1024;
     private static final int[] PRIORITY_COLORS = {
-        Color.rgb(46,125,50),   // 1: green
-        Color.rgb(21,101,192),  // 2: blue
-        Color.rgb(249,168,37),  // 3: yellow
-        Color.rgb(239,108,0),   // 4: orange
-        Color.rgb(198,40,40)    // 5: red
+        0xFF2E7D32,   // 1: green
+        0xFF1565C0,  // 2: blue
+        0xFFF9A825,  // 3: yellow
+        0xFFEF6C00,   // 4: orange
+        0xFFC62828    // 5: red
     };
     private static final String[] PRIORITY_KEYS = {
         "green", "blue", "yellow", "orange", "red"
     };
     private static final int[] PRIORITY_LIGHT = {
-        Color.rgb(232,245,233),
-        Color.rgb(227,242,253),
-        Color.rgb(255,248,225),
-        Color.rgb(255,243,224),
-        Color.rgb(255,235,238)
+        0xFFE8F5E9,
+        0xFFE3F2FD,
+        0xFFFFF8E1,
+        0xFFFFF3E0,
+        0xFFFFEBEE
     };
 
     private String selectedLanguage;
