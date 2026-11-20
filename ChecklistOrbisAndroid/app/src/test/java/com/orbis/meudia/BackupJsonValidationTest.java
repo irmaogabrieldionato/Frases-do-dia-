@@ -54,6 +54,36 @@ public class BackupJsonValidationTest {
         assertInvalid("{broken json");
     }
 
+
+    @Test public void rejectsEntireBackupWhenLaterTaskIsCorrupt() throws Exception {
+        String first="{\"title\":\"Valid\",\"mode\":\"daily\",\"start\":\"2024-02-29\",\"history\":{\"2024-02-29\":75}}";
+        String invalidSecond="{\"title\":\"Invalid\",\"mode\":\"daily\",\"start\":\"2026-02-30\"}";
+        String root="{\"format\":\"checklist-orbis-backup\",\"version\":1,\"tasks\":["+first+","+invalidSecond+"]}";
+        assertInvalid(root);
+        assertEquals(1,validate("{\"format\":\"checklist-orbis-backup\",\"version\":1,\"tasks\":["+first+"]}").length());
+    }
+
+    @Test public void rejectsInvalidTopLevelAndTaskShapes() throws Exception {
+        for(String json:new String[]{
+            "[]",
+            "{}",
+            "{\"format\":\"checklist-orbis-backup\",\"version\":1,\"tasks\":{}}",
+            "{\"format\":\"checklist-orbis-backup\",\"version\":1,\"tasks\":[null]}",
+            "{\"format\":\"checklist-orbis-backup\",\"version\":1,\"tasks\":[42]}",
+            "{\"format\":\"checklist-orbis-backup\",\"version\":1,\"tasks\":[{\"title\":\"x\",\"mode\":\"never\",\"start\":\"2024-01-01\"}]}"
+        }) assertInvalid(json);
+    }
+
+    @Test public void preservesLegacyOptionalFieldsDuringValidation() throws Exception {
+        String json="{\"format\":\"checklist-orbis-backup\",\"version\":1,\"tasks\":["
+            +"{\"title\":\"Legacy\",\"mode\":\"weekly\",\"start\":\"2024-01-01\","
+            +"\"description\":\"Keep this\",\"priority\":5,\"progress\":30}]}";
+        JSONArray result=validate(json);
+        assertEquals("Keep this",result.getJSONObject(0).getString("description"));
+        assertEquals(5,result.getJSONObject(0).getInt("priority"));
+        assertEquals(30,result.getJSONObject(0).getInt("progress"));
+    }
+
     private void assertInvalid(String json) throws Exception {
         try {validate(json);fail("Expected invalid backup: "+json);}
         catch(JSONException expected) { /* validation rejects before restoration */ }
