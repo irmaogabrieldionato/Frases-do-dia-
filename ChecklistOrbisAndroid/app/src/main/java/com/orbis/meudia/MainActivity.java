@@ -519,7 +519,7 @@ public class MainActivity extends Activity {
         }catch(IllegalArgumentException e){return false;}
     }
 
-    private JSONArray validateBackup(String raw) throws JSONException {
+    private static JSONArray validateBackup(String raw) throws JSONException {
         JSONObject root=new JSONObject(raw);
         if(!"checklist-orbis-backup".equals(root.optString("format"))
                 ||!(root.opt("version") instanceof Integer)
