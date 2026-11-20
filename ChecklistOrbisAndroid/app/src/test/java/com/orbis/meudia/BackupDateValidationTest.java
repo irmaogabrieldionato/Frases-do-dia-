@@ -28,6 +28,13 @@ public class BackupDateValidationTest {
         assertFalse(valid(" 2026-01-01"));
     }
 
+    @Test public void usesProlepticGregorianRulesBefore1582() throws Exception {
+        assertTrue(valid("1582-10-10"));
+        assertTrue(valid("1500-03-01"));
+        assertFalse(valid("1500-02-29"));
+        assertTrue(valid("1600-02-29"));
+    }
+
     @Test public void rejectsImpossibleOrMalformedDates() throws Exception {
         for(String date:new String[]{"2026-02-29","2026-02-31","2026-13-40",
                 "1900-02-29","2026-04-31","0000-01-01","2026-00-10",
