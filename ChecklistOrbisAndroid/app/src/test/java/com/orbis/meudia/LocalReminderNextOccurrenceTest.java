@@ -46,4 +46,20 @@ public class LocalReminderNextOccurrenceTest {
         assertEquals(at(2027, 2, 28, 9),
                 LocalReminderNextOccurrence.find(task, UTC, at(2026, 3, 1, 0)));
     }
+    @Test public void reorderedAndDuplicateSkippedDatesDoNotChangeNextOccurrence() throws Exception {
+        JSONObject first = new JSONObject().put("start", "2026-11-19")
+                .put("mode", "daily").put("time", "09:00")
+                .put("skips", new org.json.JSONArray()
+                        .put("2026-11-20").put("2026-11-21"));
+        JSONObject equivalent = new JSONObject().put("start", "2026-11-19")
+                .put("mode", "daily").put("time", "09:00")
+                .put("skips", new org.json.JSONArray()
+                        .put("2026-11-21").put("2026-11-20").put("2026-11-20"));
+        long after = at(2026, 11, 19, 10);
+        assertEquals(at(2026, 11, 22, 9),
+                LocalReminderNextOccurrence.find(first, UTC, after));
+        assertEquals(LocalReminderNextOccurrence.find(first, UTC, after),
+                LocalReminderNextOccurrence.find(equivalent, UTC, after));
+    }
+
 }
