@@ -586,10 +586,20 @@ public class MainActivity extends Activity {
                     .setMessage(tr("restore_confirm"))
                     .setNegativeButton(tr("cancel"),(dialog,which)->{})
                     .setPositiveButton(tr("restore_backup"),(dialog,which)->{
+                        // Commit the replacement before changing memory or local alarms.
+                        // A failed disk write must not report a successful restoration.
+                        String previousJson=preferences.getString("tasks",null);
+                        boolean persisted=preferences.edit()
+                                .putString("day",today())
+                                .putString("tasks",restored.toString())
+                                .commit();
+                        if(!persisted){
+                            showBackupError();
+                            return;
+                        }
                         tasks=restored;
-                        // A restored backup may contain unchanged IDs while Android alarms
-                        // have been cleared; always rebuild their local schedules.
-                        save(true);
+                        // Rebuild reminders only after the restored tasks are durable.
+                        syncOneTimeReminders(previousJson,true);
                         loadTasks();
                         render();
                         android.widget.Toast.makeText(this,tr("backup_restored"),
