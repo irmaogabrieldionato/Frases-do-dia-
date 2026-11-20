@@ -623,10 +623,24 @@ public class MainActivity extends Activity {
     /** Ignore progress-only changes, but react to all recurrence-rule edits. */
     private static boolean sameReminder(JSONObject a, JSONObject b) {
         for (String field : new String[]{"start", "title", "time", "mode", "until",
-                "weekdays", "count", "skips"}) {
+                "weekdays", "count"}) {
             if (!String.valueOf(a.opt(field)).equals(String.valueOf(b.opt(field)))) return false;
         }
-        return true;
+        // Excluded occurrence dates form a set: their JSON insertion order does
+        // not change the reminder schedule. Avoid resetting an existing alarm.
+        return excludedDates(a.optJSONArray("skips"))
+                .equals(excludedDates(b.optJSONArray("skips")));
+    }
+
+    private static java.util.Set<String> excludedDates(JSONArray dates) {
+        java.util.Set<String> result = new java.util.HashSet<>();
+        if (dates != null) {
+            for (int i = 0; i < dates.length(); i++) {
+                String date = dates.optString(i, "");
+                if (!date.isEmpty()) result.add(date);
+            }
+        }
+        return result;
     }
 
     private void save() { save(false); }
