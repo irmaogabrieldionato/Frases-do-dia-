@@ -62,4 +62,22 @@ public class LocalReminderNextOccurrenceTest {
                 LocalReminderNextOccurrence.find(equivalent, UTC, after));
     }
 
+    @Test public void sameReminderIgnoresSkippedDateOrderAndDuplicates() throws Exception {
+        java.lang.reflect.Method compare = MainActivity.class.getDeclaredMethod(
+                "sameReminder", JSONObject.class, JSONObject.class);
+        compare.setAccessible(true);
+        JSONObject original = new JSONObject().put("start", "2026-11-19")
+                .put("title", "Leitura").put("mode", "daily").put("time", "09:00")
+                .put("skips", new org.json.JSONArray().put("2026-11-20").put("2026-11-21"));
+        JSONObject reordered = new JSONObject(original.toString())
+                .put("skips", new org.json.JSONArray()
+                        .put("2026-11-21").put("2026-11-20").put("2026-11-20"));
+        assertTrue((Boolean) compare.invoke(null, original, reordered));
+        JSONObject changed = new JSONObject(original.toString())
+                .put("skips", new org.json.JSONArray().put("2026-11-20"));
+        assertFalse((Boolean) compare.invoke(null, original, changed));
+        JSONObject changedTime = new JSONObject(original.toString()).put("time", "10:00");
+        assertFalse((Boolean) compare.invoke(null, original, changedTime));
+    }
+
 }
