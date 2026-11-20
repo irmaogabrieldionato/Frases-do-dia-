@@ -17,6 +17,17 @@ public class BackupDateValidationTest {
         assertTrue(valid("2000-02-29"));
     }
 
+    @Test public void checksGregorianCenturyAndBoundaryDates() throws Exception {
+        assertTrue(valid("0001-01-01"));
+        assertTrue(valid("9999-12-31"));
+        assertTrue(valid("2400-02-29"));
+        assertFalse(valid("2100-02-29"));
+        assertFalse(valid("2026-11-31"));
+        assertFalse(valid("2026-12-32"));
+        assertFalse(valid("2026-01-01 "));
+        assertFalse(valid(" 2026-01-01"));
+    }
+
     @Test public void rejectsImpossibleOrMalformedDates() throws Exception {
         for(String date:new String[]{"2026-02-29","2026-02-31","2026-13-40",
                 "1900-02-29","2026-04-31","0000-01-01","2026-00-10",
