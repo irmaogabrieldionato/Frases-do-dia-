@@ -86,11 +86,11 @@ public class BackupJsonValidationTest {
 
 
     @Test public void retainsMultipleTasksAndExtendedFieldsAcrossValidation() throws Exception {
-        String json="{\\\"format\\\":\\\"checklist-orbis-backup\\\",\\\"version\\\":1,\\\"tasks\\\":["
-            +"{\\\"title\\\":\\\"Original\\\",\\\"mode\\\":\\\"daily\\\",\\\"start\\\":\\\"2024-02-29\\\","
-            +"\\\"project\\\":\\\"Study\\\",\\\"section\\\":\\\"Reading\\\",\\\"tags\\\":[\\\"books\\\",\\\"home\\\"],"
-            +"\\\"history\\\":{\\\"2024-02-29\\\":35}},"
-            +"{\\\"title\\\":\\\"Legacy\\\",\\\"mode\\\":\\\"once\\\",\\\"start\\\":\\\"2020-01-01\\\"}]}";
+        String json="{\"format\":\"checklist-orbis-backup\",\"version\":1,\"tasks\":["
+            +"{\"title\":\"Original\",\"mode\":\"daily\",\"start\":\"2024-02-29\","
+            +"\"project\":\"Study\",\"section\":\"Reading\",\"tags\":[\"books\",\"home\"],"
+            +"\"history\":{\"2024-02-29\":35}},"
+            +"{\"title\":\"Legacy\",\"mode\":\"once\",\"start\":\"2020-01-01\"}]}";
         JSONArray result=validate(json);
         assertEquals(2,result.length());
         assertEquals("Study",result.getJSONObject(0).getString("project"));
