@@ -522,14 +522,17 @@ public class MainActivity extends Activity {
     private JSONArray validateBackup(String raw) throws JSONException {
         JSONObject root=new JSONObject(raw);
         if(!"checklist-orbis-backup".equals(root.optString("format"))
-                ||root.optInt("version")!=1)throw new JSONException("Invalid format/version");
+                ||!(root.opt("version") instanceof Integer)
+                ||((Integer)root.opt("version"))!=1)throw new JSONException("Invalid format/version");
         JSONArray incoming=root.getJSONArray("tasks");
         if(incoming.length()>10000)throw new JSONException("Too many tasks");
         for(int i=0;i<incoming.length();i++){
             JSONObject task=incoming.optJSONObject(i);
             if(task==null || !task.has("title") || !task.has("mode")
                     || !task.has("start"))throw new JSONException("Invalid task");
-            if(task.optString("title").length()>1000)throw new JSONException("Invalid title");
+            if(!(task.opt("title") instanceof String)
+                    ||((String)task.opt("title")).length()>1000)
+                throw new JSONException("Invalid title");
             if(!validBackupDate(task.optString("start")))
                 throw new JSONException("Invalid date");
             String mode=task.optString("mode");
