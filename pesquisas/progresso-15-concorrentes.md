@@ -784,3 +784,11 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **CI pendente**: a consulta à API de runs filtrada por branch e SHA do commit retornou zero execuções até o momento. Não declarar testes executados, compilação ou APK deste commit como aprovados. Reconsultar o GitHub Actions e corrigir qualquer falha antes de prosseguir.
 - **Risco ainda não testado**: falha de `SharedPreferences.commit()`, preservação em memória e disco, recuperação de alarmes e comportamento após reinicialização. Testes unitários de validação JSON não substituem teste instrumentado nem físico. Assinatura release exige keystore privado e secrets seguros.
 - Agenda própria offline; nenhuma integração com Google Agenda/API, novos serviços externos ou alteração de `main`. Próximo passo: validar o CI e introduzir teste instrumentado da restauração com falha de persistência.
+
+
+## Execução 105 — 2026-11-20
+- Consultados primeiro este registro e `pesquisas/concorrentes-checklist-orbis-2026-11-15.md` na branch `checklist-orbis`. Todoist 1/15; nenhum concorrente integralmente concluído.
+- **Falha real identificada no CI:** [run 44833216934](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/44833216934) para SHA `64271d0c57055a260a67dba668030eacf14fa983` terminou `completed/failure`: 49 testes, 1 falhou (`BackupJsonValidationTest.retainsMultipleTasksAndExtendedFieldsAcrossValidation`), `JSONException: Missing value at 1`. Build/APK foram pulados; não há APK novo desse run.
+- **Causa reproduzida nos logs e código:** literal Java do teste tinha JSON duplamente escapado (`\\\"` em vez de `\"` no fonte Java), produzindo barras antes das aspas no JSON recebido pelo validador. Não era evidência de defeito no importador de produção.
+- **Correção publicada:** [commit 47073b8b](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/47073b8b92659eac6380492a11fc8b5c4dc8a058) remove escape excessivo somente no novo teste. Código de produção e formato de backup intactos.
+- **Gate pendente:** conferir o GitHub Actions do SHA `47073b8b` e o APK debug; não declarar teste aprovado ou compilação antes de confirmação. Próximo passo: testes de falha `commit()`, persistência, alarmes e restauração física. Release assinada depende de keystore/secrets privados. Sem Google Agenda/API, serviços externos novos ou alteração de `main`.
