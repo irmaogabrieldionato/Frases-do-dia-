@@ -509,6 +509,8 @@ public class MainActivity extends Activity {
             int dayOfMonth=Integer.parseInt(value.substring(8,10));
             if(year<1)return false;
             GregorianCalendar date=new GregorianCalendar(java.util.TimeZone.getTimeZone("UTC"));
+            // Use the proleptic Gregorian calendar for every ISO year, including pre-1582 dates.
+            date.setGregorianChange(new java.util.Date(Long.MIN_VALUE));
             date.setLenient(false);
             date.clear();
             date.set(year,month-1,dayOfMonth);
