@@ -500,6 +500,23 @@ public class MainActivity extends Activity {
         return root.toString(2);
     }
 
+    /** Strict ISO calendar date check, independent of the device's timezone. */
+    private static boolean validBackupDate(String value) {
+        if(value==null || !value.matches("\\d{4}-\\d{2}-\\d{2}"))return false;
+        try {
+            int year=Integer.parseInt(value.substring(0,4));
+            int month=Integer.parseInt(value.substring(5,7));
+            int dayOfMonth=Integer.parseInt(value.substring(8,10));
+            if(year<1)return false;
+            GregorianCalendar date=new GregorianCalendar(java.util.TimeZone.getTimeZone("UTC"));
+            date.setLenient(false);
+            date.clear();
+            date.set(year,month-1,dayOfMonth);
+            date.getTimeInMillis();
+            return true;
+        }catch(IllegalArgumentException e){return false;}
+    }
+
     private JSONArray validateBackup(String raw) throws JSONException {
         JSONObject root=new JSONObject(raw);
         if(!"checklist-orbis-backup".equals(root.optString("format"))
@@ -511,13 +528,26 @@ public class MainActivity extends Activity {
             if(task==null || !task.has("title") || !task.has("mode")
                     || !task.has("start"))throw new JSONException("Invalid task");
             if(task.optString("title").length()>1000)throw new JSONException("Invalid title");
-            if(!task.optString("start").matches("\\d{4}-\\d{2}-\\d{2}"))
+            if(!validBackupDate(task.optString("start")))
                 throw new JSONException("Invalid date");
             String mode=task.optString("mode");
             if(!Arrays.asList("once","daily","weekly","monthly","yearly").contains(mode))
                 throw new JSONException("Invalid recurrence");
-            if(task.has("history") && task.optJSONObject("history")==null)
-                throw new JSONException("Invalid history");
+            if(task.has("history")){
+                JSONObject history=task.optJSONObject("history");
+                if(history==null || history.length()>36600)
+                    throw new JSONException("Invalid history");
+                java.util.Iterator<String> keys=history.keys();
+                while(keys.hasNext()){
+                    String date=keys.next();
+                    Object value=history.opt(date);
+                    if(!validBackupDate(date) || !(value instanceof Number)
+                            || ((Number)value).doubleValue()<0
+                            || ((Number)value).doubleValue()>100
+                            || ((Number)value).doubleValue()%1!=0)
+                        throw new JSONException("Invalid history entry");
+                }
+            }
         }
         return incoming;
     }
