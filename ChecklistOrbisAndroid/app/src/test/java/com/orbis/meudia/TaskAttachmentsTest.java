@@ -31,4 +31,17 @@ public class TaskAttachmentsTest {
         assertFalse(TaskAttachments.add(task, item("content://media/extra", "image/png", 0)));
         assertEquals(TaskAttachments.MAX_PER_TASK, task.getJSONArray("attachments").length());
     }
+    @Test public void removingAttachmentKeepsOtherDataAndDoesNotTouchSource() throws Exception {
+        JSONObject task = new JSONObject().put("title", "Work");
+        assertTrue(TaskAttachments.add(task, item("content://media/1", "image/jpeg", 120)));
+        assertTrue(TaskAttachments.add(task, item("content://media/2", "video/mp4", 300)));
+        assertFalse(TaskAttachments.remove(task, "content://media/missing"));
+        assertEquals(420, TaskAttachments.totalBytes(task));
+        assertTrue(TaskAttachments.remove(task, "content://media/1"));
+        assertFalse(TaskAttachments.remove(task, "content://media/1"));
+        assertEquals(300, TaskAttachments.totalBytes(task));
+        assertEquals("content://media/2", task.getJSONArray("attachments").getJSONObject(0).getString("uri"));
+        assertEquals("Work", task.getString("title"));
+    }
 }
+
