@@ -79,6 +79,18 @@ final class TaskAttachments {
         return copy;
     }
 
+    /** Number of device-only references excluded from a portable JSON backup. */
+    static int omittedAttachmentCount(JSONArray tasks) {
+        if (tasks == null) return 0;
+        int count = 0;
+        for (int i = 0; i < tasks.length(); i++) {
+            JSONObject task = tasks.optJSONObject(i);
+            JSONArray items = task == null ? null : task.optJSONArray("attachments");
+            if (items != null) count += items.length();
+        }
+        return count;
+    }
+
     static long totalBytes(JSONObject task) {
         JSONArray items = task == null ? null : task.optJSONArray("attachments");
         if (items == null) return 0;
