@@ -102,9 +102,9 @@ public class BackupJsonValidationTest {
 
 
     @Test public void rejectsCorruptHistoryInSecondTaskWithoutPartialAcceptance() throws Exception {
-        String valid="{\\\"title\\\":\\\"Existing\\\",\\\"mode\\\":\\\"daily\\\",\\\"start\\\":\\\"2024-02-29\\\",\\\"history\\\":{\\\"2024-02-29\\\":80}}";
-        String corrupt="{\\\"title\\\":\\\"Later\\\",\\\"mode\\\":\\\"daily\\\",\\\"start\\\":\\\"2024-03-01\\\",\\\"history\\\":{\\\"2024-02-30\\\":20}}";
-        String prefix="{\\\"format\\\":\\\"checklist-orbis-backup\\\",\\\"version\\\":1,\\\"tasks\\\":[";
+        String valid="{\"title\":\"Existing\",\"mode\":\"daily\",\"start\":\"2024-02-29\",\"history\":{\"2024-02-29\":80}}";
+        String corrupt="{\"title\":\"Later\",\"mode\":\"daily\",\"start\":\"2024-03-01\",\"history\":{\"2024-02-30\":20}}";
+        String prefix="{\"format\":\"checklist-orbis-backup\",\"version\":1,\"tasks\":[";
         assertInvalid(prefix+valid+","+corrupt+"]}");
         JSONArray accepted=validate(prefix+valid+"]}");
         assertEquals(1,accepted.length());
