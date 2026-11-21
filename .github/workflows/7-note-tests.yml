@@ -29,3 +29,21 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Testar jogabilidade no navegador
         run: npm run test:browser
+
+  pacote:
+    name: Gerar ZIP do jogo para download
+    needs: [regras, navegador]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Empacotar apenas os arquivos do jogo
+        run: |
+          mkdir -p dist
+          zip -j dist/7-note-musical-game.zip index.html styles.css game-core.js app.js manifest.webmanifest icon.svg sw.js README-7-NOTE.md
+      - name: Disponibilizar jogo como artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: 7-note-musical-game
+          path: dist/7-note-musical-game.zip
+          if-no-files-found: error
+          retention-days: 30
