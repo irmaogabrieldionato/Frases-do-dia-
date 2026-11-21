@@ -100,6 +100,17 @@ public class BackupJsonValidationTest {
         assertFalse(result.getJSONObject(1).has("history"));
     }
 
+
+    @Test public void rejectsCorruptHistoryInSecondTaskWithoutPartialAcceptance() throws Exception {
+        String valid="{\\\"title\\\":\\\"Existing\\\",\\\"mode\\\":\\\"daily\\\",\\\"start\\\":\\\"2024-02-29\\\",\\\"history\\\":{\\\"2024-02-29\\\":80}}";
+        String corrupt="{\\\"title\\\":\\\"Later\\\",\\\"mode\\\":\\\"daily\\\",\\\"start\\\":\\\"2024-03-01\\\",\\\"history\\\":{\\\"2024-02-30\\\":20}}";
+        String prefix="{\\\"format\\\":\\\"checklist-orbis-backup\\\",\\\"version\\\":1,\\\"tasks\\\":[";
+        assertInvalid(prefix+valid+","+corrupt+"]}");
+        JSONArray accepted=validate(prefix+valid+"]}");
+        assertEquals(1,accepted.length());
+        assertEquals(80,accepted.getJSONObject(0).getJSONObject("history").getInt("2024-02-29"));
+    }
+
     private void assertInvalid(String json) throws Exception {
         try {validate(json);fail("Expected invalid backup: "+json);}
         catch(JSONException expected) { /* validation rejects before restoration */ }
