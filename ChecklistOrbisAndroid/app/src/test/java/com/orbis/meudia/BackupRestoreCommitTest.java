@@ -34,4 +34,41 @@ public class BackupRestoreCommitTest {
         assertEquals("new", active[0]);
         assertEquals(1, alarms[0]);
     }
+
+    @Test public void thrownWriteDoesNotPublishRestoredState() {
+        final int[] callbacks = {0};
+        try {
+            BackupRestoreCommit.restore((day, json) -> {
+                throw new IllegalStateException("simulated storage error");
+            }, "2026-11-21", "[]", () -> callbacks[0]++);
+            fail("Expected simulated storage error");
+        } catch (IllegalStateException expected) {
+            assertEquals("simulated storage error", expected.getMessage());
+        }
+        assertEquals(0, callbacks[0]);
+    }
+
+    @Test public void invalidArgumentsNeverInvokeWriterOrCallbacks() {
+        final int[] writes = {0};
+        final int[] callbacks = {0};
+        BackupRestoreCommit.Writer writer = (day, json) -> {
+            writes[0]++;
+            return true;
+        };
+        BackupRestoreCommit.AfterCommit callback = () -> callbacks[0]++;
+        try {
+            BackupRestoreCommit.restore(writer, null, "[]", callback);
+            fail("Expected missing day rejection");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Missing restore argument", expected.getMessage());
+        }
+        try {
+            BackupRestoreCommit.restore(writer, "2026-11-21", null, callback);
+            fail("Expected missing JSON rejection");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Missing restore argument", expected.getMessage());
+        }
+        assertEquals(0, writes[0]);
+        assertEquals(0, callbacks[0]);
+    }
 }
