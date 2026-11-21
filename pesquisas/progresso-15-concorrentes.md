@@ -800,3 +800,11 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **APK debug confirmado:** [artefato 14680940478](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/44839685531/artifacts/14680940478), `Checklist-Orbis-Android-APK`, 90528 bytes, `expired=false` na consulta. Não é release com assinatura estável.
 - **Escopo desta execução:** conferência de CI, jobs e artefato; nenhuma alteração de código de produção. Testes instrumentados/físicos de falha de `SharedPreferences.commit()`, rollback, alarmes, reboot, fuso, permissões e restauração de backups antigos permanecem pendentes. Assinatura release exige keystore privado e secrets seguros.
 - **Próximo passo:** adicionar teste de falha de gravação e preservação de estado com mecanismo injetável, validar CI e regressões antes de avançar em funcionalidades do Todoist. Agenda original e offline, sem Google Agenda/API, sem novos serviços externos e sem alteração da branch `main`.
+
+
+## Execução 107 — 2026-11-20
+- Consultados inicialmente este registro e `pesquisas/concorrentes-checklist-orbis-2026-11-15.md` na branch `checklist-orbis`. Todoist 1/15; nenhum concorrente integralmente concluído.
+- **Novo teste de regressão**: [commit 292f4d8](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/292f4d8a4ae185e619efa481c2ab82b0eddfd74e) adiciona caso com primeira tarefa válida e histórico inválido na segunda, exigindo rejeição do backup inteiro, seguido de controle positivo da primeira tarefa isolada. Sem mudanças no código de produção, formato JSON ou serviços externos.
+- **Validação**: commit publicado, mas CI, execução do novo teste, compilação e novo APK ainda não confirmados. Não considerar aprovado antes de verificar GitHub Actions por SHA.
+- **Bloqueios**: injeção de falha de `SharedPreferences.commit()`, testes instrumentados/físicos de preservação de dados e alarmes, reboot e assinatura release com keystore privado continuam pendentes.
+- Agenda própria, offline e original; nenhuma integração com Google Agenda/API e nenhuma alteração em `main`.
