@@ -496,7 +496,7 @@ public class MainActivity extends Activity {
         root.put("format","checklist-orbis-backup");
         root.put("version",1);
         root.put("exportedAt",System.currentTimeMillis());
-        root.put("tasks",new JSONArray(tasks.toString()));
+        root.put("tasks",TaskAttachments.portableTasks(tasks));
         return root.toString(2);
     }
 
