@@ -3,8 +3,8 @@
 Atualizado em 2026-11-15. Branch exclusiva: `checklist-orbis`. Não alterar `main`.
 
 ## Estado
-- Concorrente atual: **1/15 — Todoist**, em análise e implementação incremental.
-- Próxima ação: confirmar CI da correção/testes específicos de duplicação (commit 627ba0af), corrigir falhas e só depois avançar para reagendamento; continuar a fila Todoist.
+- Concorrente atual na nova ordem: **1/15 — Microsoft To Do**. Todoist foi adiado para 15º e TickTick para 14º por decisão do usuário em 2026-11-21; histórico anterior permanece preservado.
+- Próxima ação: pesquisar fontes oficiais atuais do Microsoft To Do, comparar com o código existente e implementar uma funcionalidade elegível por vez, com testes e CI. Não retomar Todoist nem TickTick antes de chegar às posições finais.
 - Segurança da distribuição: assinatura estável de release **bloqueada** até haver keystore privado e configuração de secrets seguros. Nunca gravar chaves no Git.
 - Implementações existentes verificadas no código: calendário mensal nativo, recorrências, histórico de progresso por data, cinco prioridades, filtros, 15 idiomas, armazenamento local e interface offline.
 - 0/15 concorrentes concluídos; não avançar sem registrar cada funcionalidade pendente, implementada ou bloqueada.
@@ -856,3 +856,10 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **APK debug confirmado**: [artefato 14697105778](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/44877476292/artifacts/14697105778), `Checklist-Orbis-Android-APK`, 91365 bytes, `expired=false` na consulta, vinculado à branch `checklist-orbis` e SHA acima. Não é release com assinatura estável.
 - **Escopo desta execução**: auditoria de CI e artefato, sem alteração de código de produção. Continuam pendentes testes instrumentados/físicos de restauração, falha real de `SharedPreferences.commit()`, preservação de tarefas e alarmes, reinicialização, fuso e permissões; assinatura release depende de keystore privado e secrets seguros.
 - **Próxima ação**: implementar teste instrumentado isolado da restauração em Android, verificar regressões e CI antes de prosseguir com outra funcionalidade Todoist. Agenda original offline; sem Google Agenda/API, novos serviços externos ou alteração de `main`.
+
+
+## Mudança de ordem aprovada — 2026-11-21
+- **Decisão explícita do usuário:** pular Todoist e TickTick por enquanto. A sequência de execução passa a ser: **1 Microsoft To Do; 2 Google Tasks; 3 Any.do; 4 Structured; 5 Taskito; 6 HabitNow; 7 Habitica; 8 Amazing Marvin; 9 Trello; 10 Notion Calendar; 11 Tasks.org; 12 Loop Habit Tracker; 13 Super Productivity; 14 TickTick; 15 Todoist**.
+- **Checkpoint:** execuções Todoist 1–113 preservadas integralmente como histórico e trabalho parcialmente realizado. Nenhum concorrente concluído. O próximo concorrente a pesquisar e implementar é Microsoft To Do, sem reiniciar nem apagar funcionalidades anteriores.
+- **Critérios inalterados:** uma funcionalidade por vez; fontes oficiais; código autoral offline; testes, GitHub Actions, regressões e APK documentados sem alegações prematuras; assinatura estável somente com segredos privados. Agenda própria, sem conexão, importação, dependência ou API do Google Agenda. Branch exclusiva `checklist-orbis`; nunca `main`.
+- **Natureza deste commit:** apenas reordenação documental solicitada pelo usuário; nenhum teste, build ou APK novo reivindicado.
