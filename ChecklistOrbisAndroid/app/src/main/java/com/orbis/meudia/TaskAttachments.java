@@ -31,9 +31,14 @@ final class TaskAttachments {
             if (previous != null && previous.optString("uri").equals(item.optString("uri"))) return false;
         }
         JSONArray attachments = existing == null ? new JSONArray() : existing;
-        attachments.put(new JSONObject(item.toString()));
-        try { task.put("attachments", attachments); return true; }
-        catch (org.json.JSONException exception) { return false; }
+        try {
+            JSONObject copy = new JSONObject(item.toString());
+            attachments.put(copy);
+            task.put("attachments", attachments);
+            return true;
+        } catch (org.json.JSONException exception) {
+            return false;
+        }
     }
 
     static long totalBytes(JSONObject task) {
