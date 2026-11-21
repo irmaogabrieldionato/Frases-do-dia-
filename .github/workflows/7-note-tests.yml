@@ -5,14 +5,27 @@ on:
   pull_request:
     branches: [7-note-musical-game]
 jobs:
-  tests:
+  regras:
+    name: Regras e integridade da PWA
     runs-on: ubuntu-latest
     steps:
-      - name: Baixar o código
-        uses: actions/checkout@v4
-      - name: Configurar Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Rodar testes
+      - name: Testar as regras de jogo
         run: npm test
+  navegador:
+    name: Testes reais no Chromium
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar Playwright
+        run: npm install --no-audit --no-fund
+      - name: Instalar navegador
+        run: npx playwright install --with-deps chromium
+      - name: Testar jogabilidade no navegador
+        run: npm run test:browser
