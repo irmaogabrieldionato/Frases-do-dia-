@@ -65,6 +65,20 @@ final class TaskAttachments {
         }
     }
 
+    /**
+     * Produces a portable backup copy. Android content URIs are device-specific
+     * access grants, not media bytes; exporting them would create broken links
+     * and potentially expose local document-provider identifiers.
+     */
+    static JSONArray portableTasks(JSONArray source) throws org.json.JSONException {
+        JSONArray copy = new JSONArray(source == null ? "[]" : source.toString());
+        for (int i = 0; i < copy.length(); i++) {
+            JSONObject task = copy.optJSONObject(i);
+            if (task != null) task.remove("attachments");
+        }
+        return copy;
+    }
+
     static long totalBytes(JSONObject task) {
         JSONArray items = task == null ? null : task.optJSONArray("attachments");
         if (items == null) return 0;
