@@ -815,6 +815,22 @@ public class MainActivity extends Activity {
         backupsLp.bottomMargin=dp(14);
         content.addView(backupActions,backupsLp);
 
+        TextView suggestionsButton=action(tr("daily_suggestions"));
+        suggestionsButton.setOnClickListener(v -> {
+            java.util.List<JSONObject> pending=DailySuggestions.pending(tasks,selectedDay);
+            StringBuilder body=new StringBuilder();
+            for(JSONObject item:pending) {
+                if(body.length()>0)body.append("\\n");
+                body.append("• ").append(item.optString("title",""));
+            }
+            new AlertDialog.Builder(this).setTitle(tr("daily_suggestions"))
+                    .setMessage(body.length()==0?tr("empty"):body.toString())
+                    .setPositiveButton(android.R.string.ok,null).show();
+        });
+        LinearLayout.LayoutParams suggestionsLp=lp(-1,43);
+        suggestionsLp.bottomMargin=dp(14);
+        content.addView(suggestionsButton,suggestionsLp);
+
         calendarBody=vertical();
         LinearLayout.LayoutParams calLp=lp(-1,-2);
         calLp.bottomMargin=dp(18);
