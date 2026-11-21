@@ -10,6 +10,7 @@ final class Languages {
     static final String[] NAMES = {"English", "中文（普通话）", "हिन्दी", "Español", "Français", "العربية الفصحى", "বাংলা", "Русский", "Português", "Bahasa Indonesia", "اردو", "Deutsch", "日本語", "Kiswahili", "मराठी"};
     private static final Map<String, String[]> MESSAGES = new HashMap<>();
     static {
+        put("daily_suggestions", "Pending today", "今日待办", "आज के लंबित कार्य", "Pendientes de hoy", "À faire aujourd’hui", "مهام اليوم المعلقة", "আজকের বাকি কাজ", "Осталось на сегодня", "Pendentes de hoje", "Tugas hari ini", "آج کے باقی کام", "Heute offen", "今日の未完了タスク", "Yaliyobaki leo", "आजची प्रलंबित कामे");
         put("task_duration", "Estimated duration", "预计时长", "अनुमानित अवधि", "Duración estimada", "Durée estimée", "المدة المقدرة", "আনুমানিক সময়কাল", "Ожидаемая длительность", "Duração estimada", "Perkiraan durasi", "متوقع دورانیہ", "Geschätzte Dauer", "推定所要時間", "Muda unaokadiriwa", "अंदाजे कालावधी");
         put("no_task_duration", "No duration set", "未设置时长", "अवधि निर्धारित नहीं", "Sin duración", "Aucune durée définie", "لا توجد مدة محددة", "সময়কাল নির্ধারিত নয়", "Длительность не задана", "Sem duração definida", "Durasi belum diatur", "دورانیہ مقرر نہیں", "Keine Dauer festgelegt", "所要時間未設定", "Hakuna muda uliowekwa", "कालावधी ठरलेला नाही");
         put("clear_task_duration", "Remove duration", "移除时长", "अवधि हटाएँ", "Quitar duración", "Supprimer la durée", "إزالة المدة", "সময়কাল সরান", "Удалить длительность", "Remover duração", "Hapus durasi", "دورانیہ ہٹائیں", "Dauer entfernen", "所要時間を削除", "Ondoa muda", "कालावधी काढा");
