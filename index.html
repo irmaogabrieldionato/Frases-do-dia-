@@ -2,10 +2,12 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#111a35">
-  <meta name="description" content="7-Note Musical Game: ouça, memorize e repita sequências com as sete notas musicais.">
-  <title>7-Note Musical Game 🎵</title>
+  <meta name="description" content="7-Note Musical Game: memória musical, treino de ouvido e compositor com sete notas.">
+  <title>7-Note Musical Game — Jogue, aprenda e componha</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -13,29 +15,44 @@
   <div class="ambient ambient-two" aria-hidden="true"></div>
   <main class="app">
     <header class="header">
-      <div class="brand"><div class="brand-mark" aria-hidden="true">♫</div>
-        <div><span class="eyebrow">JOGO MUSICAL</span><h1>7-Note <span>Musical Game</span></h1></div>
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">♫</div>
+        <div><span class="eyebrow">SEU ESTÚDIO MUSICAL</span><h1>7-Note <span>Musical Game</span></h1></div>
       </div>
-      <span class="tag" id="mode-label">Desafio de memória</span>
+      <div class="header-actions">
+        <button id="install-button" class="header-button" type="button" hidden>Instalar</button>
+        <button id="help-button" class="header-button" type="button" aria-label="Instruções">Como jogar</button>
+        <button id="settings-button" class="header-button" type="button" aria-label="Configurações">⚙ Ajustes</button>
+      </div>
     </header>
 
-    <section class="game-card" aria-label="Jogo das sete notas">
-      <div class="intro"><span class="eyebrow accent">OUÇA · MEMORIZE · TOQUE</span>
-        <h2>Uma nota a mais.<br><span>Um desafio maior.</span></h2>
+    <section class="game-card" aria-label="7-Note Musical Game">
+      <div class="intro">
+        <span class="eyebrow accent">OUÇA · MEMORIZE · CRIE</span>
+        <h2>Sete notas. <span>Novas descobertas.</span></h2>
         <p id="instructions">Cada fase acrescenta uma nota. Ouça com atenção e repita a sequência.</p>
       </div>
 
-      <div class="stats" aria-label="Estatísticas do jogador">
+      <nav class="mode-tabs" aria-label="Modos do jogo">
+        <button class="mode-tab selected" data-mode="memory" aria-pressed="true" type="button">◈ Memória</button>
+        <button class="mode-tab" data-mode="ear" aria-pressed="false" type="button">◉ Ouvido</button>
+        <button class="mode-tab" data-mode="free" aria-pressed="false" type="button">♫ Livre</button>
+        <button class="mode-tab" data-mode="compose" aria-pressed="false" type="button">✎ Compositor</button>
+      </nav>
+
+      <div class="stats" aria-label="Estatísticas">
         <div class="stat"><span>FASE ATUAL</span><strong id="level">1</strong></div>
         <div class="stat"><span>RECORDE</span><strong id="best">1</strong></div>
         <div class="stat"><span>DERROTAS</span><strong id="losses">0</strong></div>
-        <div class="stat"><span>NOTAS DA FASE</span><strong id="total-notes">1</strong></div>
+        <div class="stat"><span>PONTUAÇÃO</span><strong id="points">0</strong></div>
       </div>
+      <div class="mini-stats"><span>Sequência: <b id="total-notes">1</b> nota(s)</span><span>Vitórias: <b id="wins">0</b></span><span>Sequência de vitórias: <b id="streak">0</b></span><span>Ouvido: <b id="ear-best">0/10</b></span></div>
+      <div class="progress-header"><span id="step-progress">Sequência com 1 nota</span><span id="mode-label">DESAFIO DE MEMÓRIA</span></div>
+      <div class="progress-track" role="progressbar" id="progress-track" aria-label="Progresso do desafio" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progress-fill"></div></div>
 
-      <div class="progress-header"><span id="step-progress">Sequência com 1 nota</span><span aria-hidden="true">♪ ♪ ♪</span></div>
-      <div class="progress-track" aria-hidden="true"><div id="progress-fill"></div></div>
-
-      <div class="keyboard-panel"><div class="keyboard-head"><h3>Seu teclado</h3><span>Use as teclas 1–7 ou toque na tela</span></div>
+      <div class="keyboard-panel">
+        <div class="keyboard-head"><h3>Teclado das sete notas</h3><span id="keyboard-hint">Toque na tela ou use 1–7 no teclado</span></div>
+        <div class="now-playing" id="now-playing" aria-live="off" aria-hidden="true">♫</div>
         <div class="note-pads" role="group" aria-label="Teclado musical com sete notas">
           <button class="note-pad" data-note="do" type="button"><span class="note-number">1</span><span class="note-icon">♪</span><strong>Dó</strong></button>
           <button class="note-pad" data-note="re" type="button"><span class="note-number">2</span><span class="note-icon">♫</span><strong>Ré</strong></button>
@@ -47,21 +64,69 @@
         </div>
       </div>
 
-      <p class="message" id="message" role="status" aria-live="polite">Ouça a sequência e repita as notas na mesma ordem.</p>
-      <div class="actions"><button id="play-button" class="primary" type="button">Ouvir sequência</button>
-        <button id="free-button" class="secondary" type="button">Modo livre</button>
+      <div class="sequence-panel" id="sequence-panel" hidden>
+        <span id="sequence-label">Sua composição</span>
+        <div class="sequence-chips" id="sequence-chips" aria-label="Notas adicionadas"></div>
+        <div class="sequence-actions">
+          <button class="secondary small" id="undo-button" type="button">Desfazer última</button>
+          <button class="secondary small" id="clear-button" type="button">Limpar notas</button>
+        </div>
       </div>
-      <div class="footer-controls"><span>🎯 Treine memória e percepção musical</span><button id="reset-button" class="reset" type="button">Recomeçar da fase 1</button></div>
+
+      <p class="message" id="message" role="status" aria-live="polite">Ouça a sequência e repita as notas na mesma ordem.</p>
+      <div class="actions">
+        <button id="play-button" class="primary" type="button">▶ Ouvir sequência</button>
+        <button id="secondary-button" class="secondary" type="button">Repetir sequência</button>
+      </div>
+      <div class="footer-controls">
+        <span id="ad-countdown">Anúncio após mais 2 derrotas</span>
+        <button id="reset-button" class="reset" type="button">↺ Voltar à fase 1</button>
+      </div>
     </section>
-    <footer class="page-footer">7 notas · Dó Ré Mi Fá Sol Lá Si · Seu progresso fica salvo neste aparelho</footer>
+
+    <section class="achievements" aria-labelledby="achievements-title">
+      <div class="achievement-head"><h2 id="achievements-title">Suas conquistas</h2><span id="achievement-count">0/5</span></div>
+      <div id="achievement-list" class="achievement-list"></div>
+    </section>
+    <footer class="page-footer">7-Note Musical Game · Jogo gratuito · Progresso salvo neste navegador · Áudio criado no aparelho</footer>
   </main>
+
+  <dialog id="settings-dialog" class="dialog">
+    <form method="dialog">
+      <h2>⚙ Configurações</h2>
+      <label for="volume">Volume <output id="volume-value" for="volume">70%</output></label>
+      <input id="volume" type="range" min="0" max="100" step="1" value="70">
+      <label for="tempo">Velocidade das notas</label>
+      <select id="tempo"><option value="slow">Devagar</option><option value="normal">Normal</option><option value="fast">Rápido</option></select>
+      <label for="instrument">Timbre</label>
+      <select id="instrument"><option value="soft">Suave</option><option value="bell">Sino</option><option value="retro">Retrô / 8 bits</option></select>
+      <label class="checkbox-line"><input id="show-names" type="checkbox"> Mostrar o nome da nota durante a sequência (ajuda)</label>
+      <p class="dialog-note">Essas opções ficam salvas neste navegador.</p>
+      <button class="secondary danger" id="wipe-button" type="button">Apagar todos os dados e recordes</button>
+      <button class="primary" type="submit">Concluir</button>
+    </form>
+  </dialog>
+
+  <dialog id="help-dialog" class="dialog">
+    <form method="dialog">
+      <h2>♫ Como jogar</h2>
+      <ol class="help-list">
+        <li><b>Memória:</b> ouça e repita a sequência. A fase 1 começa com Mi; a cada vitória é acrescentada mais uma nota.</li>
+        <li><b>Ouvido:</b> escute uma nota e descubra qual é. Cada treino tem dez perguntas.</li>
+        <li><b>Livre:</b> toque as sete notas sem derrotas e sem anúncios.</li>
+        <li><b>Compositor:</b> grave até 64 notas e reproduza sua própria melodia.</li>
+      </ol>
+      <p class="dialog-note">A cada duas derrotas, o jogo solicita um anúncio. Até a integração com um provedor, aparece uma tela demonstrativa claramente identificada. Sem anúncios no modo Livre ou no Compositor.</p>
+      <button class="primary" type="submit">Entendi, vamos jogar!</button>
+    </form>
+  </dialog>
 
   <div id="ad-modal" class="modal-overlay" hidden>
     <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="ad-title" aria-describedby="ad-description">
       <span class="demo-label">DEMONSTRAÇÃO · NÃO É ANÚNCIO PAGO</span>
       <div class="demo-icon" aria-hidden="true">♫</div>
-      <h2 id="ad-title">Espaço publicitário</h2>
-      <p id="ad-description">Este espaço é acionado a cada 2 derrotas (2ª, 4ª, 6ª...). Uma rede de anúncios poderá ser conectada aqui antes do lançamento comercial.</p>
+      <h2 id="ad-title">Intervalo publicitário</h2>
+      <p id="ad-description">O intervalo foi acionado após duas derrotas. Quando uma rede publicitária for configurada, este espaço poderá exibir um anúncio real.</p>
       <button id="close-ad" class="primary" type="button">Continuar jogando</button>
     </section>
   </div>
