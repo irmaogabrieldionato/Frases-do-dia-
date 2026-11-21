@@ -57,4 +57,15 @@ public class TaskAttachmentsTest {
         assertEquals(0, TaskAttachments.portableTasks(null).length());
     }
 
+    @Test public void countsOmittedMediaReferencesWithoutChangingTasks() throws Exception {
+        JSONObject one = new JSONObject().put("title", "one");
+        JSONObject two = new JSONObject().put("title", "two");
+        assertTrue(TaskAttachments.add(one, item("content://media/1", "image/png", 100)));
+        assertTrue(TaskAttachments.add(one, item("content://media/2", "video/mp4", 200)));
+        org.json.JSONArray tasks = new org.json.JSONArray().put(one).put(two).put("legacy");
+        assertEquals(2, TaskAttachments.omittedAttachmentCount(tasks));
+        assertEquals(0, TaskAttachments.omittedAttachmentCount(null));
+        assertEquals(2, one.getJSONArray("attachments").length());
+        assertEquals(0, TaskAttachments.omittedAttachmentCount(TaskAttachments.portableTasks(tasks)));
+    }
 }
