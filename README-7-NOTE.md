@@ -12,15 +12,19 @@ Escute a sequência e reproduza a ordem pressionando uma das sete teclas (ou **1
 
 | Fase | Sequência |
 | --- | --- |
-| 1 | Mi |
-| 2 | Mi, Dó |
-| 3 | Mi, Dó, Sol |
-| 4 | Mi, Dó, Sol, Dó |
-| 5 | Mi, Dó, Sol, Dó, Dó |
-| 6 | Mi, Dó, Sol, Dó, Dó, Ré |
-| 7 | Mi, Dó, Sol, Dó, Dó, Ré, Si |
+| 1 | Dó |
+| 2 | Dó, Si |
+| 3 | Dó, Si, Ré |
+| 4 | Dó, Si, Ré, Mi |
+| 5 | Dó, Si, Ré, Mi, Dó |
+| 6 | Dó, Si, Ré, Mi, Dó, Dó |
+| 7 | Dó, Si, Ré, Mi, Dó, Dó, Ré |
+| 8 | Dó, Si, Ré, Mi, Dó, Dó, Ré, Sol |
+| 9 | Dó, Si, Ré, Mi, Dó, Dó, Ré, Sol, Fá |
 
-A partir da fase 8, acrescenta-se **uma nota no final**, entre Dó, Ré, Mi, Fá, Sol, Lá e Si. A sequência é determinística: não muda ao repetir a mesma fase. O limite técnico atual é a fase 10.000.
+A partir da fase 10, acrescenta-se **exatamente uma nota no final**, entre Dó, Ré, Mi, Fá, Sol, Lá e Si. Cada fase preserva as anteriores e contém a mesma quantidade de notas que o número da fase. A sequência é determinística: não muda ao repetir a mesma fase. **A campanha tem exatamente 1.000 fases. Depois de acertar as 1.000 notas da fase 1.000, o jogo mostra o encerramento e não existe fase 1.001.** O jogador pode voltar aos outros modos ou recomeçar voluntariamente.
+
+**Mudança de campanha:** como a sequência inicial mudou de Mi para Dó, o progresso da campanha anterior permanece guardado na chave local v1, e uma nova campanha v2 inicia do zero. Os ajustes e melodias continuam preservados.
 
 ### 2. Ouvido — 10 perguntas por treino
 
@@ -38,7 +42,7 @@ Toque notas para acrescentá-las a uma melodia, reproduza, desfaça a última no
 
 - Fase atual, melhor fase e vitórias acumuladas;
 - Derrotas, pontuação, vitórias consecutivas e melhor desempenho no treino de ouvido;
-- Cinco conquistas desbloqueáveis.
+- Seis conquistas desbloqueáveis, incluindo a conquista final das 1.000 fases.
 
 ## Publicidade: a cada duas derrotas
 

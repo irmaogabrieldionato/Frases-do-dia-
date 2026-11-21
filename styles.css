@@ -177,3 +177,14 @@ button:disabled { cursor: wait; opacity: 0.62; }
   .achievement-list { grid-template-columns: 1fr; }
   .note-pad strong { font-size: 15px; }
 }
+
+/* Campanha com conclusão definitiva na fase 1.000. */
+.campaign-label{display:flex;justify-content:center;align-items:center;gap:13px;color:#c5d1ea;font-size:11px;letter-spacing:.06em;font-weight:750;margin:0 0 22px}
+.campaign-label strong{color:#f5ce8e;font-size:14px;white-space:nowrap}
+.finish-banner{text-align:center;padding:25px 18px;background:linear-gradient(140deg,#3d3152,#152842);border:2px solid #edc783;border-radius:19px;margin:0 0 18px}
+.finish-cup{font-size:50px;display:block;line-height:1.2}
+.finish-banner h2{color:#f7db9c;margin:10px 0;font-size:25px}
+.finish-banner p{color:#e6eaf2;line-height:1.6;font-size:15px;margin:0}
+.finish-dialog h2{color:#f7d590}
+.finish-dialog>p{line-height:1.6;color:#dce6f6}
+.finish-dialog button{display:block;width:100%;margin-top:12px}

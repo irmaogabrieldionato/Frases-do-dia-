@@ -1,5 +1,5 @@
 /* Cache offline da aplicação; não armazena conteúdo publicitário externo. */
-const CACHE_NAME = "seven-note-musical-game-v3";
+const CACHE_NAME = "seven-note-musical-game-v4";
 const APP_FILES = [
   "./",
   "./index.html",

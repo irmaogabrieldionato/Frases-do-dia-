@@ -11,9 +11,9 @@
     Object.freeze({ id: "la", name: "Lá", frequency: 440.00, keyboard: "6", color: "#bea6f5" }),
     Object.freeze({ id: "si", name: "Si", frequency: 493.88, keyboard: "7", color: "#eea7d7" })
   ]);
-  const OPENING = Object.freeze(["mi", "do", "sol", "do", "do", "re", "si"]);
+  const OPENING = Object.freeze(["do", "si", "re", "mi", "do", "do", "re", "sol", "fa"]);
   const VALID_NOTES = new Set(NOTES.map((n) => n.id));
-  const MAX_LEVEL = 10000;
+  const MAX_LEVEL = 1000;
   const MAX_MELODY = 64;
   const EAR_ROUNDS = 10;
   const PREFS = Object.freeze({
@@ -66,6 +66,7 @@
     return {
       level,
       best,
+      completed: input.completed === true && level === MAX_LEVEL,
       totalWins: safeInt(input.totalWins, 0, 0, Number.MAX_SAFE_INTEGER - 1),
       totalLosses: safeInt(input.totalLosses, 0, 0, Number.MAX_SAFE_INTEGER - 1),
       points: safeInt(input.points, 0, 0, Number.MAX_SAFE_INTEGER - 1),
@@ -79,12 +80,14 @@
 
   function advanceLevel(raw) {
     const progress = sanitizeProgress(raw);
+    if (progress.completed) return progress; // impede pontuar novamente após o fim
     const next = Math.min(MAX_LEVEL, progress.level + 1);
     const streak = Math.min(MAX_LEVEL, progress.streak + 1);
     return {
       ...progress,
       level: next,
       best: Math.max(progress.best, next),
+      completed: progress.level === MAX_LEVEL,
       totalWins: progress.totalWins + 1,
       points: Math.min(Number.MAX_SAFE_INTEGER - 1, progress.points + progress.level * 20 + streak * 5),
       streak,
@@ -153,7 +156,8 @@
       { id: "seven", icon: "♫", title: "Sete notas", description: "Chegue à fase 8.", unlocked: p.best >= 8 },
       { id: "streak", icon: "✦", title: "Em harmonia", description: "Vença 5 fases consecutivas.", unlocked: p.bestStreak >= 5 },
       { id: "ear", icon: "◉", title: "Ouvido absoluto?", description: "Acerte 10 notas em um treino.", unlocked: p.earBest >= EAR_ROUNDS },
-      { id: "master", icon: "★", title: "Maestro", description: "Alcance a fase 25.", unlocked: p.best >= 25 }
+      { id: "master", icon: "★", title: "Maestro", description: "Alcance a fase 25.", unlocked: p.best >= 25 },
+      { id: "final", icon: "🏆", title: "Mil sequências", description: "Conclua a fase 1.000 e termine o jogo.", unlocked: p.completed }
     ];
   }
 

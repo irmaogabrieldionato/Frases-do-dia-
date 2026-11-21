@@ -11,7 +11,9 @@
   const pads = Array.from(document.querySelectorAll("[data-note]"));
   const modeButtons = Array.from(document.querySelectorAll("[data-mode]"));
   const notes = new Map(core.NOTES.map((note) => [note.id, note]));
-  const STORAGE_KEY = "seven-note-musical-game:v1";
+  // Nova campanha: começa na fase 1 porque a sequência inicial mudou completamente.
+  // A chave antiga permanece intacta para que nenhum dado anterior seja apagado.
+  const STORAGE_KEY = "seven-note-musical-game:v2";
   const PREFS_KEY = "seven-note-musical-game:prefs-v1";
   const MELODY_KEY = "seven-note-musical-game:melody-v1";
 
@@ -32,14 +34,16 @@
   let preferences = core.sanitizePreferences(readJSON(PREFS_KEY, {}));
   let melody = core.sanitizeMelody(readJSON(MELODY_KEY, []));
   let mode = "memory";
-  let phase = "idle"; // idle | playing | input | won | lost
+  let phase = progress.completed ? "finished" : "idle"; // idle | playing | input | won | lost | finished
   let inputIndex = 0;
   let ear = { status: "idle", round: 0, correct: 0, target: null, last: null };
   let adBusy = false;
   let playbackEpoch = 0;
   let audioContext = null;
   let deferredInstall = null;
-  let message = "Ouça a sequência e repita as notas na mesma ordem.";
+  let message = progress.completed
+    ? "🏆 Parabéns! Você concluiu todas as 1.000 fases do jogo!"
+    : "Ouça a sequência e repita as notas na mesma ordem.";
   let messageKind = "default";
   let lastFocused = null;
 
@@ -183,6 +187,8 @@
     $("wins").textContent = String(progress.totalWins);
     $("streak").textContent = String(progress.streak);
     $("ear-best").textContent = progress.earBest + "/" + core.EAR_ROUNDS;
+    $("campaign-progress").textContent = Math.min(progress.level,core.MAX_LEVEL) + " / " + core.MAX_LEVEL;
+    $("finish-banner").hidden = !(progress.completed && mode === "memory");
     $("message").textContent = message;
     $("message").dataset.kind = messageKind;
     $("ad-countdown").textContent = "Próximo anúncio após " + (2 - progress.totalLosses % 2) + " derrota(s)";
@@ -201,18 +207,21 @@
     let progressPct = 0;
     const recording = mode === "memory";
     if (recording) {
-      $("instructions").textContent = "Cada fase acrescenta uma nota. Escute e repita na ordem correta.";
+      $("instructions").textContent = progress.completed
+        ? "Você venceu o desafio completo: 1.000 fases e 1.000 notas na sequência final!"
+        : "São 1.000 fases. Cada vitória acrescenta uma nota; conclua a fase 1.000 para vencer.";
       $("mode-label").textContent = "DESAFIO DE MEMÓRIA";
-      $("step-progress").textContent = phase === "input"
-        ? "Sua vez: " + inputIndex + "/" + progress.level + " notas"
-        : "Fase " + progress.level + " · " + progress.level + " notas";
-      mainLabel = phase === "playing" ? "♫ Reproduzindo..."
+      $("step-progress").textContent = progress.completed ? "1.000/1.000 · FIM DO JOGO"
+        : phase === "input" ? "Sua vez: " + inputIndex + "/" + progress.level + " notas"
+        : "Fase " + progress.level + "/" + core.MAX_LEVEL + " · " + progress.level + " notas";
+      mainLabel = progress.completed ? "🏆 Jogo concluído"
+        : phase === "playing" ? "♫ Reproduzindo..."
         : phase === "won" ? "▶ Próxima fase"
         : phase === "lost" ? "↺ Tentar novamente"
         : phase === "input" ? "↺ Recomeçar sequência" : "▶ Ouvir sequência";
       otherLabel = "♫ Escutar outra vez";
       otherEnabled = phase === "input";
-      progressPct = phase === "won" ? 100 : phase === "input" ? inputIndex / progress.level * 100 : 0;
+      progressPct = progress.completed || phase === "won" ? 100 : phase === "input" ? inputIndex / progress.level * 100 : 0;
     } else if (mode === "ear") {
       $("instructions").textContent = "Reconheça as notas somente pelo som. Cada treino tem dez perguntas.";
       $("mode-label").textContent = "TREINO DE OUVIDO";
@@ -244,7 +253,8 @@
 
     const main = $("play-button");
     main.textContent = mainLabel;
-    main.disabled = adBusy || phase === "playing" || (mode === "compose" && melody.length === 0) ||
+    main.disabled = adBusy || phase === "playing" || (mode === "memory" && progress.completed) ||
+      (mode === "compose" && melody.length === 0) ||
       (mode === "ear" && ear.status === "playing");
     const other = $("secondary-button");
     other.textContent = otherLabel;
@@ -255,7 +265,8 @@
     bar.setAttribute("aria-valuenow", String(Math.round(progressPct)));
     $("progress-fill").style.width = Math.min(100, Math.max(0, progressPct)) + "%";
     pads.forEach((pad) => {
-      pad.disabled = adBusy || phase === "playing" || (mode === "ear" && ear.status !== "input");
+      pad.disabled = adBusy || phase === "playing" || (mode === "memory" && progress.completed) ||
+        (mode === "ear" && ear.status !== "input");
     });
     renderMelody();
     renderAchievements();
@@ -291,7 +302,7 @@
   }
 
   async function startMemory() {
-    if (mode !== "memory" || phase === "playing" || adBusy) return;
+    if (mode !== "memory" || phase === "playing" || adBusy || progress.completed) return;
     inputIndex = 0;
     await playSequence(core.sequenceForLevel(progress.level), "memory");
   }
@@ -375,12 +386,14 @@
   }
 
   async function pressNote(id) {
-    if (adBusy || phase === "playing" || (mode === "ear" && ear.status !== "input")) return;
+    if (adBusy || phase === "playing" || (mode === "memory" && progress.completed) ||
+        (mode === "ear" && ear.status !== "input")) return;
     const requestedMode = mode;
     const epoch = playbackEpoch;
     if (!(await prepareAudio())) return;
     if (adBusy || mode !== requestedMode || epoch !== playbackEpoch ||
-        phase === "playing" || (mode === "ear" && ear.status !== "input")) return;
+        phase === "playing" || (mode === "memory" && progress.completed) ||
+        (mode === "ear" && ear.status !== "input")) return;
     playNote(id);
 
     if (mode === "free") {
@@ -413,8 +426,14 @@
         const finished = progress.level;
         progress = core.advanceLevel(progress);
         saveProgress();
-        phase = "won";
-        setMessage("Parabéns! Fase " + finished + " concluída! A próxima terá " + progress.level + " notas.", "success");
+        if (progress.completed) {
+          phase = "finished";
+          setMessage("🏆 Parabéns! Você venceu a fase 1.000 e concluiu o 7-Note Musical Game!", "success");
+          $("finish-dialog").showModal();
+        } else {
+          phase = "won";
+          setMessage("Parabéns! Fase " + finished + " concluída! A próxima terá " + progress.level + " notas.", "success");
+        }
       } else {
         setMessage("Correto! Continue: " + inputIndex + " nota(s) de " + progress.level + ".", "success");
       }
@@ -430,7 +449,7 @@
     inputIndex = 0;
     if (mode === "ear") ear = { status: "idle", round: 0, correct: 0, target: null, last: null };
     const introductions = {
-      memory: "Fase " + progress.level + ": escute e repita a sequência.",
+      memory: progress.completed ? "🏆 Jogo terminado! Você completou todas as 1.000 fases." : "Fase " + progress.level + ": escute e repita a sequência.",
       ear: "Treine sua percepção: identifique dez notas pelo som.",
       free: "Toque como quiser! Este modo não registra derrotas.",
       compose: "Toque para adicionar notas à sua composição."
@@ -540,6 +559,16 @@
   $("undo-button").addEventListener("click", undoMelody);
   $("clear-button").addEventListener("click", clearMelody);
   $("close-ad").addEventListener("click", closeAdBreak);
+  $("finish-restart").addEventListener("click", () => {
+    if (!window.confirm("Recomeçar as 1.000 fases? Seu recorde, pontos e derrotas serão preservados.")) return;
+    cancelPlayback();
+    $("finish-dialog").close();
+    progress = { ...progress, level: 1, streak: 0, completed: false };
+    phase = "idle"; mode = "memory"; inputIndex = 0;
+    saveProgress();
+    setMessage("Nova campanha iniciada: fase 1, nota Dó.");
+    render();
+  });
   $("help-button").addEventListener("click", () => {
     if (adBusy) return;
     cancelPlayback();
@@ -562,7 +591,7 @@
   $("reset-button").addEventListener("click", () => {
     if (adBusy || !window.confirm("Voltar à fase 1? Seu recorde e suas derrotas serão preservados.")) return;
     cancelPlayback();
-    progress = { ...progress, level: 1, streak: 0 };
+    progress = { ...progress, level: 1, streak: 0, completed: false };
     saveProgress();
     inputIndex = 0;
     phase = "idle";

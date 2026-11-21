@@ -31,7 +31,8 @@
       <div class="intro">
         <span class="eyebrow accent">OUÇA · MEMORIZE · CRIE</span>
         <h2>Sete notas. <span>Novas descobertas.</span></h2>
-        <p id="instructions">Cada fase acrescenta uma nota. Ouça com atenção e repita a sequência.</p>
+        <p id="instructions">São 1.000 fases. Cada fase acrescenta uma nota; termine a fase 1.000 para vencer!</p>
+        <p class="campaign-label">PROGRESSO DA CAMPANHA <strong id="campaign-progress">1 / 1.000</strong></p>
       </div>
 
       <nav class="mode-tabs" aria-label="Modos do jogo">
@@ -74,6 +75,11 @@
         </div>
       </div>
 
+      <section id="finish-banner" class="finish-banner" hidden aria-labelledby="finish-banner-title">
+        <span class="finish-cup" aria-hidden="true">🏆</span>
+        <h2 id="finish-banner-title">Jogo concluído!</h2>
+        <p>Você venceu todas as 1.000 fases e reproduziu a sequência final com 1.000 notas. Parabéns!</p>
+      </section>
       <p class="message" id="message" role="status" aria-live="polite">Ouça a sequência e repita as notas na mesma ordem.</p>
       <div class="actions">
         <button id="play-button" class="primary" type="button">▶ Ouvir sequência</button>
@@ -91,6 +97,14 @@
     </section>
     <footer class="page-footer">7-Note Musical Game · Jogo gratuito · Progresso salvo neste navegador · Áudio criado no aparelho</footer>
   </main>
+
+  <dialog id="finish-dialog" class="dialog finish-dialog" aria-labelledby="finish-title">
+    <h2 id="finish-title">🏆 Vitória final!</h2>
+    <p>Você concluiu as 1.000 fases do 7-Note Musical Game. Esta é a última sequência: não existe fase 1.001.</p>
+    <button class="primary" type="button" onclick="document.getElementById('finish-dialog').close()">Ver minha conquista</button>
+    <p class="dialog-note">Você pode explorar os outros modos ou começar novamente pela fase 1.</p>
+    <button class="secondary" type="button" id="finish-restart">Recomeçar campanha</button>
+  </dialog>
 
   <dialog id="settings-dialog" class="dialog">
     <form method="dialog">
@@ -112,7 +126,7 @@
     <form method="dialog">
       <h2>♫ Como jogar</h2>
       <ol class="help-list">
-        <li><b>Memória:</b> ouça e repita a sequência. A fase 1 começa com Mi; a cada vitória é acrescentada mais uma nota.</li>
+        <li><b>Memória:</b> são 1.000 fases. A primeira começa com Dó; cada vitória acrescenta uma nota. Ao vencer a fase 1.000, o jogo termina.</li>
         <li><b>Ouvido:</b> escute uma nota e descubra qual é. Cada treino tem dez perguntas.</li>
         <li><b>Livre:</b> toque as sete notas sem derrotas e sem anúncios.</li>
         <li><b>Compositor:</b> grave até 64 notas e reproduza sua própria melodia.</li>
