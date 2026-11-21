@@ -1,269 +1,611 @@
-/* 7-Note Musical Game — interface e som via Web Audio */
+/* 7-Note Musical Game — jogo de memória, ouvido, teclado e compositor */
 (() => {
   "use strict";
+
   const core = window.SevenNoteCore;
-  if (!core) throw new Error("game-core.js não foi carregado.");
+  if (!core) throw new Error("Motor musical indisponível.");
 
   const $ = (id) => document.getElementById(id);
-  const STORAGE_KEY = "seven-note-musical-game:v1";
   const pads = Array.from(document.querySelectorAll("[data-note]"));
-  const noteById = new Map(core.NOTES.map((note) => [note.id, note]));
-  let progress = restoreProgress();
-  let phaseState = "idle"; // idle, playing, input, won, lost
-  let mode = "memory"; // memory ou free
+  const modeButtons = Array.from(document.querySelectorAll("[data-mode]"));
+  const notes = new Map(core.NOTES.map((note) => [note.id, note]));
+  const STORAGE_KEY = "seven-note-musical-game:v1";
+  const PREFS_KEY = "seven-note-musical-game:prefs-v1";
+  const MELODY_KEY = "seven-note-musical-game:melody-v1";
+
+  function readJSON(key, fallback) {
+    try {
+      const value = localStorage.getItem(key);
+      return value === null ? fallback : JSON.parse(value);
+    } catch (_) {
+      return fallback;
+    }
+  }
+  function saveJSON(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); }
+    catch (_) { /* O jogo continua disponível com armazenamento restrito. */ }
+  }
+
+  let progress = core.sanitizeProgress(readJSON(STORAGE_KEY, {}));
+  let preferences = core.sanitizePreferences(readJSON(PREFS_KEY, {}));
+  let melody = core.sanitizeMelody(readJSON(MELODY_KEY, []));
+  let mode = "memory";
+  let phase = "idle"; // idle | playing | input | won | lost
   let inputIndex = 0;
-  let playbackEpoch = 0;
-  let soundContext = null;
+  let ear = { status: "idle", round: 0, correct: 0, target: null, last: null };
   let adBusy = false;
+  let playbackEpoch = 0;
+  let audioContext = null;
+  let deferredInstall = null;
   let message = "Ouça a sequência e repita as notas na mesma ordem.";
   let messageKind = "default";
+  let lastFocused = null;
 
-  function restoreProgress() {
-    try { return core.sanitizeProgress(JSON.parse(localStorage.getItem(STORAGE_KEY))); }
-    catch (_) { return core.sanitizeProgress(); }
-  }
-
-  function saveProgress() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); }
-    catch (_) { /* O jogo funciona mesmo sem armazenamento local. */ }
-  }
-
-  function setMessage(text, kind = "default") {
-    message = text;
-    messageKind = kind;
-  }
-
-  function delay(ms) {
-    return new Promise((resolve) => window.setTimeout(resolve, ms));
+  function saveProgress() { saveJSON(STORAGE_KEY, progress); }
+  function setMessage(text, kind = "default") { message = text; messageKind = kind; }
+  function delay(ms) { return new Promise((resolve) => window.setTimeout(resolve, ms)); }
+  function cancelPlayback() {
+    playbackEpoch++;
+    pads.forEach((pad) => pad.classList.remove("active"));
+    $("now-playing").textContent = "♫";
+    if (phase === "playing") phase = "idle";
+    if (ear.status === "playing") ear.status = "ready";
   }
 
   async function prepareAudio() {
     const Context = window.AudioContext || window.webkitAudioContext;
     if (!Context) {
-      setMessage("Este navegador não oferece áudio Web Audio. Tente um navegador atualizado.", "error");
+      setMessage("Seu navegador não oferece áudio. Use uma versão atualizada de Chrome, Safari ou Firefox.", "error");
       render();
       return false;
     }
     try {
-      if (!soundContext) soundContext = new Context();
-      if (soundContext.state === "suspended") await soundContext.resume();
-      return soundContext.state === "running";
+      if (!audioContext) audioContext = new Context();
+      if (audioContext.state === "suspended") await audioContext.resume();
+      if (audioContext.state !== "running") throw new Error("Áudio suspenso.");
+      return true;
     } catch (_) {
-      setMessage("Não foi possível iniciar o áudio. Verifique o volume e tente novamente.", "error");
+      setMessage("Não foi possível iniciar o áudio. Confira a permissão de som e tente novamente.", "error");
       render();
       return false;
     }
   }
 
-  function playTone(noteId, duration = 0.42) {
-    if (!soundContext || soundContext.state !== "running") return;
-    const note = noteById.get(noteId);
-    if (!note) return;
-
-    const start = soundContext.currentTime + 0.005;
-    const amp = soundContext.createGain();
-    amp.gain.setValueAtTime(0.0001, start);
-    amp.gain.exponentialRampToValueAtTime(0.16, start + 0.025);
-    amp.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-    amp.connect(soundContext.destination);
-
-    const body = soundContext.createOscillator();
-    body.type = "triangle";
-    body.frequency.value = note.frequency;
-    body.connect(amp);
-    body.start(start);
-    body.stop(start + duration + 0.02);
-
-    const shimmerGain = soundContext.createGain();
-    shimmerGain.gain.value = 0.13;
-    const shimmer = soundContext.createOscillator();
-    shimmer.type = "sine";
-    shimmer.frequency.value = note.frequency * 2;
-    shimmer.connect(shimmerGain);
-    shimmerGain.connect(amp);
-    shimmer.start(start);
-    shimmer.stop(start + duration + 0.02);
+  function tone(id, duration = 0.37) {
+    if (!audioContext || audioContext.state !== "running") return;
+    const note = notes.get(id);
+    if (!note || preferences.volume === 0) return;
+    const start = audioContext.currentTime + 0.008;
+    const master = audioContext.createGain();
+    const amplitude = Math.max(0.0002, 0.15 * preferences.volume / 100);
+    const shape = preferences.instrument;
+    master.gain.setValueAtTime(0.0001, start);
+    master.gain.exponentialRampToValueAtTime(amplitude, start + 0.024);
+    master.gain.exponentialRampToValueAtTime(shape === "bell" ? amplitude * 0.18 : amplitude * 0.42, start + duration * 0.75);
+    master.gain.exponentialRampToValueAtTime(0.0001, start + duration + 0.12);
+    master.connect(audioContext.destination);
+    const voices = shape === "retro"
+      ? [["square", 1, 0.6], ["triangle", 1, 0.18]]
+      : shape === "bell"
+        ? [["sine", 1, 1], ["sine", 2, 0.27], ["sine", 3, 0.09]]
+        : [["triangle", 1, 0.85], ["sine", 2, 0.12]];
+    let stopped = 0;
+    voices.forEach(([type, multiplier, weight]) => {
+      const osc = audioContext.createOscillator();
+      const mix = audioContext.createGain();
+      osc.type = type;
+      osc.frequency.value = note.frequency * multiplier;
+      mix.gain.value = weight;
+      osc.connect(mix);
+      mix.connect(master);
+      osc.addEventListener("ended", () => {
+        osc.disconnect();
+        mix.disconnect();
+        stopped += 1;
+        if (stopped === voices.length) master.disconnect();
+      }, { once: true });
+      osc.start(start);
+      osc.stop(start + duration + 0.14);
+    });
   }
 
-  function flashPad(noteId) {
-    const pad = pads.find((item) => item.dataset.note === noteId);
+  function flash(id, reveal = true) {
+    const pad = pads.find((item) => item.dataset.note === id);
     if (!pad) return;
     pad.classList.remove("active");
     void pad.offsetWidth;
     pad.classList.add("active");
-    window.setTimeout(() => pad.classList.remove("active"), 420);
+    $("now-playing").textContent = reveal && preferences.showNames ? notes.get(id).name : "♫";
+    const token = playbackEpoch;
+    window.setTimeout(() => {
+      if (token === playbackEpoch) {
+        pad.classList.remove("active");
+        $("now-playing").textContent = "♫";
+      }
+    }, 330);
   }
 
-  function render() {
-    const sequence = core.sequenceForLevel(progress.level);
-    $("level").textContent = String(progress.level);
-    $("best").textContent = String(progress.best);
-    $("losses").textContent = String(progress.totalLosses);
-    $("total-notes").textContent = String(sequence.length);
-    $("message").textContent = message;
-    $("message").dataset.kind = messageKind;
-    $("step-progress").textContent = mode === "free"
-      ? "Toque qualquer nota para improvisar."
-      : (phaseState === "input" ? "Sua vez: " + inputIndex + " de " + sequence.length + " notas"
-        : "Sequência com " + sequence.length + (sequence.length === 1 ? " nota" : " notas"));
-    $("progress-fill").style.width = (phaseState === "won" ? 100
-      : phaseState === "input" ? inputIndex / sequence.length * 100 : 0) + "%";
+  function playNote(id, reveal = true) {
+    tone(id);
+    if (reveal) flash(id);
+  }
 
-    const replay = $("play-button");
-    replay.disabled = phaseState === "playing" || adBusy || mode === "free";
-    replay.textContent = phaseState === "playing" ? "Tocando..." :
-      phaseState === "won" ? "Começar próxima fase" :
-      phaseState === "lost" ? "Tentar novamente" :
-      phaseState === "input" ? "Ouvir de novo" : "Ouvir sequência";
-    $("free-button").textContent = mode === "free" ? "Voltar ao desafio" : "Modo livre";
-    $("mode-label").textContent = mode === "free" ? "Teclado livre" : "Desafio de memória";
-    $("instructions").textContent = mode === "free"
-      ? "Explore as sete notas sem perder vidas ou ver anúncios."
-      : "Cada fase acrescenta uma nota. Ouça com atenção e repita a sequência.";
-    pads.forEach((pad) => {
-      pad.disabled = adBusy || phaseState === "playing";
-      pad.setAttribute("aria-label", "Tocar " + noteById.get(pad.dataset.note).name);
+  function renderAchievements() {
+    const all = core.achievements(progress);
+    $("achievement-count").textContent = all.filter((item) => item.unlocked).length + "/" + all.length;
+    const list = $("achievement-list");
+    list.replaceChildren();
+    all.forEach((item) => {
+      const card = document.createElement("div");
+      card.className = "achievement" + (item.unlocked ? " unlocked" : "");
+      card.title = item.description;
+      const icon = document.createElement("span");
+      icon.className = "achievement-icon";
+      icon.textContent = item.unlocked ? item.icon : "◌";
+      const label = document.createElement("span");
+      const heading = document.createElement("strong");
+      heading.textContent = item.title;
+      const detail = document.createElement("small");
+      detail.textContent = item.description;
+      label.append(heading, detail);
+      card.append(icon, label);
+      list.appendChild(card);
     });
   }
 
-  async function startPhase() {
-    if (mode !== "memory" || phaseState === "playing" || adBusy) return;
-    if (!(await prepareAudio())) return;
-
-    const epoch = ++playbackEpoch;
-    phaseState = "playing";
-    inputIndex = 0;
-    const sequence = core.sequenceForLevel(progress.level);
-    setMessage("Escute com atenção...", "default");
-    render();
-
-    await delay(330);
-    for (const noteId of sequence) {
-      if (epoch !== playbackEpoch || mode !== "memory") return;
-      playTone(noteId);
-      flashPad(noteId);
-      await delay(550);
+  function renderMelody() {
+    const holder = $("sequence-chips");
+    holder.replaceChildren();
+    melody.forEach((id, index) => {
+      const item = document.createElement("span");
+      item.className = "sequence-chip";
+      item.textContent = (index + 1) + " · " + notes.get(id).name;
+      holder.appendChild(item);
+    });
+    if (!melody.length) {
+      const empty = document.createElement("span");
+      empty.className = "sequence-empty";
+      empty.textContent = "Toque as teclas para criar sua melodia...";
+      holder.appendChild(empty);
     }
-    if (epoch !== playbackEpoch || mode !== "memory") return;
-    phaseState = "input";
-    setMessage("Sua vez! Repita as notas na ordem em que foram tocadas.", "default");
+    $("undo-button").disabled = melody.length === 0 || adBusy || phase === "playing";
+    $("clear-button").disabled = melody.length === 0 || adBusy || phase === "playing";
+  }
+
+  function render() {
+    $("level").textContent = String(progress.level);
+    $("best").textContent = String(progress.best);
+    $("losses").textContent = String(progress.totalLosses);
+    $("points").textContent = progress.points.toLocaleString("pt-BR");
+    $("total-notes").textContent = String(progress.level);
+    $("wins").textContent = String(progress.totalWins);
+    $("streak").textContent = String(progress.streak);
+    $("ear-best").textContent = progress.earBest + "/" + core.EAR_ROUNDS;
+    $("message").textContent = message;
+    $("message").dataset.kind = messageKind;
+    $("ad-countdown").textContent = "Próximo anúncio após " + (2 - progress.totalLosses % 2) + " derrota(s)";
+    $("sequence-panel").hidden = mode !== "compose";
+    $("keyboard-hint").textContent = "Toque na tela ou use as teclas 1–7";
+    modeButtons.forEach((button) => {
+      const selected = button.dataset.mode === mode;
+      button.classList.toggle("selected", selected);
+      button.setAttribute("aria-pressed", String(selected));
+      button.disabled = adBusy;
+    });
+
+    let mainLabel = "▶ Ouvir sequência";
+    let otherLabel = "Ouvir novamente";
+    let otherEnabled = false;
+    let progressPct = 0;
+    const recording = mode === "memory";
+    if (recording) {
+      $("instructions").textContent = "Cada fase acrescenta uma nota. Escute e repita na ordem correta.";
+      $("mode-label").textContent = "DESAFIO DE MEMÓRIA";
+      $("step-progress").textContent = phase === "input"
+        ? "Sua vez: " + inputIndex + "/" + progress.level + " notas"
+        : "Fase " + progress.level + " · " + progress.level + " notas";
+      mainLabel = phase === "playing" ? "♫ Reproduzindo..."
+        : phase === "won" ? "▶ Próxima fase"
+        : phase === "lost" ? "↺ Tentar novamente"
+        : phase === "input" ? "↺ Recomeçar sequência" : "▶ Ouvir sequência";
+      otherLabel = "♫ Escutar outra vez";
+      otherEnabled = phase === "input";
+      progressPct = phase === "won" ? 100 : phase === "input" ? inputIndex / progress.level * 100 : 0;
+    } else if (mode === "ear") {
+      $("instructions").textContent = "Reconheça as notas somente pelo som. Cada treino tem dez perguntas.";
+      $("mode-label").textContent = "TREINO DE OUVIDO";
+      $("step-progress").textContent = ear.round
+        ? "Pergunta " + ear.round + "/" + core.EAR_ROUNDS + " · Acertos: " + ear.correct
+        : "Dez notas para reconhecer";
+      mainLabel = ear.status === "idle" || ear.status === "finished" ? "▶ Novo treino"
+        : ear.status === "feedback" || ear.status === "ready" ? "▶ Próxima nota"
+        : ear.status === "playing" ? "♫ Tocando nota..." : "♫ Ouvir nota outra vez";
+      otherLabel = "♫ Repetir som";
+      otherEnabled = ear.status === "input";
+      progressPct = ear.status === "finished" ? 100 : ear.round
+        ? ((ear.round - (ear.status === "input" || ear.status === "playing" ? 1 : 0)) / core.EAR_ROUNDS) * 100 : 0;
+    } else if (mode === "free") {
+      $("instructions").textContent = "Explore livremente as sete notas, sem derrotas ou anúncios.";
+      $("mode-label").textContent = "TECLADO LIVRE";
+      $("step-progress").textContent = "Experimente todas as notas";
+      mainLabel = "♫ Tocar escala completa";
+      otherLabel = "Limpar";
+    } else {
+      $("instructions").textContent = "Crie uma melodia de até " + core.MAX_MELODY + " notas e escute sua criação.";
+      $("mode-label").textContent = "ESTÚDIO DO COMPOSITOR";
+      $("step-progress").textContent = "Composição: " + melody.length + "/" + core.MAX_MELODY + " notas";
+      mainLabel = phase === "playing" ? "♫ Tocando melodia..." : "▶ Reproduzir melodia";
+      otherLabel = "↺ Desfazer última";
+      otherEnabled = melody.length > 0;
+      progressPct = melody.length / core.MAX_MELODY * 100;
+    }
+
+    const main = $("play-button");
+    main.textContent = mainLabel;
+    main.disabled = adBusy || phase === "playing" || (mode === "compose" && melody.length === 0) ||
+      (mode === "ear" && ear.status === "playing");
+    const other = $("secondary-button");
+    other.textContent = otherLabel;
+    other.hidden = mode === "free";
+    other.disabled = adBusy || phase === "playing" || !otherEnabled;
+
+    const bar = $("progress-track");
+    bar.setAttribute("aria-valuenow", String(Math.round(progressPct)));
+    $("progress-fill").style.width = Math.min(100, Math.max(0, progressPct)) + "%";
+    pads.forEach((pad) => {
+      pad.disabled = adBusy || phase === "playing" || (mode === "ear" && ear.status !== "input");
+    });
+    renderMelody();
+    renderAchievements();
+  }
+
+  async function playSequence(sequence, owner, hasPreview = true) {
+    const epoch = ++playbackEpoch;
+    phase = "playing";
+    setMessage(owner === "compose" ? "Reproduzindo sua composição..." : "Escute com atenção...", "default");
+    render();
+    if (!(await prepareAudio())) {
+      if (epoch === playbackEpoch) { phase = "idle"; render(); }
+      return false;
+    }
+    await delay(280);
+    if (epoch !== playbackEpoch || mode !== owner) return false;
+    for (const id of sequence) {
+      if (epoch !== playbackEpoch || mode !== owner || document.hidden) {
+        if (epoch === playbackEpoch) { phase = "idle"; render(); }
+        return false;
+      }
+      tone(id);
+      if (hasPreview) flash(id);
+      await delay(core.TEMPOS[preferences.tempo]);
+    }
+    if (epoch !== playbackEpoch || mode !== owner) return false;
+    phase = owner === "memory" ? "input" : "idle";
+    setMessage(owner === "memory"
+      ? "Agora repita a sequência! Cada erro conta como uma derrota."
+      : "Sua composição terminou. Você pode continuar editando.", "default");
+    render();
+    return true;
+  }
+
+  async function startMemory() {
+    if (mode !== "memory" || phase === "playing" || adBusy) return;
+    inputIndex = 0;
+    await playSequence(core.sequenceForLevel(progress.level), "memory");
+  }
+
+  async function startEarQuestion() {
+    if (mode !== "ear" || adBusy) return;
+    const epoch = ++playbackEpoch;
+    ear.status = "playing";
+    setMessage("Escute a nota. Qual das sete teclas produziu este som?");
+    render();
+    if (!(await prepareAudio())) {
+      if (epoch === playbackEpoch) { ear.status = "ready"; render(); }
+      return;
+    }
+    if (epoch !== playbackEpoch || mode !== "ear") return;
+    tone(ear.target, 0.62); // No treino de ouvido nunca revelamos a tecla correta.
+    await delay(540);
+    if (epoch !== playbackEpoch || mode !== "ear") return;
+    ear.status = "input";
+    setMessage("Qual nota você ouviu? Toque a resposta no teclado.");
     render();
   }
 
-  function closePlaceholder() {
-    $("ad-modal").hidden = true;
-    adBusy = false;
+  function newEarSession() {
+    if (adBusy || mode !== "ear") return;
+    cancelPlayback();
+    ear = { status: "ready", round: 1, correct: 0, target: null, last: null };
+    ear.target = core.chooseEarNote(null);
+    ear.last = ear.target;
+    void startEarQuestion();
+  }
+
+  function nextEar() {
+    if (mode !== "ear" || adBusy) return;
+    if (ear.status === "idle" || ear.status === "finished") { newEarSession(); return; }
+    if (ear.status === "input") {
+      void startEarQuestion(); // Ouvir a mesma nota, sem trocar de pergunta.
+      return;
+    }
+    if (ear.status !== "feedback" && ear.status !== "ready") return;
+    if (ear.status === "feedback") ear.round += 1;
+    ear.target = core.chooseEarNote(ear.last);
+    ear.last = ear.target;
+    void startEarQuestion();
+  }
+
+  function answerEar(id) {
+    if (ear.status !== "input" || adBusy) return;
+    const correct = id === ear.target;
+    ear.status = "feedback";
+    if (correct) ear.correct += 1;
+    progress = core.recordEarAnswer(progress, correct);
+    if (ear.round >= core.EAR_ROUNDS) {
+      ear.status = "finished";
+      progress = core.recordEarSession(progress, ear.correct);
+      setMessage("Treino concluído! Você acertou " + ear.correct + " de " + core.EAR_ROUNDS +
+        " notas. " + (ear.correct === core.EAR_ROUNDS ? "Perfeito!" : "Continue praticando."), "success");
+    } else {
+      setMessage(correct ? "Acertou! Era " + notes.get(ear.target).name + ". Vá para a próxima nota."
+        : "Era " + notes.get(ear.target).name + ". Vamos para a próxima nota.", correct ? "success" : "error");
+    }
+    saveProgress();
     render();
-    $("play-button").focus();
+    if (!correct && core.adDue(progress.totalLosses)) void showAdBreak();
+  }
+
+  function playScale() {
+    if (mode !== "free" || adBusy || phase === "playing") return;
+    void playSequence(core.NOTES.map((n) => n.id), "free");
+  }
+
+  function storeMelody() { saveJSON(MELODY_KEY, melody); }
+  function undoMelody() {
+    if (mode !== "compose" || phase === "playing" || !melody.length) return;
+    melody.pop(); storeMelody(); setMessage("Última nota removida."); render();
+  }
+  function clearMelody() {
+    if (mode !== "compose" || phase === "playing" || !melody.length) return;
+    if (!window.confirm("Apagar a melodia criada?")) return;
+    melody = []; storeMelody(); setMessage("Melodia apagada."); render();
+  }
+
+  async function pressNote(id) {
+    if (adBusy || phase === "playing" || (mode === "ear" && ear.status !== "input")) return;
+    const requestedMode = mode;
+    const epoch = playbackEpoch;
+    if (!(await prepareAudio())) return;
+    if (adBusy || mode !== requestedMode || epoch !== playbackEpoch ||
+        phase === "playing" || (mode === "ear" && ear.status !== "input")) return;
+    playNote(id);
+
+    if (mode === "free") {
+      setMessage("Você tocou " + notes.get(id).name + ". Experimente outra nota.");
+    } else if (mode === "compose") {
+      if (melody.length >= core.MAX_MELODY) {
+        setMessage("Limite de " + core.MAX_MELODY + " notas atingido. Reproduza ou desfaça uma nota.", "error");
+      } else {
+        melody.push(id);
+        storeMelody();
+        setMessage("Nota " + notes.get(id).name + " adicionada! " + melody.length + "/" + core.MAX_MELODY + ".", "success");
+      }
+    } else if (mode === "ear") {
+      answerEar(id);
+    } else if (phase === "input") {
+      const result = core.evaluateNote(core.sequenceForLevel(progress.level), inputIndex, id);
+      if (result.result === "loss") {
+        const expected = notes.get(result.expected).name;
+        progress = core.registerLoss(progress);
+        phase = "lost";
+        inputIndex = 0;
+        saveProgress();
+        setMessage("Você errou! Era " + expected + ". A fase não avança até ser concluída.", "error");
+        render();
+        if (core.adDue(progress.totalLosses)) void showAdBreak();
+        return;
+      }
+      inputIndex = result.nextIndex;
+      if (result.result === "win") {
+        const finished = progress.level;
+        progress = core.advanceLevel(progress);
+        saveProgress();
+        phase = "won";
+        setMessage("Parabéns! Fase " + finished + " concluída! A próxima terá " + progress.level + " notas.", "success");
+      } else {
+        setMessage("Correto! Continue: " + inputIndex + " nota(s) de " + progress.level + ".", "success");
+      }
+    }
+    render();
+  }
+
+  function switchMode(next) {
+    if (adBusy || !["memory", "ear", "free", "compose"].includes(next) || next === mode) return;
+    cancelPlayback();
+    mode = next;
+    phase = "idle";
+    inputIndex = 0;
+    if (mode === "ear") ear = { status: "idle", round: 0, correct: 0, target: null, last: null };
+    const introductions = {
+      memory: "Fase " + progress.level + ": escute e repita a sequência.",
+      ear: "Treine sua percepção: identifique dez notas pelo som.",
+      free: "Toque como quiser! Este modo não registra derrotas.",
+      compose: "Toque para adicionar notas à sua composição."
+    };
+    setMessage(introductions[mode]);
+    render();
   }
 
   async function showAdBreak() {
-    // Adaptador público: uma rede de anúncios pode implementar
-    // window.SevenNoteAds.showInterstitial({placement, losses, level}).
-    // Se não existir, mostramos apenas uma demonstração identificada.
     if (adBusy) return;
     adBusy = true;
     render();
     try {
       const adapter = window.SevenNoteAds && window.SevenNoteAds.showInterstitial;
       if (typeof adapter === "function") {
-        const delivered = await adapter({
-          placement: "after_two_losses",
-          losses: progress.totalLosses,
-          level: progress.level
-        });
-        if (delivered === true) {
+        // O provedor assume o controle da publicidade. true significa anúncio exibido.
+        const shown = await Promise.race([
+          Promise.resolve().then(() => adapter({
+            placement: "after_two_losses",
+            losses: progress.totalLosses,
+            level: progress.level
+          })).catch(() => false),
+          delay(12000).then(() => false)
+        ]);
+        if (shown === true) {
           adBusy = false;
           render();
           return;
         }
       }
     } catch (error) {
-      console.warn("Anúncio indisponível:", error);
+      console.warn("Publicidade indisponível:", error);
     }
+    lastFocused = document.activeElement;
     $("ad-modal").hidden = false;
     $("close-ad").focus();
   }
 
-  async function pressNote(noteId) {
-    if (adBusy || phaseState === "playing") return;
-    if (!(await prepareAudio())) return;
-    playTone(noteId);
-    flashPad(noteId);
+  function closeAdBreak() {
+    if ($("ad-modal").hidden) return;
+    $("ad-modal").hidden = true;
+    adBusy = false;
+    render();
+    const focusBack = lastFocused && lastFocused.isConnected ? lastFocused : $("play-button");
+    focusBack.focus();
+    lastFocused = null;
+  }
 
-    if (mode === "free") {
-      setMessage("Você tocou " + noteById.get(noteId).name + ".", "default");
-      render();
-      return;
-    }
-    if (phaseState !== "input") return;
+  function syncPreferences() {
+    preferences = core.sanitizePreferences({
+      volume: Number($("volume").value),
+      tempo: $("tempo").value,
+      instrument: $("instrument").value,
+      showNames: $("show-names").checked
+    });
+    saveJSON(PREFS_KEY, preferences);
+    $("volume-value").textContent = preferences.volume + "%";
+  }
 
-    const sequence = core.sequenceForLevel(progress.level);
-    const verdict = core.evaluateNote(sequence, inputIndex, noteId);
-    if (verdict.result === "loss") {
-      const expected = noteById.get(verdict.expected).name;
-      progress = core.registerLoss(progress);
-      saveProgress();
-      phaseState = "lost";
-      inputIndex = 0;
-      setMessage("Você errou! A nota esperada era " + expected + ". Tente a fase novamente.", "error");
-      render();
-      if (core.adDue(progress.totalLosses)) void showAdBreak();
-      return;
-    }
+  function openSettings() {
+    if (adBusy) return;
+    cancelPlayback();
+    render();
+    $("settings-dialog").showModal();
+  }
 
-    inputIndex = verdict.nextIndex;
-    if (verdict.result === "win") {
-      const completed = progress.level;
-      progress = core.advanceLevel(progress);
-      saveProgress();
-      phaseState = "won";
-      setMessage("Parabéns! Você venceu a fase " + completed + ". A próxima tem " + progress.level + " notas.", "success");
-      render();
-      return;
-    }
-    setMessage("Correto! Continue: " + inputIndex + " de " + sequence.length + ".", "success");
+  function wipeAll() {
+    if (!window.confirm("Apagar fases, recordes, pontos, ajustes e melodia? Esta ação não pode ser desfeita.")) return;
+    cancelPlayback();
+    progress = core.sanitizeProgress();
+    preferences = core.sanitizePreferences();
+    melody = [];
+    ear = { status: "idle", round: 0, correct: 0, target: null, last: null };
+    inputIndex = 0;
+    phase = "idle";
+    mode = "memory";
+    saveProgress();
+    storeMelody();
+    $("volume").value = String(preferences.volume);
+    $("tempo").value = preferences.tempo;
+    $("instrument").value = preferences.instrument;
+    $("show-names").checked = preferences.showNames;
+    syncPreferences();
+    $("settings-dialog").close();
+    setMessage("Dados apagados. Você está novamente na fase 1.");
     render();
   }
 
-  $("play-button").addEventListener("click", startPhase);
-  $("free-button").addEventListener("click", () => {
-    playbackEpoch += 1;
-    mode = mode === "free" ? "memory" : "free";
-    phaseState = "idle";
-    inputIndex = 0;
-    setMessage(mode === "free"
-      ? "Explore as notas livremente. Esse modo não registra derrotas."
-      : "Voltou ao desafio. Ouça a sequência para iniciar.");
+  async function mainAction() {
+    if (adBusy) return;
+    if (mode === "memory") void startMemory();
+    else if (mode === "ear") nextEar();
+    else if (mode === "free") playScale();
+    else if (mode === "compose" && melody.length) void playSequence([...melody], "compose");
+  }
+
+  async function secondaryAction() {
+    if (adBusy) return;
+    if (mode === "memory" && phase === "input") void startMemory();
+    else if (mode === "ear" && ear.status === "input") {
+      if (await prepareAudio()) tone(ear.target, 0.62);
+    } else if (mode === "compose") undoMelody();
+  }
+
+  $("play-button").addEventListener("click", () => void mainAction());
+  $("secondary-button").addEventListener("click", () => void secondaryAction());
+  $("undo-button").addEventListener("click", undoMelody);
+  $("clear-button").addEventListener("click", clearMelody);
+  $("close-ad").addEventListener("click", closeAdBreak);
+  $("help-button").addEventListener("click", () => {
+    if (adBusy) return;
+    cancelPlayback();
     render();
+    $("help-dialog").showModal();
   });
-  $("reset-button").addEventListener("click", () => {
-    if (!window.confirm("Voltar à fase 1? Seu recorde e o total de derrotas serão preservados.")) return;
-    playbackEpoch += 1;
-    progress = { ...progress, level: 1 };
-    phaseState = "idle";
-    inputIndex = 0;
-    mode = "memory";
-    saveProgress();
-    setMessage("Progresso reiniciado na fase 1. Seu recorde foi preservado.");
-    render();
+  $("settings-button").addEventListener("click", openSettings);
+  $("wipe-button").addEventListener("click", wipeAll);
+  $("volume").value = String(preferences.volume);
+  $("tempo").value = preferences.tempo;
+  $("instrument").value = preferences.instrument;
+  $("show-names").checked = preferences.showNames;
+  $("volume-value").textContent = preferences.volume + "%";
+  ["volume", "tempo", "instrument", "show-names"].forEach((id) => {
+    $(id).addEventListener("input", syncPreferences);
+    $(id).addEventListener("change", syncPreferences);
   });
-  $("close-ad").addEventListener("click", closePlaceholder);
+  modeButtons.forEach((button) => button.addEventListener("click", () => switchMode(button.dataset.mode)));
   pads.forEach((pad) => pad.addEventListener("click", () => void pressNote(pad.dataset.note)));
+  $("reset-button").addEventListener("click", () => {
+    if (adBusy || !window.confirm("Voltar à fase 1? Seu recorde e suas derrotas serão preservados.")) return;
+    cancelPlayback();
+    progress = { ...progress, level: 1, streak: 0 };
+    saveProgress();
+    inputIndex = 0;
+    phase = "idle";
+    mode = "memory";
+    setMessage("Você voltou à fase 1. Recordes e derrotas foram preservados.");
+    render();
+  });
   window.addEventListener("keydown", (event) => {
-    if (event.repeat || event.altKey || event.ctrlKey || event.metaKey) return;
     if (!$("ad-modal").hidden) {
-      if (event.key === "Escape") closePlaceholder();
+      if (event.key === "Escape") { event.preventDefault(); closeAdBreak(); }
       return;
     }
-    const note = core.NOTES.find((item) => item.keyboard === event.key);
+    if ($("settings-dialog").open || $("help-dialog").open || event.repeat ||
+        event.ctrlKey || event.metaKey || event.altKey ||
+        ["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
+    const note = core.NOTES.find((n) => n.keyboard === event.key);
     if (note) {
       event.preventDefault();
       void pressNote(note.id);
-    } else if (event.code === "Space" && !["BUTTON", "INPUT"].includes(document.activeElement.tagName)) {
+    } else if (event.code === "Space" && document.activeElement.tagName !== "BUTTON") {
       event.preventDefault();
-      void startPhase();
+      void mainAction();
     }
   });
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) return;
+    cancelPlayback();
+    render();
+  });
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    deferredInstall = event;
+    $("install-button").hidden = false;
+  });
+  $("install-button").addEventListener("click", async () => {
+    if (!deferredInstall) return;
+    const prompt = deferredInstall;
+    deferredInstall = null;
+    $("install-button").hidden = true;
+    await prompt.prompt();
+  });
+  window.addEventListener("appinstalled", () => { $("install-button").hidden = true; deferredInstall = null; });
+  if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+    window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
+  }
+
   render();
 })();
