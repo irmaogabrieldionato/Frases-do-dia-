@@ -1,13 +1,17 @@
 {
   "name": "seven-note-musical-game",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
-  "description": "Jogo de memória musical com sete notas",
+  "description": "7-Note Musical Game: memória, ouvido, composição e PWA offline",
   "scripts": {
-    "test": "node --test tests/*.test.cjs"
+    "test": "node --test tests/*.test.cjs",
+    "test:browser": "node tests/browser-smoke.cjs"
   },
   "engines": {
     "node": ">=18"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
 }
