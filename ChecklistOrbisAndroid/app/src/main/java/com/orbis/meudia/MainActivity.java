@@ -589,19 +589,23 @@ public class MainActivity extends Activity {
                         // Commit the replacement before changing memory or local alarms.
                         // A failed disk write must not report a successful restoration.
                         String previousJson=preferences.getString("tasks",null);
-                        boolean persisted=preferences.edit()
-                                .putString("day",today())
-                                .putString("tasks",restored.toString())
-                                .commit();
+                        boolean persisted=BackupRestoreCommit.restore(
+                                (restoreDay,restoreJson)->preferences.edit()
+                                        .putString("day",restoreDay)
+                                        .putString("tasks",restoreJson)
+                                        .commit(),
+                                today(),restored.toString(),
+                                ()->{
+                                    tasks=restored;
+                                    // Rebuild reminders only after the restored tasks are durable.
+                                    syncOneTimeReminders(previousJson,true);
+                                    loadTasks();
+                                    render();
+                                });
                         if(!persisted){
                             showBackupError();
                             return;
                         }
-                        tasks=restored;
-                        // Rebuild reminders only after the restored tasks are durable.
-                        syncOneTimeReminders(previousJson,true);
-                        loadTasks();
-                        render();
                         android.widget.Toast.makeText(this,tr("backup_restored"),
                                 android.widget.Toast.LENGTH_LONG).show();
                     }).show();
