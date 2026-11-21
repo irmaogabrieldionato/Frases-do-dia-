@@ -1,0 +1,132 @@
+"use strict";
+/* Teste end-to-end da interface com Playwright e servidor HTTP local. */
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const http = require("node:http");
+const path = require("node:path");
+const { chromium } = require("playwright");
+
+const root = path.resolve(__dirname, "..");
+const types = { ".html": "text/html", ".js": "application/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".webmanifest": "application/manifest+json" };
+
+const server = http.createServer((request, response) => {
+  const pathname = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
+  const file = path.resolve(root, "." + (pathname === "/" ? "/index.html" : pathname));
+  if (!file.startsWith(root + path.sep) && file !== path.join(root, "index.html")) {
+    response.writeHead(403).end(); return;
+  }
+  fs.readFile(file, (err, data) => {
+    if (err) { response.writeHead(404).end(); return; }
+    response.writeHead(200, { "Content-Type": types[path.extname(file)] || "application/octet-stream", "Cache-Control": "no-cache" });
+    response.end(data);
+  });
+});
+
+function waitMessage(page, phrase, timeout = 12000) {
+  return page.waitForFunction((text) => document.getElementById("message").textContent.includes(text),
+    phrase, { timeout });
+}
+function waitLevel(page, level, timeout = 12000) {
+  return page.waitForFunction((value) => document.getElementById("level").textContent === String(value),
+    level, { timeout });
+}
+function waitLosses(page, losses, timeout = 12000) {
+  return page.waitForFunction((value) => document.getElementById("losses").textContent === String(value),
+    losses, { timeout });
+}
+
+async function run() {
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const address = server.address();
+  const url = "http://127.0.0.1:" + address.port + "/";
+  let browser;
+  try {
+    browser = await chromium.launch({ headless: true, args: ["--autoplay-policy=no-user-gesture-required"] });
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const page = await context.newPage();
+    const errors = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+
+    await page.goto(url, { waitUntil: "domcontentloaded" });
+    assert.match(await page.title(), /7-Note Musical Game/);
+    assert.equal(await page.locator("[data-note]").count(), 7);
+    assert.equal(await page.locator("[data-mode]").count(), 4);
+    console.log("✓ Tela inicial, sete teclas e quatro modos");
+
+    await page.locator("#play-button").click();
+    await waitMessage(page, "Agora repita");
+    await page.locator('[data-note="mi"]').click();
+    await waitLevel(page, 2);
+    await page.locator("#play-button").click();
+    await waitMessage(page, "Agora repita");
+    await page.locator('[data-note="mi"]').click();
+    await page.locator('[data-note="do"]').click();
+    await waitLevel(page, 3);
+    console.log("✓ Fases 1 e 2 e progressão da sequência");
+
+    for (let losses = 1; losses <= 2; losses++) {
+      await page.locator("#play-button").click();
+      await waitMessage(page, "Agora repita");
+      await page.locator('[data-note="si"]').click();
+      await waitLosses(page, losses);
+      if (losses === 1) assert.equal(await page.locator("#ad-modal").isVisible(), false);
+    }
+    assert.equal(await page.locator("#ad-modal").isVisible(), true);
+    await page.locator("#close-ad").click();
+    assert.equal(await page.locator("#ad-modal").isVisible(), false);
+    console.log("✓ Anúncio demonstrativo só após a segunda derrota");
+
+    await page.locator('[data-mode="ear"]').click();
+    await page.locator("#play-button").click();
+    await waitMessage(page, "Qual nota você ouviu");
+    await page.locator('[data-note="do"]').click();
+    assert.match(await page.locator("#message").textContent(), /próxima nota/i);
+    console.log("✓ Desafio auditivo recebe respostas");
+
+    await page.locator('[data-mode="compose"]').click();
+    await page.locator('[data-note="mi"]').click();
+    await page.locator('[data-note="do"]').click();
+    assert.equal(await page.locator(".sequence-chip").count(), 2);
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.locator('[data-mode="compose"]').click();
+    assert.equal(await page.locator(".sequence-chip").count(), 2);
+    await page.locator("#undo-button").click();
+    assert.equal(await page.locator(".sequence-chip").count(), 1);
+    await page.locator("#play-button").click();
+    await waitMessage(page, "terminou");
+    console.log("✓ Compositor grava, recupera, desfaz e reproduz");
+
+    await page.locator("#settings-button").click();
+    await page.locator("#volume").fill("40");
+    await page.locator("#tempo").selectOption("fast");
+    await page.locator('#settings-dialog button[type="submit"]').click();
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.locator("#settings-button").click();
+    assert.equal(await page.locator("#volume").inputValue(), "40");
+    assert.equal(await page.locator("#tempo").inputValue(), "fast");
+    await page.locator('#settings-dialog button[type="submit"]').click();
+    console.log("✓ Ajustes e progresso persistem após atualizar a página");
+
+    const ready = await page.evaluate(async () => {
+      if (!("serviceWorker" in navigator)) return false;
+      await navigator.serviceWorker.ready;
+      return true;
+    });
+    assert.equal(ready, true);
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await context.setOffline(true);
+    await page.reload({ waitUntil: "domcontentloaded" });
+    assert.equal(await page.locator("[data-note]").count(), 7);
+    await context.setOffline(false);
+    console.log("✓ Service worker permite reabrir o jogo offline");
+
+    assert.deepEqual(errors, [], "Erros de JavaScript na interface: " + errors.join("; "));
+    console.log("✓ Sem erros de execução JavaScript");
+    await context.close();
+  } finally {
+    if (browser) await browser.close();
+    await new Promise((resolve) => server.close(resolve));
+  }
+}
+
+run().catch((error) => { console.error(error); process.exitCode = 1; });
