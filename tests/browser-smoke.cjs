@@ -97,7 +97,7 @@ async function run() {
     console.log("✓ Compositor grava, recupera, desfaz e reproduz");
 
     await page.locator("#settings-button").click();
-    await page.locator("#volume").fill("40");
+    await page.locator("#volume").evaluate((input) => { input.value = "40"; input.dispatchEvent(new Event("input", { bubbles: true })); });
     await page.locator("#tempo").selectOption("fast");
     await page.locator('#settings-dialog button[type="submit"]').click();
     await page.reload({ waitUntil: "domcontentloaded" });
