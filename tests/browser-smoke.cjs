@@ -65,19 +65,19 @@ async function run() {
 
     await page.locator("#play-button").click();
     await waitMessage(page, "Agora repita");
-    await page.locator('[data-note="mi"]').click();
+    await page.locator('[data-note="do"]').click();
     await waitLevel(page, 2);
     await page.locator("#play-button").click();
     await waitMessage(page, "Agora repita");
-    await page.locator('[data-note="mi"]').click();
     await page.locator('[data-note="do"]').click();
+    await page.locator('[data-note="si"]').click();
     await waitLevel(page, 3);
     console.log("✓ Fases 1 e 2 e progressão da sequência");
 
     for (let losses = 1; losses <= 2; losses++) {
       await page.locator("#play-button").click();
       await waitMessage(page, "Agora repita");
-      await page.locator('[data-note="si"]').click();
+      await page.locator('[data-note="fa"]').click();
       await waitLosses(page, losses);
       if (losses === 1) assert.equal(await page.locator("#ad-modal").isVisible(), false);
     }
@@ -116,6 +116,20 @@ async function run() {
     assert.equal(await page.locator("#tempo").inputValue(), "fast");
     await page.locator('#settings-dialog button[type="submit"]').click();
     console.log("✓ Ajustes e progresso persistem após atualizar a página");
+
+    await page.evaluate(() => {
+      localStorage.setItem("seven-note-musical-game:v2",
+        JSON.stringify({ level: 1000, best: 1000, completed: true,
+          totalWins: 1000, points: 500000, totalLosses: 2 }));
+    });
+    await page.reload({ waitUntil: "domcontentloaded" });
+    assert.equal(await page.locator("#level").textContent(), "1000");
+    assert.equal(await page.locator("#finish-banner").isVisible(), true);
+    assert.equal(await page.locator("#play-button").isDisabled(), true);
+    assert.match(await page.locator("#message").textContent(), /concluiu todas as 1.000 fases/);
+    assert.match(await page.locator("#step-progress").textContent(), /FIM DO JOGO/);
+    assert.equal(await page.locator("#achievement-count").textContent(), "4/6");
+    console.log("✓ Tela de fim do jogo mostra a fase 1000 e bloqueia a 1001");
 
     const ready = await page.evaluate(async () => {
       if (!("serviceWorker" in navigator)) return false;

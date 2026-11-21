@@ -559,6 +559,7 @@
   $("undo-button").addEventListener("click", undoMelody);
   $("clear-button").addEventListener("click", clearMelody);
   $("close-ad").addEventListener("click", closeAdBreak);
+  $("finish-close").addEventListener("click", () => $("finish-dialog").close());
   $("finish-restart").addEventListener("click", () => {
     if (!window.confirm("Recomeçar as 1.000 fases? Seu recorde, pontos e derrotas serão preservados.")) return;
     cancelPlayback();

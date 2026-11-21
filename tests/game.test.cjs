@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const {
   NOTES, OPENING, sequenceForLevel, evaluateNote, sanitizeProgress,
   advanceLevel, registerLoss, adDue, recordEarAnswer, recordEarSession,
-  chooseEarNote, sanitizeMelody, sanitizePreferences, achievements, MAX_MELODY
+  chooseEarNote, sanitizeMelody, sanitizePreferences, achievements, MAX_MELODY, MAX_LEVEL
 } = require("../game-core.js");
 
 test("há exatamente sete notas naturais com IDs e frequências exclusivos", () => {
@@ -13,19 +13,24 @@ test("há exatamente sete notas naturais com IDs e frequências exclusivos", () 
   assert.deepEqual(NOTES.map((n) => n.keyboard), ["1", "2", "3", "4", "5", "6", "7"]);
 });
 
-test("as sete primeiras fases seguem exatamente a sequência solicitada", () => {
+test("as nove primeiras fases seguem exatamente as notas definidas", () => {
   const esperado = [
-    ["mi"], ["mi", "do"], ["mi", "do", "sol"],
-    ["mi", "do", "sol", "do"], ["mi", "do", "sol", "do", "do"],
-    ["mi", "do", "sol", "do", "do", "re"],
-    ["mi", "do", "sol", "do", "do", "re", "si"]
+    ["do"],
+    ["do", "si"],
+    ["do", "si", "re"],
+    ["do", "si", "re", "mi"],
+    ["do", "si", "re", "mi", "do"],
+    ["do", "si", "re", "mi", "do", "do"],
+    ["do", "si", "re", "mi", "do", "do", "re"],
+    ["do", "si", "re", "mi", "do", "do", "re", "sol"],
+    ["do", "si", "re", "mi", "do", "do", "re", "sol", "fa"]
   ];
   esperado.forEach((seq, index) => assert.deepEqual(sequenceForLevel(index + 1), seq));
-  assert.deepEqual([...OPENING], esperado[6]);
+  assert.deepEqual([...OPENING], esperado[8]);
 });
 
 test("toda fase soma uma nota e preserva as anteriores", () => {
-  for (let level = 1; level < 100; level += 1) {
+  for (let level = 1; level < MAX_LEVEL; level += 1) {
     const current = sequenceForLevel(level);
     const next = sequenceForLevel(level + 1);
     assert.equal(current.length, level);
@@ -37,7 +42,7 @@ test("toda fase soma uma nota e preserva as anteriores", () => {
 });
 
 test("sequências inválidas e fases inválidas são rejeitadas", () => {
-  for (const level of [0, -1, 1.2, NaN, 10001, "7"]) {
+  for (const level of [0, -1, 1.2, NaN, 1001, 10001, "7"]) {
     assert.throws(() => sequenceForLevel(level), RangeError);
   }
   assert.throws(() => evaluateNote([], 0, "mi"), TypeError);
@@ -46,10 +51,10 @@ test("sequências inválidas e fases inválidas são rejeitadas", () => {
 });
 
 test("entrada correta intermediária, vitória e erro funcionam", () => {
-  const seq = ["mi", "do"];
-  assert.deepEqual(evaluateNote(seq, 0, "mi"), { result: "correct", nextIndex: 1 });
-  assert.deepEqual(evaluateNote(seq, 1, "do"), { result: "win", nextIndex: 2 });
-  assert.deepEqual(evaluateNote(seq, 1, "si"), { result: "loss", expected: "do", index: 1 });
+  const seq = ["do", "si"];
+  assert.deepEqual(evaluateNote(seq, 0, "do"), { result: "correct", nextIndex: 1 });
+  assert.deepEqual(evaluateNote(seq, 1, "si"), { result: "win", nextIndex: 2 });
+  assert.deepEqual(evaluateNote(seq, 1, "re"), { result: "loss", expected: "si", index: 1 });
 });
 
 test("avançar uma fase preserva recorde, soma vitória e não inventa derrota", () => {
@@ -167,6 +172,8 @@ test("conquistas acompanham estatísticas reais", () => {
     earBest: 10
   });
   assert.equal(all.filter((a) => a.unlocked).length, 5);
+  assert.equal(achievements({ level: MAX_LEVEL, best: MAX_LEVEL, completed: true }).filter((a) => a.id === "final" && a.unlocked).length, 1);
+  assert.equal(achievements({ level: MAX_LEVEL, best: MAX_LEVEL, completed: false }).find((a) => a.id === "final").unlocked, false);
   assert.ok(all.every((a) => a.title && a.description));
 });
 
@@ -189,4 +196,39 @@ test("arquivos da PWA estão presentes e o HTML conecta os quatro modos", () => 
   assert.equal(manifest.display, "standalone");
   assert.match(html, /id="ad-modal"/);
   assert.match(app, /core\.adDue\(progress\.totalLosses\)/);
+});
+
+test("exatamente 1000 sequências e nenhuma fase 1001", () => {
+  assert.equal(MAX_LEVEL, 1000);
+  assert.equal(sequenceForLevel(1).length, 1);
+  const last = sequenceForLevel(MAX_LEVEL);
+  assert.equal(last.length, MAX_LEVEL);
+  assert.deepEqual(last.slice(0, OPENING.length), [...OPENING]);
+  assert.deepEqual(last.slice(0, MAX_LEVEL - 1), sequenceForLevel(MAX_LEVEL - 1));
+  assert.throws(() => sequenceForLevel(MAX_LEVEL + 1), RangeError);
+});
+
+test("a milésima vitória conclui definitivamente a campanha", () => {
+  const before = sanitizeProgress({
+    level: 1000, best: 1000, completed: false, totalWins: 999, totalLosses: 10,
+    points: 85000, bestStreak: 80, streak: 3
+  });
+  assert.equal(before.completed, false);
+  const finished = advanceLevel(before);
+  assert.equal(finished.level, 1000);
+  assert.equal(finished.best, 1000);
+  assert.equal(finished.completed, true);
+  assert.equal(finished.totalWins, 1000);
+  assert.equal(finished.totalLosses, 10);
+  assert.deepEqual(advanceLevel(finished), finished, "não pode haver vitória duplicada");
+  assert.deepEqual(sanitizeProgress(finished), finished, "vitória final continua salva");
+});
+
+test("conclusão inválida é corrigida, mas novo início ainda pode preservar o recorde", () => {
+  assert.equal(sanitizeProgress({level: 999, completed: true}).completed, false);
+  assert.equal(sanitizeProgress({level: 1001, completed: true}).completed, false);
+  const restarted = sanitizeProgress({level: 1, best: 1000, completed: false, totalWins: 1000});
+  assert.equal(restarted.level, 1);
+  assert.equal(restarted.best, 1000);
+  assert.equal(restarted.completed, false);
 });
