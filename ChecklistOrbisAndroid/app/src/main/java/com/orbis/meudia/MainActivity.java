@@ -477,6 +477,22 @@ public class MainActivity extends Activity {
 
     /** Local Storage Access Framework backup; no network or storage permission. */
     private void exportBackup(){
+        int omitted=TaskAttachments.omittedAttachmentCount(tasks);
+        if(omitted>0){
+            String message=String.format(selectedLocale(),tr("backup_media_warning"),omitted);
+            new AlertDialog.Builder(this)
+                .setTitle(tr("backup_media_title"))
+                .setMessage(message)
+                .setNegativeButton(android.R.string.cancel,null)
+                .setPositiveButton(tr("export_backup"),(dialog,which)->startBackupDocumentPicker())
+                .show();
+            return;
+        }
+        startBackupDocumentPicker();
+    }
+
+    /** Export only after the user acknowledges local media are not included. */
+    private void startBackupDocumentPicker(){
         Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("application/json");
