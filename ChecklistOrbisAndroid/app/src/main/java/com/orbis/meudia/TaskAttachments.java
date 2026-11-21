@@ -41,6 +41,30 @@ final class TaskAttachments {
         }
     }
 
+    /** Removes only the selected local attachment reference; never deletes the source media. */
+    static boolean remove(JSONObject task, String uri) {
+        if (task == null || uri == null || uri.isEmpty()) return false;
+        JSONArray existing = task.optJSONArray("attachments");
+        if (existing == null) return false;
+        JSONArray kept = new JSONArray();
+        boolean removed = false;
+        for (int i = 0; i < existing.length(); i++) {
+            JSONObject item = existing.optJSONObject(i);
+            if (item != null && uri.equals(item.optString("uri", ""))) {
+                removed = true;
+            } else {
+                kept.put(existing.opt(i));
+            }
+        }
+        if (!removed) return false;
+        try {
+            task.put("attachments", kept);
+            return true;
+        } catch (org.json.JSONException exception) {
+            return false;
+        }
+    }
+
     static long totalBytes(JSONObject task) {
         JSONArray items = task == null ? null : task.optJSONArray("attachments");
         if (items == null) return 0;
