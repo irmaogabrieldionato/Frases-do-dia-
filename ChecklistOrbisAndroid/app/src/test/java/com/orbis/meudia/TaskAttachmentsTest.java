@@ -43,5 +43,18 @@ public class TaskAttachmentsTest {
         assertEquals("content://media/2", task.getJSONArray("attachments").getJSONObject(0).getString("uri"));
         assertEquals("Work", task.getString("title"));
     }
-}
+    @Test public void portableBackupOmitsDeviceOnlyUrisWithoutMutatingOriginal() throws Exception {
+        JSONObject task = new JSONObject().put("title", "Task")
+                .put("history", new JSONObject().put("2026-11-21", 55));
+        assertTrue(TaskAttachments.add(task, item("content://media/42", "image/jpeg", 100)));
+        org.json.JSONArray original = new org.json.JSONArray().put(task);
+        org.json.JSONArray portable = TaskAttachments.portableTasks(original);
+        JSONObject copy = portable.getJSONObject(0);
+        assertFalse(copy.has("attachments"));
+        assertEquals("Task", copy.getString("title"));
+        assertEquals(55, copy.getJSONObject("history").getInt("2026-11-21"));
+        assertEquals(1, original.getJSONObject(0).getJSONArray("attachments").length());
+        assertEquals(0, TaskAttachments.portableTasks(null).length());
+    }
 
+}
