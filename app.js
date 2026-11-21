@@ -5,6 +5,8 @@
   const core = window.SevenNoteCore;
   if (!core) throw new Error("Motor musical indisponível.");
 
+  const tvMode = new URLSearchParams(location.search).get("tv") === "1";
+  if (tvMode) document.documentElement.classList.add("tv-mode");
   const $ = (id) => document.getElementById(id);
   const pads = Array.from(document.querySelectorAll("[data-note]"));
   const modeButtons = Array.from(document.querySelectorAll("[data-mode]"));
@@ -605,6 +607,56 @@
   window.addEventListener("appinstalled", () => { $("install-button").hidden = true; deferredInstall = null; });
   if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
     window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
+  }
+
+  // Android TV / TV Box: D-pad moves the focus without a mouse or touchscreen.
+  // ENTER/DPAD_CENTER activates the focused native HTML button.
+  if (tvMode) {
+    const focusable = () => {
+      const modal = document.querySelector("#ad-modal:not([hidden])");
+      const dialog = document.querySelector("dialog[open]");
+      const scope = modal || dialog || document;
+      return [...scope.querySelectorAll("button:not([disabled]), select:not([disabled]), input:not([disabled])")]
+        .filter((element) => element.getClientRects().length > 0 && !element.closest("[hidden]"));
+    };
+    window.addEventListener("keydown", (event) => {
+      const dir = {
+        ArrowLeft: [-1, 0], ArrowRight: [1, 0],
+        ArrowUp: [0, -1], ArrowDown: [0, 1]
+      }[event.key];
+      if (!dir) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const options = focusable();
+      if (!options.length) return;
+      const current = document.activeElement;
+      if (!options.includes(current)) {
+        const preferred = options.find((x) => x.id === "play-button") || options[0];
+        preferred.focus();
+        preferred.scrollIntoView({ block: "nearest" });
+        return;
+      }
+      const origin = current.getBoundingClientRect();
+      const cx = origin.left + origin.width / 2;
+      const cy = origin.top + origin.height / 2;
+      let best = null, score = Infinity;
+      options.forEach((element) => {
+        if (element === current) return;
+        const rect = element.getBoundingClientRect();
+        const dx = rect.left + rect.width / 2 - cx;
+        const dy = rect.top + rect.height / 2 - cy;
+        const along = dx * dir[0] + dy * dir[1];
+        const cross = Math.abs(dx * dir[1] - dy * dir[0]);
+        if (along <= 3) return;
+        const cost = along + cross * 2.7;
+        if (cost < score) { score = cost; best = element; }
+      });
+      if (best) {
+        best.focus();
+        best.scrollIntoView({ block: "nearest", behavior: "instant" });
+      }
+    }, true);
+    $("play-button").focus();
   }
 
   render();

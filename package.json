@@ -5,7 +5,9 @@
   "description": "7-Note Musical Game: memória, ouvido, composição e PWA offline",
   "scripts": {
     "test": "node --test tests/*.test.cjs",
-    "test:browser": "node tests/browser-smoke.cjs"
+    "test:browser": "node tests/browser-smoke.cjs",
+    "native:sync": "node scripts/sync-native.mjs",
+    "native:icons": "python3 scripts/artwork.py"
   },
   "engines": {
     "node": ">=18"

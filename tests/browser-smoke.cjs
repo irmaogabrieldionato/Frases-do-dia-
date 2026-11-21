@@ -52,6 +52,16 @@ async function run() {
     assert.equal(await page.locator("[data-note]").count(), 7);
     assert.equal(await page.locator("[data-mode]").count(), 4);
     console.log("✓ Tela inicial, sete teclas e quatro modos");
+    await page.goto(url + "?tv=1", { waitUntil: "domcontentloaded" });
+    assert.equal(await page.locator("html.tv-mode").count(), 1);
+    const before = await page.evaluate(() => document.activeElement.id);
+    assert.equal(before, "play-button");
+    await page.keyboard.press("ArrowRight");
+    const after = await page.evaluate(() => document.activeElement.id);
+    assert.notEqual(after, before, "D-pad deve mover o foco no TV Box");
+    await page.goto(url, { waitUntil: "domcontentloaded" });
+    console.log("✓ TV Box ativado e controle remoto navega entre botões");
+
 
     await page.locator("#play-button").click();
     await waitMessage(page, "Agora repita");

@@ -1,0 +1,42 @@
+{
+  "name": "seven-note-musical-game-windows",
+  "version": "1.2.0",
+  "private": true,
+  "description": "7-Note Musical Game for Windows",
+  "main": "main.cjs",
+  "scripts": {
+    "build": "electron-builder --win nsis portable --x64 --publish never",
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "33.4.11",
+    "electron-builder": "26.0.12"
+  },
+  "build": {
+    "appId": "com.orbis.sevennote.desktop",
+    "productName": "7-Note Musical Game",
+    "asar": true,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.cjs",
+      "web/**/*",
+      "build/icon.ico"
+    ],
+    "win": {
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "artifactName": "7-Note-Musical-Game-Setup-${version}-${arch}.${ext}",
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "shortcutName": "7-Note Musical Game",
+      "createDesktopShortcut": true
+    },
+    "portable": {
+      "artifactName": "7-Note-Musical-Game-Portable-${version}-${arch}.${ext}"
+    }
+  }
+}

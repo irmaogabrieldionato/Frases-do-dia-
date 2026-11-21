@@ -1,0 +1,177 @@
+name: 7-Note - Pacotes Android, TV Box, iOS e Windows
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [7-note-musical-game]
+    paths:
+      - '.github/workflows/packages-7-note.yml'
+      - 'native/**'
+      - 'scripts/**'
+      - 'app.js'
+      - 'index.html'
+      - 'styles.css'
+      - 'game-core.js'
+      - 'tv.css'
+      - 'sw.js'
+      - 'tests/native-packages.test.cjs'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validar código compartilhado
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm test
+      - run: node --check app.js
+      - run: node --check native/windows/main.cjs
+      - run: node scripts/sync-native.mjs
+      - run: python3 scripts/artwork.py
+      - name: Verificar geração de recursos
+        run: |
+          test -f native/android/app/src/main/assets/index.html
+          test -f native/ios/SevenNote/Resources/Web/index.html
+          test -f native/windows/web/index.html
+          test -f native/android/app/src/main/res/drawable-nodpi/tv_banner.png
+
+  android:
+    name: Android e TV Box (APK + AAB sem assinatura de loja)
+    needs: validate
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Instalar SDK Android 35
+        run: sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
+      - name: Preparar os recursos offline
+        run: |
+          node scripts/sync-native.mjs
+          python3 scripts/artwork.py
+      - name: Compilar dois APKs e dois bundles
+        working-directory: native/android
+        run: gradle :app:assembleMobileDebug :app:assembleTvDebug :app:bundleMobileRelease :app:bundleTvRelease --no-daemon --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 7-note-Android-APK-debug
+          path: native/android/app/build/outputs/apk/mobile/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 7-note-TV-Box-APK-debug
+          path: native/android/app/build/outputs/apk/tv/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 7-note-Android-AAB-unsigned
+          path: native/android/app/build/outputs/bundle/mobileRelease/*.aab
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 7-note-TV-Box-AAB-unsigned
+          path: native/android/app/build/outputs/bundle/tvRelease/*.aab
+          if-no-files-found: error
+          retention-days: 30
+
+  ios:
+    name: iOS (simulador e dispositivo sem assinatura)
+    needs: validate
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar gerador de projeto Xcode
+        run: brew install xcodegen
+      - name: Preparar os recursos offline
+        run: |
+          node scripts/sync-native.mjs
+          python3 scripts/artwork.py
+      - name: Gerar projeto Xcode
+        working-directory: native/ios
+        run: xcodegen generate
+      - name: Compilar para simulador iOS
+        working-directory: native/ios
+        run: |
+          set -o pipefail
+          xcodebuild -project SevenNote.xcodeproj -scheme SevenNote \
+            -configuration Release -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+      - name: Gerar pacote para simulador
+        run: |
+          mkdir -p native/ios/artifacts
+          ditto -c -k --sequesterRsrc --keepParent \
+            native/ios/build/Build/Products/Release-iphonesimulator/SevenNote.app \
+            native/ios/artifacts/7-Note-iOS-Simulator.zip
+      - name: Compilar iOS físico sem assinatura
+        working-directory: native/ios
+        run: |
+          set -o pipefail
+          xcodebuild -project SevenNote.xcodeproj -scheme SevenNote \
+            -configuration Release -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+      - name: Gerar pacote de app físico para assinatura posterior
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent \
+            native/ios/build/Build/Products/Release-iphoneos/SevenNote.app \
+            native/ios/artifacts/7-Note-iOS-Device-UNSIGNED.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 7-note-iOS-Simulator
+          path: native/ios/artifacts/7-Note-iOS-Simulator.zip
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 7-note-iOS-Device-UNSIGNED
+          path: native/ios/artifacts/7-Note-iOS-Device-UNSIGNED.zip
+          if-no-files-found: error
+          retention-days: 30
+
+  windows:
+    name: Windows (instalador e portátil EXE)
+    needs: validate
+    runs-on: windows-2025
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Preparar arquivos e ícone
+        shell: pwsh
+        run: |
+          node scripts/sync-native.mjs
+          python scripts/artwork.py
+      - name: Instalar dependências do empacotador
+        run: npm install --prefix native/windows --no-audit --no-fund
+      - name: Compilar Windows x64
+        run: npm run build --prefix native/windows
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 7-note-Windows-x64-EXE
+          path: native/windows/dist/*.exe
+          if-no-files-found: error
+          retention-days: 30
