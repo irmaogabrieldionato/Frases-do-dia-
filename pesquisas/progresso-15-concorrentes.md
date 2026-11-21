@@ -808,3 +808,10 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **Validação**: commit publicado, mas CI, execução do novo teste, compilação e novo APK ainda não confirmados. Não considerar aprovado antes de verificar GitHub Actions por SHA.
 - **Bloqueios**: injeção de falha de `SharedPreferences.commit()`, testes instrumentados/físicos de preservação de dados e alarmes, reboot e assinatura release com keystore privado continuam pendentes.
 - Agenda própria, offline e original; nenhuma integração com Google Agenda/API e nenhuma alteração em `main`.
+
+
+## Execução 108 — 2026-11-20 (horário de Brasília)
+- Consultados primeiro este registro e `pesquisas/concorrentes-checklist-orbis-2026-11-15.md` na branch `checklist-orbis`. Todoist 1/15; nenhum concorrente integralmente concluído.
+- **Falha CI confirmada**: [GitHub Actions 44852919356](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/44852919356), SHA `292f4d8a4ae185e619efa481c2ab82b0eddfd74e`, `completed/failure`; etapa de testes unitários falhou, compilação e upload de APK foram pulados. O teste novo continha sequências `\\\"` no código-fonte Java em vez de `\"`, gerando JSON inválido mesmo no controle positivo. A conclusão é baseada na inspeção do código e do status do job; não atribuir sucesso ao commit anterior.
+- **Correção publicada**: [commit 13df8e5](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/13df8e5e08398847388c582626928e67a8e1a7b8) normaliza o escape apenas no teste `rejectsCorruptHistoryInSecondTaskWithoutPartialAcceptance`. Sem alteração em produção, backup ou integrações.
+- **Gate pendente**: verificar GitHub Actions para SHA `13df8e5`, resultados dos testes e artefato APK antes de declarar validação. Prosseguir depois com testes de falha de `SharedPreferences.commit()`, persistência e alarmes em aparelho; assinatura release requer keystore privado e secrets. Agenda própria offline, sem Google Agenda/API e sem alteração de `main`.
