@@ -63,3 +63,11 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Acrescentadas asserções estáticas de regressão de isolamento de requisições em `tests/native-packages.test.cjs`. Commit `255215a`.
 - **Validação pendente:** conferir o CI após o commit de testes e executar instalação/uso real dos executáveis Windows, incluindo áudio, funcionamento offline e bloqueio de recursos remotos. Nenhum teste físico foi afirmado.
 - **Próximo foco:** auditar resultados de CI e artefatos Windows, depois preparar capturas reais e metadados de loja sem publicar nem alterar outros apps.
+
+## Evolução de 22/11/2026 — contador de conquistas e artefatos
+
+- Conferidos os workflows anteriores: testes do commit `4d31a377` concluídos com **success** ([45050660136](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45050660136)); empacotamento do commit `255215a0` concluído com **success** ([45050650986](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45050650986)). Este último disponibilizou oito artefatos: APK/AAB Android, APK/AAB TV, iOS simulador, iOS dispositivo sem assinatura, Windows x64 e relatórios Android Lint. Os resultados não validam automaticamente os commits desta seção.
+- Corrigido contador inicial incorreto de conquistas em `index.html`: exibia `0/5`, embora `game-core.js` defina seis conquistas, inclusive a final de 1.000 fases. Commit `a7fe414`.
+- Adicionado teste automatizado em `tests/release-readiness.test.cjs` que compara o contador inicial com a quantidade real retornada pelo motor, evitando divergência futura. Commit `9b204a6`.
+- **Validação pendente:** verificar os workflows após o commit de teste; não foi executado teste físico nem foi afirmada aprovação de CI desta revisão.
+- **Próximo foco:** conferir os novos testes e relatórios Android Lint, depois validar a versão Windows instalada e as capturas verdadeiras para lojas.
