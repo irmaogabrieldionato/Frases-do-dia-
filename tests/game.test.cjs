@@ -242,3 +242,25 @@ test("service worker limita o cache a arquivos próprios e não captura outras r
   assert.match(sw, /response\.type === "basic"/);
   assert.doesNotMatch(sw, /caches\.match\("\.\/index\.html"\)/);
 });
+
+test("contadores próximos do limite seguro não transbordam nem apagam progresso salvo", () => {
+  const cap = Number.MAX_SAFE_INTEGER - 1;
+  const near = sanitizeProgress({
+    level: 1000, best: 1000, totalWins: cap, totalLosses: cap,
+    earPlayed: cap, earCorrect: cap
+  });
+  const won = advanceLevel(near);
+  assert.equal(won.totalWins, cap);
+  assert.equal(won.completed, true);
+  const lost = registerLoss(near);
+  assert.equal(lost.totalLosses, cap);
+  assert.equal(sanitizeProgress(lost).totalLosses, cap);
+  const heard = recordEarAnswer(near, true);
+  assert.equal(heard.earPlayed, cap);
+  assert.equal(heard.earCorrect, cap);
+  assert.equal(sanitizeProgress(heard).earPlayed, cap);
+  assert.equal(sanitizeProgress(heard).earCorrect, cap);
+  const missed = recordEarAnswer(near, false);
+  assert.equal(missed.totalLosses, cap);
+  assert.equal(missed.earPlayed, cap);
+});
