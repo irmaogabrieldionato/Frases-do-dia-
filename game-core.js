@@ -68,7 +68,7 @@
       best,
       completed: input.completed === true && level === MAX_LEVEL,
       totalWins: safeInt(input.totalWins, 0, 0, Number.MAX_SAFE_INTEGER - 1),
-      totalLosses: safeInt(input.totalLosses, 0, 0, Number.MAX_SAFE_INTEGER - 1),
+      totalLosses: Math.min(Number.MAX_SAFE_INTEGER - 2, safeInt(input.totalLosses, 0, 0, Number.MAX_SAFE_INTEGER - 1)),
       points: safeInt(input.points, 0, 0, Number.MAX_SAFE_INTEGER - 1),
       streak,
       bestStreak: Math.max(streak, safeInt(input.bestStreak, 0, 0, MAX_LEVEL)),
@@ -97,7 +97,7 @@
 
   function registerLoss(raw) {
     const progress = sanitizeProgress(raw);
-    return { ...progress, totalLosses: Math.min(Number.MAX_SAFE_INTEGER - 1, progress.totalLosses + 1), streak: 0 };
+    return { ...progress, totalLosses: Math.min(Number.MAX_SAFE_INTEGER - 2, progress.totalLosses + 1), streak: 0 };
   }
 
   function recordEarAnswer(raw, isCorrect) {
