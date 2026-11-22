@@ -47,3 +47,11 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Adicionado teste estático de regressão em `tests/game.test.cjs`. Commits: `ff05f2b` e `3411545`.
 - **Validação pendente:** verificar resultados dos workflows após esses commits; nenhuma execução Chromium, WebKit, Android Lint ou teste físico foi afirmada nesta rodada.
 - **Próximo foco:** conferir CI e executar testes de funcionamento offline após atualização de versão, especialmente em navegação PWA.
+
+## Evolução de 22/11/2026 — verificação CI e navegação iOS
+
+- Conferidos os resultados publicados dos workflows: testes de regras/Chromium/WebKit em `f347f650` **success** (execução [45039296300](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45039296300)); pacotes Android/TV/iOS/Windows em `3411545e` **success** (execução [45039284098](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45039284098)). Os resultados são anteriores à correção iOS desta rodada.
+- Auditoria encontrou navegação `WKWebView` permissiva para qualquer URL `file:`, inclusive arquivos locais fora do diretório Web do jogo. Restringida a páginas cujo caminho normalizado está dentro do diretório `Web/` do bundle, com cancelamento de URLs externas e caminhos fora da pasta. Commit `76fc7d83`.
+- Acrescentada verificação de regressão ao teste de empacotamento iOS em `tests/native-packages.test.cjs`. Commit `1dfaa52f`.
+- **Validação pendente:** aguardar a nova execução de `7-note-tests.yml` e `packages-7-note.yml` depois destes commits; o teste estático não substitui a compilação Xcode nem um teste em iPhone real.
+- **Próximo foco:** confirmar compilação iOS e artefatos da nova revisão; executar teste de navegação de URLs locais/externas em simulador, se disponível, e continuar preparação de metadados das lojas.
