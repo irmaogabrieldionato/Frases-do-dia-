@@ -1,0 +1,43 @@
+package com.orbis.meudia;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * Local, opt-in storage for completed time sessions. This store is not yet
+ * connected to the timer UI or to the app's global backup/restore flow.
+ */
+public final class TaskTimeHistoryStore {
+    private static final String PREFS = "orbis_task_time_history_v1";
+    private static final String KEY = "sessions";
+    private final SharedPreferences preferences;
+
+    public TaskTimeHistoryStore(Context context) {
+        if (context == null) throw new IllegalArgumentException("Missing context");
+        preferences = context.getApplicationContext()
+                .getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+    }
+
+    public synchronized List<TaskTimeHistory.Session> load() {
+        String raw = preferences.getString(KEY, null);
+        if (raw == null) return Collections.emptyList();
+        // Deliberately propagate corruption; never silently erase existing history.
+        return TaskTimeHistoryCodec.decode(raw);
+    }
+
+    public synchronized boolean save(List<TaskTimeHistory.Session> sessions) {
+        // Fully validate and serialize before touching persisted data.
+        String encoded = TaskTimeHistoryCodec.encode(sessions);
+        return preferences.edit().putString(KEY, encoded).commit();
+    }
+
+    public synchronized boolean append(TaskTimeHistory.Session session) {
+        if (session == null) throw new IllegalArgumentException("Missing session");
+        List<TaskTimeHistory.Session> all = new ArrayList<>(load());
+        all.add(session);
+        return save(all);
+    }
+}
