@@ -239,3 +239,12 @@ Atualizar o log cronológico sem apagar entradas anteriores. Referências de com
 - Critério **para release de loja**: assinatura estável privada + APK/AAB release testado + upgrade sem perda + política de privacidade e consentimento + compatibilidade Android e análise de segurança, além de qualquer exigência vigente da loja. Nenhuma aprovação só porque existe um debug APK.
 
 **Instrução resumida para qualquer IA que entrar no projeto:** LEIA os dois documentos históricos + este plano + AGENTS.md; DESCUBRA SHA/CI atuais; RESERVE seu trabalho sem colisões; IMPLEMENTE um item pequeno em `checklist-orbis`; TESTE e REGISTRE a evidência; NÃO TOQUE em `main`, Google Agenda, Supabase alheio, chaves ou cobrança.
+
+
+## 10. NOVA SOLICITAÇÃO — PAINEL DE RELÓGIOS E ALARMES (2026-11-22)
+
+O autor acrescentou: painel com **(1) login/registro, (2) agenda, alarme, relógio mundial, timer e cronômetro**; alarmes com notificação ou **áudio selecionado pelo próprio usuário**; e capacidade de vincular **alarme, timer e cronômetro individualmente a cada tarefa**.
+
+**Especificação técnica detalhada e checklist CLOCK-01 a CLOCK-12:** [issue #4 — painel e ferramentas temporais](https://github.com/irmaogabrieldionato/Frases-do-dia-/issues/4). Ler a issue antes de implementar. Ela contém critérios de segurança Android, permissões, persistência, fusos, horário de verão, notificações, backup, 15 idiomas, vínculos por tarefa e testes.
+
+**Sequenciamento:** não confundir backlog planejado com código existente. Primeiro reparar/validar qualquer CI pendente e dívida do manual multilíngue; em seguida o integrador organiza CLOCK-01–12 em incrementos reais do ciclo local de 24, coordenando com ORB-143–161. Não aumentar a contagem por documentação, não remover funcionalidades aprovadas e não mudar o prazo de retomada do Supabase sem nova ordem do usuário. O botão de login deve mostrar estado futuro até existir autenticação real; não criar login de fachada. **Nunca usar Google Agenda/API**; relógio mundial usa fuso IANA offline, não calendário externo. Não solicitar localização precisa.
