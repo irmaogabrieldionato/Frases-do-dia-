@@ -987,3 +987,11 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **Testes adicionados**: remoção de URI de outro dispositivo sem mutar origem, preservação do histórico, múltiplas tarefas e campos legados. [Commit 7e1262f](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/7e1262f62079f2e346ffff453a4ba77e08673d1a).
 - **Validação pendente**: na consulta da API de Actions, o run mais recente ainda era [44943877528](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/44943877528), anterior a estes commits. **Não declarar testes, build ou APK deste incremento aprovados**. Verificar execução CI para SHA final 7e1262f, corrigir regressões antes da etapa 131. Sem teste físico e sem assinatura release estável.
 - Agenda própria e offline, sem Google Agenda/API. Branch `main` não alterada.
+
+
+## Execução 131 — 2026-11-21 — gate da etapa 130 confirmado
+- Consultados primeiro os dois documentos obrigatórios na branch `checklist-orbis`.
+- **CI do SHA exato de produção+testes aprovado**: [GitHub Actions 44968617363](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/44968617363), `head_sha=7e1262f62079f2e346ffff453a4ba77e08673d1a`, `completed/success`. A execução intermediária [44968610210](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/44968610210) também passou, mas não substitui o gate do SHA final.
+- **APK debug**: [artefato 14732208772](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/44968617363/artifacts/14732208772), `Checklist-Orbis-Android-APK`, 95337 bytes, não expirado no momento da consulta. Não confundir APK debug com assinatura release estável.
+- Etapa 130 (1/5) agora tem evidência de CI aprovado. Não houve teste físico/instrumentado nem validação de importação em aparelhos distintos. Etapa 131 (calendário/recorrência, 2/5) **ainda não implementada**; não contá-la como concluída. Nenhuma mudança no código Android nesta execução; documentação apenas.
+- Supabase dedicado continua adiado até cinco incrementos independentes concluídos. Nenhum dos 15 concorrentes concluído. Sem Google Agenda/API; `main` não modificada.
