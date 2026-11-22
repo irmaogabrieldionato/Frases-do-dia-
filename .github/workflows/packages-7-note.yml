@@ -77,6 +77,11 @@ jobs:
       - name: Compilar e executar Android Lint
         working-directory: native/android
         run: gradle :app:assembleMobileDebug :app:assembleTvDebug :app:bundleMobileRelease :app:bundleTvRelease :app:lintMobileRelease :app:lintTvRelease --no-daemon --stacktrace
+      - name: Exibir os problemas do Android Lint quando houver falha
+        if: failure()
+        shell: bash
+        run: |
+          find native/android/app/build -name 'lint-results-*.txt' -type f -print -exec sed -n '1,160p' {} \; || true
       - name: Guardar relatórios do Android Lint
         if: always()
         uses: actions/upload-artifact@v4
