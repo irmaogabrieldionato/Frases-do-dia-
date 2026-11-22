@@ -48,4 +48,26 @@ final class GuideTopics {
         int index = Languages.index(language);
         return HEADINGS[index < 0 ? 8 : index].clone();
     }
+    // Accessible, localized color names; indexed by Languages.CODES.
+    private static final String[][] PRIORITY_COLORS = {
+        {"Green", "Blue", "Yellow", "Orange", "Red"},
+        {"绿色", "蓝色", "黄色", "橙色", "红色"},
+        {"हरा", "नीला", "पीला", "नारंगी", "लाल"},
+        {"Verde", "Azul", "Amarillo", "Naranja", "Rojo"},
+        {"Vert", "Bleu", "Jaune", "Orange", "Rouge"},
+        {"أخضر", "أزرق", "أصفر", "برتقالي", "أحمر"},
+        {"সবুজ", "নীল", "হলুদ", "কমলা", "লাল"},
+        {"Зелёный", "Синий", "Жёлтый", "Оранжевый", "Красный"},
+        {"Verde", "Azul", "Amarelo", "Laranja", "Vermelho"},
+        {"Hijau", "Biru", "Kuning", "Oranye", "Merah"},
+        {"سبز", "نیلا", "پیلا", "نارنجی", "سرخ"},
+        {"Grün", "Blau", "Gelb", "Orange", "Rot"},
+        {"緑", "青", "黄", "オレンジ", "赤"},
+        {"Kijani", "Bluu", "Njano", "Chungwa", "Nyekundu"},
+        {"हिरवा", "निळा", "पिवळा", "नारिंगी", "लाल"}
+    };
+    static String[] priorityColors(String language) {
+        int index = Languages.index(language);
+        return PRIORITY_COLORS[index < 0 ? 8 : index].clone();
+    }
 }
