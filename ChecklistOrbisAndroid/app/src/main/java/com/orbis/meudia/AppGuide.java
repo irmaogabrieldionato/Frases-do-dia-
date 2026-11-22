@@ -56,6 +56,36 @@ public final class AppGuide {
         }
     }
 
+
+    /** Visual priority swatches with translated names and accessible descriptions. */
+    private static void addLocalizedPriorityLegend(Activity activity, LinearLayout content, String language) {
+        final int[] colors = {0xFF2E7D32, 0xFF1565C0, 0xFFF9A825, 0xFFEF6C00, 0xFFC62828};
+        String[] labels = GuideTopics.priorityColors(language);
+        for (int i = 0; i < colors.length; i++) {
+            LinearLayout row = new LinearLayout(activity);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            row.setPadding(20, 8, 20, 8);
+            View swatch = new View(activity);
+            GradientDrawable background = new GradientDrawable();
+            background.setShape(GradientDrawable.OVAL);
+            background.setColor(colors[i]);
+            background.setStroke(1, 0xFF455A64);
+            swatch.setBackground(background);
+            int size = (int) (24 * activity.getResources().getDisplayMetrics().density + 0.5f);
+            row.addView(swatch, new LinearLayout.LayoutParams(size, size));
+            TextView name = new TextView(activity);
+            String label = (i + 1) + " · " + labels[i];
+            name.setText(label);
+            name.setTextColor(0xFF19333A);
+            name.setTextSize(16);
+            name.setPadding(16, 0, 0, 0);
+            row.addView(name);
+            row.setContentDescription(label);
+            content.addView(row);
+        }
+    }
+
     public static void show(Activity activity, String language) {
         if (!"pt-BR".equals(language) && !"pt".equals(language) && !"en".equals(language)) {
             ScrollView localizedScroll = new ScrollView(activity);
@@ -74,6 +104,7 @@ public final class AppGuide {
                 heading.setTextSize(17);
                 heading.setTypeface(null, android.graphics.Typeface.BOLD);
                 localizedContent.addView(heading);
+                if (i == 1) addLocalizedPriorityLegend(activity, localizedContent, language);
             }
             localizedScroll.addView(localizedContent);
             new AlertDialog.Builder(activity)
