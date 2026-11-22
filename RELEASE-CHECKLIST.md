@@ -55,3 +55,11 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Acrescentada verificação de regressão ao teste de empacotamento iOS em `tests/native-packages.test.cjs`. Commit `1dfaa52f`.
 - **Validação pendente:** aguardar a nova execução de `7-note-tests.yml` e `packages-7-note.yml` depois destes commits; o teste estático não substitui a compilação Xcode nem um teste em iPhone real.
 - **Próximo foco:** confirmar compilação iOS e artefatos da nova revisão; executar teste de navegação de URLs locais/externas em simulador, se disponível, e continuar preparação de metadados das lojas.
+
+## Evolução de 22/11/2026 — isolamento de rede no Electron
+
+- Confirmado que a última execução de testes no commit `7131bba0` foi **success** ([45044839458](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45044839458)) e que os pacotes no commit `1dfaa52f` foram **success** ([45044827481](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45044827481)). Isso confirma CI anterior, não a correção Windows atual.
+- Adicionado bloqueio em `session.webRequest.onBeforeRequest` no Electron para impedir requisições de recursos remotos ou arquivos fora do diretório local `web/`, além das restrições de navegação e permissões já existentes. Commit `26d5ef6`.
+- Acrescentadas asserções estáticas de regressão de isolamento de requisições em `tests/native-packages.test.cjs`. Commit `255215a`.
+- **Validação pendente:** conferir o CI após o commit de testes e executar instalação/uso real dos executáveis Windows, incluindo áudio, funcionamento offline e bloqueio de recursos remotos. Nenhum teste físico foi afirmado.
+- **Próximo foco:** auditar resultados de CI e artefatos Windows, depois preparar capturas reais e metadados de loja sem publicar nem alterar outros apps.
