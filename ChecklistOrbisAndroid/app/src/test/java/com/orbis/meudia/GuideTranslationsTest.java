@@ -11,6 +11,8 @@ public class GuideTranslationsTest {
             assertTrue(GuideTranslations.title(code).length() > 3);
             assertTrue(GuideTranslations.overview(code).length() > 100);
             assertTrue(GuideTranslations.overview(code).contains("⚠"));
+            assertNotEquals(code, GuideTranslations.title(code));
+            assertFalse(GuideTranslations.overview(code).equals(GuideTranslations.title(code)));
         }
     }
 
