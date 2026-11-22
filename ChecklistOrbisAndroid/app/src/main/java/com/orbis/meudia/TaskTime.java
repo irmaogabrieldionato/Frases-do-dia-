@@ -94,6 +94,23 @@ final class TaskTime {
         return indices;
     }
 
+    /** Visible peers overlapping the selected task, in display order.
+     * Uses the same filtered list as the UI, without reading or writing stored tasks.
+     * A task is excluded by its display index, not by title or persistent ID.
+     */
+    static java.util.List<Integer> conflictingPeers(JSONArray visibleTasks, int selectedIndex) {
+        java.util.List<Integer> peers = new java.util.ArrayList<>();
+        if (visibleTasks == null || selectedIndex < 0 || selectedIndex >= visibleTasks.length()) return peers;
+        JSONObject selected = visibleTasks.optJSONObject(selectedIndex);
+        if (selected == null) return peers;
+        for (int i = 0; i < visibleTasks.length(); i++) {
+            if (i == selectedIndex) continue;
+            JSONObject candidate = visibleTasks.optJSONObject(i);
+            if (candidate != null && overlaps(selected, candidate)) peers.add(i);
+        }
+        return peers;
+    }
+
     static boolean setTime(JSONObject task, String time) throws JSONException {
         if (task == null || !isValidTime(time)) return false;
         if (time.equals(getTime(task))) return false;
