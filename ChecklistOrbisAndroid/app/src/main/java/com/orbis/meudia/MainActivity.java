@@ -596,7 +596,10 @@ public class MainActivity extends Activity {
                         throw new java.io.IOException("Backup too large");
                     bytes.write(chunk,0,n);
                 }
-                JSONArray restored=validateBackup(bytes.toString("UTF-8"));
+                // Backup v1 never carries media bytes or portable URI grants. Strip any
+                // injected device-local attachment references before persisting imports.
+                JSONArray restored=TaskAttachments.portableTasks(
+                        validateBackup(bytes.toString("UTF-8")));
                 new AlertDialog.Builder(this)
                     .setTitle(tr("restore_backup"))
                     .setMessage(tr("restore_confirm"))
