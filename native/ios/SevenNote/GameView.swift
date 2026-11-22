@@ -31,7 +31,15 @@ struct GameView: UIViewRepresentable {
                 decisionHandler(.cancel)
                 return
             }
-            decisionHandler(address.isFileURL ? .allow : .cancel)
+            // Permitir apenas páginas locais pertencentes ao pacote Web.
+            guard address.isFileURL,
+                  let webRoot = Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "Web")?.deletingLastPathComponent() else {
+                decisionHandler(.cancel)
+                return
+            }
+            let rootPath = webRoot.standardizedFileURL.path
+            let targetPath = address.standardizedFileURL.path
+            decisionHandler(targetPath.hasPrefix(rootPath + "/") ? .allow : .cancel)
         }
     }
 }
