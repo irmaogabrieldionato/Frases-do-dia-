@@ -1,5 +1,6 @@
 package com.orbis.meudia;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -48,6 +49,24 @@ final class TaskTime {
         int aEnd = Math.min(1440, aStart + aDuration);
         int bEnd = Math.min(1440, bStart + bDuration);
         return aStart < bEnd && bStart < aEnd;
+    }
+
+    /** Counts conflicting task pairs without changing task JSON or persisted history.
+     * A null or malformed array entry is ignored. The caller must supply tasks
+     * for one occurrence date; this method deliberately does not infer recurrence.
+     */
+    static int countConflictingPairs(JSONArray tasks) {
+        if (tasks == null) return 0;
+        int conflicts = 0;
+        for (int i = 0; i < tasks.length(); i++) {
+            JSONObject first = tasks.optJSONObject(i);
+            if (first == null) continue;
+            for (int j = i + 1; j < tasks.length(); j++) {
+                JSONObject second = tasks.optJSONObject(j);
+                if (second != null && overlaps(first, second)) conflicts++;
+            }
+        }
+        return conflicts;
     }
 
     static boolean setTime(JSONObject task, String time) throws JSONException {
