@@ -32,8 +32,15 @@ public final class TaskTimeHistory {
                 throw new IllegalArgumentException("Invalid time session");
             }
             try {
-                java.time.LocalDate.parse(occurrenceDate);
-            } catch (java.time.format.DateTimeParseException error) {
+                int year = Integer.parseInt(occurrenceDate.substring(0, 4));
+                int month = Integer.parseInt(occurrenceDate.substring(5, 7));
+                int day = Integer.parseInt(occurrenceDate.substring(8, 10));
+                java.util.GregorianCalendar calendar = new java.util.GregorianCalendar();
+                calendar.setLenient(false);
+                calendar.clear();
+                calendar.set(year, month - 1, day);
+                calendar.getTimeInMillis();
+            } catch (IllegalArgumentException error) {
                 throw new IllegalArgumentException("Invalid occurrence date", error);
             }
             this.id = id;
