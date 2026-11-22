@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
-const { chromium } = require("playwright");
+const { chromium, webkit } = require("playwright");
 
 const root = path.resolve(__dirname, "..");
 const types = { ".html": "text/html", ".js": "application/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".webmanifest": "application/manifest+json" };
@@ -41,7 +41,11 @@ async function run() {
   const url = "http://127.0.0.1:" + address.port + "/";
   let browser;
   try {
-    browser = await chromium.launch({ headless: true, args: ["--autoplay-policy=no-user-gesture-required"] });
+    const safari = process.env.TEST_BROWSER === "webkit";
+    browser = await (safari ? webkit : chromium).launch({
+      headless: true,
+      args: safari ? [] : ["--autoplay-policy=no-user-gesture-required"]
+    });
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
     const page = await context.newPage();
     const errors = [];
