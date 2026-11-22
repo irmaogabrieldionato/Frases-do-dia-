@@ -79,3 +79,11 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Acrescentado teste de regressão em `tests/release-readiness.test.cjs` que confronta os comandos Android documentados com as tarefas do workflow. Commit `19156ce`.
 - **Validação pendente:** conferir a execução CI disparada pelo commit de testes; os testes não foram executados localmente nesta rodada. A correção é de documentação/teste, não altera os binários Android.
 - **Próximo foco:** conferir o CI mais recente e a disponibilidade dos artefatos, auditar capturas verdadeiras e testar os instaladores em aparelhos reais quando houver acesso.
+
+## Evolução de 22/11/2026 — proteção adicional do WebView Android
+
+- Confirmadas execuções anteriores **success**: testes no commit `d42746f0` ([45061726138](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45061726138)) e pacotes no commit `19156ce1` ([45061716513](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45061716513)). Esses resultados **não** validam a alteração Android desta seção.
+- Em `MainActivity.java`, explicitamente desabilitados acesso de origens `file://` a arquivos e URLs externas, e suporte a múltiplas janelas no WebView; mantidos bloqueios já existentes de conteúdo, arquivos, mixed content, pop-ups automáticos e recursos externos. Commit `33638a1`.
+- Acrescentado teste de regressão das configurações de isolamento Android em `tests/release-readiness.test.cjs`. Commit `db8f165`.
+- **Validação pendente:** conferir os novos workflows após os commits, inclusive Android Lint e APK/AAB mobile/TV. Nenhuma compilação ou execução em dispositivo local foi realizada nesta rodada. Os testes estáticos não comprovam o comportamento do WebView em aparelho real.
+- **Próximo foco:** conferir os jobs recém-disparados e os artefatos, depois testar Android/TV em hardware e preparar fichas de loja com capturas reais.
