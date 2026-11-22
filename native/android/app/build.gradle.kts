@@ -2,24 +2,26 @@ plugins { id("com.android.application") }
 
 android {
   namespace="com.orbis.sevennote"
-  compileSdk=35
+  compileSdk=36
   defaultConfig {
     applicationId="com.orbis.sevennote"
     minSdk=24
     targetSdk=35
-    versionCode=2
-    versionName="1.3.0"
+    versionCode=3
+    versionName="1.4.0"
   }
   buildFeatures { buildConfig=true }
   flavorDimensions+="device"
   productFlavors {
     create("mobile") {
       dimension="device"
+      targetSdk=36
       manifestPlaceholders["launcherCategory"]="android.intent.category.LAUNCHER"
       manifestPlaceholders["orientation"]="unspecified"
     }
     create("tv") {
       dimension="device"
+      targetSdk=35
       applicationIdSuffix=".tv"
       manifestPlaceholders["launcherCategory"]="android.intent.category.LEANBACK_LAUNCHER"
       manifestPlaceholders["orientation"]="landscape"

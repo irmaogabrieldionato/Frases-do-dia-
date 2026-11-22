@@ -2,6 +2,9 @@ package com.orbis.sevennote;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Build;
+import android.view.WindowInsets;
+import android.window.OnBackInvokedDispatcher;
 import android.graphics.Color;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -26,7 +29,22 @@ public class MainActivity extends Activity {
    game.setFocusable(true);
    game.setFocusableInTouchMode(true);
    setContentView(game);
+   // Respeitar as barras do sistema no Android 16 (edge-to-edge).
+   if (Build.VERSION.SDK_INT >= 30) {
+      game.setOnApplyWindowInsetsListener((view, insets) -> {
+         android.graphics.Insets bars=insets.getInsets(WindowInsets.Type.systemBars());
+         view.setPadding(bars.left,bars.top,bars.right,bars.bottom);
+         return insets;
+      });
+   } else {
+      game.setFitsSystemWindows(true);
+   }
+   if (Build.VERSION.SDK_INT >= 33) {
+      getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+          OnBackInvokedDispatcher.PRIORITY_DEFAULT, this::handleBack);
+   }
    WebSettings s=game.getSettings();
+   s.setSafeBrowsingEnabled(true);
    s.setJavaScriptEnabled(true);
    s.setDomStorageEnabled(true);
    s.setMediaPlaybackRequiresUserGesture(false);
@@ -40,18 +58,22 @@ public class MainActivity extends Activity {
    game.setWebChromeClient(new WebChromeClient());
    game.setWebViewClient(new WebViewClient(){
       @Override public WebResourceResponse shouldInterceptRequest(WebView view,WebResourceRequest req){
-        if(HOST.equals(req.getUrl().getHost())) return loader.shouldInterceptRequest(req.getUrl());
+        if("https".equals(req.getUrl().getScheme()) && HOST.equals(req.getUrl().getHost()) &&
+           req.getUrl().getPath()!=null && req.getUrl().getPath().startsWith("/assets/"))
+             return loader.shouldInterceptRequest(req.getUrl());
         return new WebResourceResponse("text/plain","UTF-8",403,"Forbidden",
           Collections.emptyMap(),new ByteArrayInputStream("Blocked".getBytes(StandardCharsets.UTF_8)));
       }
       @Override public boolean shouldOverrideUrlLoading(WebView view,WebResourceRequest req) {
-         return !HOST.equals(req.getUrl().getHost());
+         return !("https".equals(req.getUrl().getScheme()) && HOST.equals(req.getUrl().getHost()) &&
+                  req.getUrl().getPath()!=null && req.getUrl().getPath().startsWith("/assets/"));
       }
    });
    game.loadUrl(BASE+"index.html"+("tv".equals(BuildConfig.FLAVOR)?"?tv=1":""));
    game.requestFocus();
  }
- @Override public void onBackPressed(){
+ @Override public void onBackPressed(){ handleBack(); }
+ private void handleBack(){
    if(game==null){super.onBackPressed();return;}
    game.evaluateJavascript(
      "(!document.getElementById('ad-modal').hidden || !!document.querySelector('dialog[open]'))",
