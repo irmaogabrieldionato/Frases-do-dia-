@@ -1,6 +1,6 @@
 # 7-Note Musical Game — Checklist de lançamento v1.4.0
 
-Auditoria técnica em 21/11/2026. Um build aprovado não é aprovação para publicação pelas lojas.
+Auditoria técnica em 22/11/2026. Um build aprovado não é aprovação para publicação pelas lojas.
 
 ## Testes automatizados
 
@@ -38,3 +38,12 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Apple guideline 4.2: https://developer.apple.com/app-store/review/guidelines/
 - Android TV: https://developer.android.com/develop/adaptive-apps/quality-guidelines/tv-app-quality
 - Política local: privacy.html
+
+## Evolução de 22/11/2026 — isolamento do cache offline
+
+- Corrigido `sw.js`: o service worker só intercepta as URLs exatas dos nove recursos declarados em `APP_FILES`, sem parâmetros de consulta. Requisições de outras rotas, apps no mesmo domínio e conteúdo externo não são mais capturadas nem armazenadas.
+- A resposta só é gravada se for HTTP OK e do tipo `basic`; removido fallback de navegação para `index.html` em URLs não pertencentes ao jogo.
+- Cache atualizado de v5 para v6 para invalidar entradas antigas; preservada a remoção das versões anteriores durante `activate`.
+- Adicionado teste estático de regressão em `tests/game.test.cjs`. Commits: `ff05f2b` e `3411545`.
+- **Validação pendente:** verificar resultados dos workflows após esses commits; nenhuma execução Chromium, WebKit, Android Lint ou teste físico foi afirmada nesta rodada.
+- **Próximo foco:** conferir CI e executar testes de funcionamento offline após atualização de versão, especialmente em navegação PWA.
