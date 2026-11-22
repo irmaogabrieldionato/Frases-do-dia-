@@ -1904,8 +1904,9 @@ public class MainActivity extends Activity {
         if (hasTimeConflict) {
             TextView conflict = text("⚠", 19, Color.rgb(176, 91, 0), true);
             conflict.setGravity(Gravity.CENTER);
-            conflict.setContentDescription("⚠ " + TaskTime.getTime(job));
-            row.addView(conflict, lp(28, 28));
+            conflict.setContentDescription(ConflictAccessibility.label(selectedLanguage, job));
+            conflict.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+            row.addView(conflict, lp(48, 48));
         }
 
         TextView delete = text("×", 26, Color.rgb(155, 177, 170), false);
