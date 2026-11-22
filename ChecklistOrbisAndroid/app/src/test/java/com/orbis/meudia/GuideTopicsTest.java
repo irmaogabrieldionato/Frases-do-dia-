@@ -31,4 +31,29 @@ public class GuideTopicsTest {
         topics[0] = "mutated";
         assertEquals("Calendar and tasks", GuideTopics.headings("en")[0]);
     }
+    @Test public void allLanguagesHaveFiveUsefulInstructions() {
+        for (String code : Languages.CODES) {
+            String[] headings = GuideTopics.headings(code);
+            String[] details = GuideTopics.details(code);
+            assertEquals(headings.length, details.length);
+            for (String detail : details) {
+                assertNotNull(detail);
+                assertTrue("Missing instructions for " + code, detail.length() >= 35);
+            }
+        }
+    }
+
+    @Test public void localizedInstructionsAndDefensiveCopy() {
+        for (String code : Languages.CODES) {
+            if (!"en".equals(code)) {
+                assertNotEquals("Untranslated first instruction for " + code,
+                        GuideTopics.details("en")[0], GuideTopics.details(code)[0]);
+            }
+        }
+        assertArrayEquals(GuideTopics.details("pt-BR"), GuideTopics.details("unknown"));
+        String[] details = GuideTopics.details("pt-BR");
+        details[0] = "changed";
+        assertNotEquals("changed", GuideTopics.details("pt-BR")[0]);
+    }
+
 }
