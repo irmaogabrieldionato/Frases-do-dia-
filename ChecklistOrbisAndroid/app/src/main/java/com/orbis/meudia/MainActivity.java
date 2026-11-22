@@ -817,6 +817,14 @@ public class MainActivity extends Activity {
         languageLp.leftMargin = dp(5);
         header.addView(languageButton, languageLp);
 
+        TextView guideButton = text("❔", 24, TEAL, true);
+        guideButton.setGravity(Gravity.CENTER);
+        guideButton.setContentDescription("Como usar / User guide");
+        guideButton.setOnClickListener(v -> AppGuide.show(this, selectedLanguage));
+        LinearLayout.LayoutParams guideLp = lp(44, 48);
+        guideLp.leftMargin = dp(5);
+        header.addView(guideButton, guideLp);
+
         LinearLayout.LayoutParams headerLp = lp(-1, -2);
         headerLp.bottomMargin = dp(24);
         content.addView(header, headerLp);
