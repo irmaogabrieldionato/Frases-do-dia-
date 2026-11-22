@@ -14,7 +14,7 @@
 
 ## Product invariants
 
-- Proprietary, original, **offline-capable calendar**. **No Google Calendar/Google Agenda API, import, auth, sync, SDK, query, dependency, or copied UI/assets.** Study external calendars only conceptually.
+- Original, independently developed, **offline-capable calendar**. **No Google Calendar/Google Agenda API, import, auth, sync, SDK, query, dependency, or copied UI/assets.** Study external calendars only conceptually.
 - Keep applicationId/namespace `com.orbis.meudia`, preexisting preferences `meu-dia-dados-v1`, task IDs, recurrence, local dated histories, user data and compatibility with backups. No destructive migrations.
 - Maintain 15 languages: `en zh-CN hi es fr ar bn ru pt-BR id ur de ja sw mr`. Arabic and Urdu require RTL. Priorities: green/blue/yellow/orange/red; percentage 0–100% per dated occurrence; filters, calendars, reminders and backup must not regress.
 - AppGuide manual presently uses Portuguese/English for portions of its content: localization to 15 is a documented next step, not already done.
