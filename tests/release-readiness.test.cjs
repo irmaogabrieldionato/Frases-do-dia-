@@ -35,7 +35,7 @@ test("Android: nenhum pedido de permissão sensível",()=>{
  const main=content("native/android/app/src/main/java/com/orbis/sevennote/MainActivity.java");
  assert.doesNotMatch(manifest,/uses-permission/);
  assert.match(main,/setSafeBrowsingEnabled\(true\)/);
- assert.match(main,/OnBackInvokedDispatcher/);
+ assert.match(main,/getOnBackPressedDispatcher/);
  assert.match(main,/setOnApplyWindowInsetsListener/);
 });
 test("assinaturas de publicação ainda não estão configuradas",()=>{

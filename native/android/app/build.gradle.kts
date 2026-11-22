@@ -23,7 +23,7 @@ android {
       dimension="device"
       targetSdk=35
       applicationIdSuffix=".tv"
-      manifestPlaceholders["launcherCategory"]="android.intent.category.LEANBACK_LAUNCHER"
+      manifestPlaceholders["launcherCategory"]="android.intent.category.LAUNCHER"
       manifestPlaceholders["orientation"]="landscape"
     }
   }
@@ -34,4 +34,7 @@ android {
   }
   lint { abortOnError=true }
 }
-dependencies { implementation("androidx.webkit:webkit:1.12.1") }
+dependencies {
+  implementation("androidx.webkit:webkit:1.12.1")
+  implementation("androidx.activity:activity:1.10.1")
+}

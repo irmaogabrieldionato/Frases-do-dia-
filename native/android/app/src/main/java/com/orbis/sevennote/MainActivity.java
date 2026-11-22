@@ -1,10 +1,10 @@
 package com.orbis.sevennote;
 
-import android.app.Activity;
+import androidx.activity.ComponentActivity;
+import androidx.activity.OnBackPressedCallback;
 import android.os.Bundle;
 import android.os.Build;
 import android.view.WindowInsets;
-import android.window.OnBackInvokedDispatcher;
 import android.graphics.Color;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -17,7 +17,7 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
-public class MainActivity extends Activity {
+public class MainActivity extends ComponentActivity {
  private WebView game;
  private static final String HOST="appassets.androidplatform.net";
  private static final String BASE="https://"+HOST+"/assets/";
@@ -39,10 +39,9 @@ public class MainActivity extends Activity {
    } else {
       game.setFitsSystemWindows(true);
    }
-   if (Build.VERSION.SDK_INT >= 33) {
-      getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
-          OnBackInvokedDispatcher.PRIORITY_DEFAULT, this::handleBack);
-   }
+   getOnBackPressedDispatcher().addCallback(this,new OnBackPressedCallback(true) {
+      @Override public void handleOnBackPressed() { handleBack(); }
+   });
    WebSettings s=game.getSettings();
    if (Build.VERSION.SDK_INT >= 26) s.setSafeBrowsingEnabled(true);
    s.setJavaScriptEnabled(true);
@@ -72,9 +71,8 @@ public class MainActivity extends Activity {
    game.loadUrl(BASE+"index.html"+("tv".equals(BuildConfig.FLAVOR)?"?tv=1":""));
    game.requestFocus();
  }
- @Override public void onBackPressed(){ handleBack(); }
  private void handleBack(){
-   if(game==null){super.onBackPressed();return;}
+   if(game==null){finish();return;}
    game.evaluateJavascript(
      "(!document.getElementById('ad-modal').hidden || !!document.querySelector('dialog[open]'))",
      value->{
