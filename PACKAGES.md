@@ -44,10 +44,10 @@ Na raiz do projeto, com Node.js e Python 3 instalados:
     python3 scripts/artwork.py
     npm test
 
-Android (JDK 17, Android SDK 35, Gradle 8.9):
+Android (JDK 17, Android SDK API 36 e Build Tools 35.0.0, Gradle 8.13):
 
     cd native/android
-    gradle :app:assembleMobileDebug :app:assembleTvDebug
+    gradle :app:assembleMobileDebug :app:assembleTvDebug :app:bundleMobileRelease :app:bundleTvRelease :app:lintMobileRelease :app:lintTvRelease
 
 iOS (Mac com Xcode e XcodeGen):
 
