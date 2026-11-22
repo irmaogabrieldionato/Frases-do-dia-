@@ -43,3 +43,13 @@ test("assinaturas de publicação ainda não estão configuradas",()=>{
  assert.match(ci,/CODE_SIGNING_ALLOWED=NO/);
  assert.match(content("PACKAGES.md"),/assinatura/i);
 });
+
+test("contador inicial de conquistas corresponde às conquistas do motor",()=>{
+ const core=require("../game-core.js");
+ const total=core.achievements({}).length;
+ const html=content("index.html");
+ const count=html.match(/id="achievement-count">0\/(\d+)</);
+ assert.ok(count,"contador inicial presente");
+ assert.equal(Number(count[1]),total);
+ assert.equal(total,6);
+});
