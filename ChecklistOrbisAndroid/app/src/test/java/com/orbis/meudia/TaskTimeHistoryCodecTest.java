@@ -56,4 +56,29 @@ public class TaskTimeHistoryCodecTest {
                 session("a", "2026-11-11", TaskTimeHistory.Kind.STOPWATCH)));
         TaskTimeHistoryCodec.decode(encoded.replace("6:120000", "6:-20000"));
     }
+    @Test public void restoreMergeKeepsBothDaysAndIsIdempotent() {
+        TaskTimeHistory.Session first = session("a", "2026-11-11", TaskTimeHistory.Kind.STOPWATCH);
+        TaskTimeHistory.Session second = session("b", "2026-11-12", TaskTimeHistory.Kind.TIMER);
+        String payload = TaskTimeHistoryCodec.encode(Arrays.asList(first, second));
+        List<TaskTimeHistory.Session> once = TaskTimeHistoryCodec.mergeForRestore(
+                Collections.singletonList(first), payload);
+        assertEquals(2, once.size());
+        assertEquals(2, TaskTimeHistory.byDate(once, first.taskId).size());
+        assertEquals(2, TaskTimeHistoryCodec.mergeForRestore(once, payload).size());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void restoreRejectsConflictingIdsWithoutReplacingExisting() {
+        TaskTimeHistoryCodec.mergeForRestore(
+                Collections.singletonList(session("a", "2026-11-11", TaskTimeHistory.Kind.STOPWATCH)),
+                TaskTimeHistoryCodec.encode(Collections.singletonList(
+                        session("a", "2026-11-12", TaskTimeHistory.Kind.TIMER))));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void restoreRejectsCorruptImport() {
+        TaskTimeHistoryCodec.mergeForRestore(Collections.<TaskTimeHistory.Session>emptyList(),
+                "ORBIS-TIME-1\\n1\\ncorrupt");
+    }
+
 }
