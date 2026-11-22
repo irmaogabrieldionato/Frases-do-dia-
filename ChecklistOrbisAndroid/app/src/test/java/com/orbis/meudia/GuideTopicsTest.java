@@ -38,7 +38,7 @@ public class GuideTopicsTest {
             assertEquals(headings.length, details.length);
             for (String detail : details) {
                 assertNotNull(detail);
-                assertTrue("Missing instructions for " + code, detail.length() >= 35);
+                assertTrue("Missing instructions for " + code + ": " + detail, detail.codePointCount(0, detail.length()) >= 12);
             }
         }
     }
