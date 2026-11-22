@@ -20,7 +20,7 @@ final class GuideTranslations {
         {"sw", "Mwongozo wa matumizi", "Chagua tarehe kwenye kalenda ya offline. Unda na hariri kazi, saa na marudio. Weka maendeleo ya 0–100% kwa kila tarehe. Rangi za kipaumbele: kijani 1, bluu 2, njano 3, chungwa 4, nyekundu 5. Tafuta na chuja; vichujio havifuti kazi. Gusa ⚠ kuona migongano ya kazi zinazoonekana. Hamisha nakala ya JSON kabla ya kurejesha; picha na video hazijumuishwi. Badili lugha kwa alama ya dunia. Usawazishaji wa vifaa bado haupatikani."},
         {"mr", "वापर मार्गदर्शक", "ऑफलाइन दिनदर्शिकेत तारीख निवडा. कामे, वेळा व पुनरावृत्ती तयार किंवा संपादित करा. प्रत्येक तारखेसाठी ०–१००% प्रगती ठरवा. प्राधान्य रंग: हिरवा १, निळा २, पिवळा ३, नारिंगी ४, लाल ५. शोध व फिल्टर वापरा; फिल्टर कामे हटवत नाहीत. दिसणाऱ्या कामांचे वेळेचे संघर्ष पाहण्यासाठी ⚠ टॅप करा. पुनर्संचयित करण्यापूर्वी JSON बॅकअप घ्या; फोटो व व्हिडिओ नसतात. ग्लोबने भाषा बदला. उपकरणांमध्ये समक्रमण अजून उपलब्ध नाही."}
     };
-    static String title(String code) { return DATA[index(code)][0]; }
-    static String overview(String code) { return DATA[index(code)][1]; }
+    static String title(String code) { return DATA[index(code)][1]; }
+    static String overview(String code) { return DATA[index(code)][2]; }
     private static int index(String code) { int i = Languages.index(code); return i < 0 ? 8 : i; }
 }
