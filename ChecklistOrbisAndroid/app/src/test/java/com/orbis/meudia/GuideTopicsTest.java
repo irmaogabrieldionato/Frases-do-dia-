@@ -56,4 +56,28 @@ public class GuideTopicsTest {
         assertNotEquals("changed", GuideTopics.details("pt-BR")[0]);
     }
 
+    @Test public void allFifteenLanguagesHaveFiveAccessiblePriorityNames() {
+        for (String code : Languages.CODES) {
+            String[] names = GuideTopics.priorityColors(code);
+            assertEquals("Priority color count for " + code, 5, names.length);
+            for (String name : names) {
+                assertNotNull(name);
+                assertTrue("Empty color label for " + code, name.codePointCount(0, name.length()) >= 2);
+            }
+        }
+    }
+
+    @Test public void priorityColorsAreLocalizedAndSafeToMutate() {
+        for (String code : Languages.CODES) {
+            if (!"en".equals(code)) {
+                assertNotEquals("Untranslated priority color for " + code,
+                        GuideTopics.priorityColors("en")[0], GuideTopics.priorityColors(code)[0]);
+            }
+        }
+        assertArrayEquals(GuideTopics.priorityColors("pt-BR"), GuideTopics.priorityColors("invalid"));
+        String[] copy = GuideTopics.priorityColors("ja");
+        copy[0] = "mutated";
+        assertNotEquals("mutated", GuideTopics.priorityColors("ja")[0]);
+    }
+
 }
