@@ -248,3 +248,58 @@ O autor acrescentou: painel com **(1) login/registro, (2) agenda, alarme, relóg
 **Especificação técnica detalhada e checklist CLOCK-01 a CLOCK-12:** [issue #4 — painel e ferramentas temporais](https://github.com/irmaogabrieldionato/Frases-do-dia-/issues/4). Ler a issue antes de implementar. Ela contém critérios de segurança Android, permissões, persistência, fusos, horário de verão, notificações, backup, 15 idiomas, vínculos por tarefa e testes.
 
 **Sequenciamento:** não confundir backlog planejado com código existente. Primeiro reparar/validar qualquer CI pendente e dívida do manual multilíngue; em seguida o integrador organiza CLOCK-01–12 em incrementos reais do ciclo local de 24, coordenando com ORB-143–161. Não aumentar a contagem por documentação, não remover funcionalidades aprovadas e não mudar o prazo de retomada do Supabase sem nova ordem do usuário. O botão de login deve mostrar estado futuro até existir autenticação real; não criar login de fachada. **Nunca usar Google Agenda/API**; relógio mundial usa fuso IANA offline, não calendário externo. Não solicitar localização precisa.
+
+
+## 11. AMPLIAÇÃO DA PESQUISA: 33 CONCORRENTES E REFERÊNCIAS (2026-11-22)
+
+**Decisão do autor:** acrescentar 18 nomes novos, sem duplicar os 15 anteriores, e manter o Google Agenda apenas como **referência conceitual**. O projeto continua com agenda própria, independente, offline e comercializável; não conectar, consultar, autenticar, sincronizar, importar nem usar APIs ou serviços Google Agenda. Não copiar layout, marca, código, ícones ou ativos de nenhum concorrente.
+
+### Os 15 já existentes (ordem de execução histórica vigente)
+1. Microsoft To Do
+2. Google Tasks
+3. Any.do
+4. Structured
+5. Taskito
+6. HabitNow
+7. Habitica
+8. Amazing Marvin
+9. Trello
+10. Notion Calendar
+11. Tasks.org
+12. Loop Habit Tracker
+13. Super Productivity
+14. TickTick
+15. Todoist
+
+**Nota:** esta é a ordem mais recente registrada no plano/histórico, embora prompts automáticos antigos ainda citem Todoist/TickTick primeiro. Confirmar com o autor antes de reordenar trabalho já iniciado.
+
+### Os 18 acrescentados, sem repetição
+16. Google Agenda — **SOMENTE inspiração conceitual** de visualizações diária/semanal/mensal, eventos e recorrências; proibição absoluta de integração, API, login, importação ou sincronização.
+17. Microsoft Outlook Calendar — compromissos, visualizações e organização corporativa; sem vincular Microsoft 365 por padrão.
+18. Apple Calendar — experiência de agenda multiplataforma e recorrências; sem iCloud obrigatório.
+19. Fantastical — criação eficiente de eventos e agendamento.
+20. Proton Calendar — privacidade, proteção de dados e controles locais.
+21. Motion — priorização e replanejamento automático; criar algoritmo original e local antes de qualquer IA remota.
+22. TimeTree — agendas familiares e compartilhamento; colaboração remota depende de backend autorizado.
+23. Morgen — visão integrada de compromissos e tarefas.
+24. ClickUp — projetos, hierarquias de tarefas, filtros e automações locais.
+25. Obsidian — notas interligadas, referências e organização do conhecimento; sem copiar plugins ou código.
+26. Microsoft Loop — espaços colaborativos e blocos de conteúdo; cloud somente após autorização.
+27. Asana — projetos, responsáveis e dependências; recursos multiusuário aguardam contas reais.
+28. Airtable — campos estruturados, visualizações e tabelas relacionais locais.
+29. Anytype — organização local-first, privacidade e vínculos entre registros.
+30. AppFlowy — documentos, tarefas e organização offline-first; examinar licença antes de reutilizar qualquer código.
+31. Craft — notas e documentos com edição agradável.
+32. Sunsama — planejamento diário, distribuição de tempo e revisão do dia.
+33. Routine — calendário, tarefas e notas em fluxo único.
+
+**Repetidos na solicitação e não recontados:** Notion Calendar, Trello, ClickUp, Motion e Morgen (citados em mais de um grupo); os dois primeiros já estavam entre os 15 originais. **Resultado: 33 nomes únicos**, incluindo o Google Agenda como inspiração sem integração.
+
+### Protocolo obrigatório por concorrente
+1. Consultar site oficial atual, páginas de funcionalidades, suporte e política de privacidade; registrar URL e data.
+2. Registrar matriz: funcionalidade; já existe?; benefício; risco; dependência de rede; permissões Android; viabilidade offline; decisão (implementar, adaptar, adiar, rejeitar).
+3. Implementar somente funcionalidades elegíveis com código original, uma por incremento, mantendo calendário próprio, dados, backups, 15 idiomas, recorrências, filtros, prioridade e progresso.
+4. Testar JVM, migração, regressões e CI do SHA final; disponibilizar link de APK somente se artefato efetivamente existir.
+5. Registrar bloqueios (ex.: colaboração cloud, criptografia, sincronização, assinatura estável) sem alegar conclusão. A conclusão do estudo exige **33/33 avaliados**, não somente 15/15; o fechamento da automação depende da decisão do autor e da execução real.
+
+**Priorização transversal:** confiabilidade de backup/restauração, assinatura estável sem segredos no Git, depois funcionalidades offline e painel de alarmes/relógios/timers/cronômetro da [issue #4](https://github.com/irmaogabrieldionato/Frases-do-dia-/issues/4). Supabase permanece adiado conforme regra do ciclo local de 24 incrementos, sem contagem por simples documentação.
