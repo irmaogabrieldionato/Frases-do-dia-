@@ -34,6 +34,17 @@ public final class TaskTimeHistoryStore {
         return preferences.edit().putString(KEY, encoded).commit();
     }
 
+    /**
+     * Import a versioned time-history payload without replacing existing sessions.
+     * Invalid or conflicting imports fail before any SharedPreferences write.
+     * A failed commit is reported to the caller; existing data is not cleared.
+     */
+    public synchronized boolean mergeRestore(String incomingEncoded) {
+        List<TaskTimeHistory.Session> merged =
+                TaskTimeHistoryCodec.mergeForRestore(load(), incomingEncoded);
+        return save(merged);
+    }
+
     public synchronized boolean append(TaskTimeHistory.Session session) {
         if (session == null) throw new IllegalArgumentException("Missing session");
         List<TaskTimeHistory.Session> all = new ArrayList<>(load());
