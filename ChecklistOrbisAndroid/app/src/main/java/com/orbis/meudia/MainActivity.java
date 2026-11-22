@@ -1867,14 +1867,14 @@ public class MainActivity extends Activity {
         java.util.Set<Integer> conflictIndices = new java.util.HashSet<>(
                 TaskTime.conflictingTaskIndices(shownForConflicts));
         for (int i = 0; i < shown.size(); i++)
-            addTaskRow(shown.get(i), conflictIndices.contains(i));
+            addTaskRow(shown.get(i), conflictIndices.contains(i), shownForConflicts, i);
         int count=shown.size();
         emptyLabel.setText(count==0 && !taskSearch.isEmpty()
                 ?tr("no_search_results"):tr("empty"));
         emptyLabel.setVisibility(count==0?View.VISIBLE:View.GONE);
     }
 
-    private void addTaskRow(JSONObject job, boolean hasTimeConflict) {
+    private void addTaskRow(JSONObject job, boolean hasTimeConflict, JSONArray visibleTasks, int displayIndex) {
         final int initialProgress = progress(job);
         String title = job.optString("title", "");
         String id = job.optString("id", "");
@@ -1906,6 +1906,24 @@ public class MainActivity extends Activity {
             conflict.setGravity(Gravity.CENTER);
             conflict.setContentDescription(ConflictAccessibility.label(selectedLanguage, job));
             conflict.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+            conflict.setClickable(true);
+            conflict.setOnClickListener(v -> {
+                java.util.List<Integer> peers = TaskTime.conflictingPeers(visibleTasks, displayIndex);
+                StringBuilder details = new StringBuilder();
+                for (Integer peerIndex : peers) {
+                    JSONObject peer = visibleTasks.optJSONObject(peerIndex);
+                    if (peer == null) continue;
+                    if (details.length() > 0) details.append("\\n");
+                    String peerTime = TaskTime.getTime(peer);
+                    details.append("• ").append(peer.optString("title", ""));
+                    if (!peerTime.isEmpty()) details.append(" (").append(peerTime).append(")");
+                }
+                if (details.length() > 0) new AlertDialog.Builder(this)
+                        .setTitle(ConflictAccessibility.label(selectedLanguage, job))
+                        .setMessage(details.toString())
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show();
+            });
             row.addView(conflict, lp(48, 48));
         }
 
