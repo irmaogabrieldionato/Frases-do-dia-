@@ -3,6 +3,7 @@ package com.orbis.meudia;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -20,6 +21,39 @@ public final class AppGuide {
         view.setPadding(20, 16, 20, 16);
         view.setContentDescription(title + ". " + description);
         return view;
+    }
+
+    /** Visual legend uses the same five priority colors as the task editor. */
+    private static void addPriorityLegend(Activity activity, LinearLayout content, boolean portuguese) {
+        final int[] colors = {0xFF2E7D32, 0xFF1565C0, 0xFFF9A825, 0xFFEF6C00, 0xFFC62828};
+        final String[] pt = {"1 · Verde", "2 · Azul", "3 · Amarelo", "4 · Laranja", "5 · Vermelho"};
+        final String[] en = {"1 · Green", "2 · Blue", "3 · Yellow", "4 · Orange", "5 · Red"};
+        content.addView(section(activity,
+                portuguese ? "Personalizar prioridades" : "Customize priorities",
+                portuguese ? "No editor da tarefa, selecione uma das cinco cores. Na tela principal, use o filtro da mesma cor para visualizar essas tarefas."
+                        : "Choose a priority color in the task editor, then use the matching filter on the main screen."));
+        for (int i = 0; i < colors.length; i++) {
+            LinearLayout row = new LinearLayout(activity);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            row.setPadding(20, 8, 20, 8);
+            View swatch = new View(activity);
+            GradientDrawable background = new GradientDrawable();
+            background.setShape(GradientDrawable.OVAL);
+            background.setColor(colors[i]);
+            background.setStroke(1, 0xFF455A64);
+            swatch.setBackground(background);
+            int size = (int)(24 * activity.getResources().getDisplayMetrics().density + 0.5f);
+            row.addView(swatch, new LinearLayout.LayoutParams(size, size));
+            TextView name = new TextView(activity);
+            name.setText((portuguese ? pt : en)[i]);
+            name.setTextColor(0xFF19333A);
+            name.setTextSize(16);
+            name.setPadding(16, 0, 0, 0);
+            row.addView(name);
+            row.setContentDescription((portuguese ? pt : en)[i]);
+            content.addView(row);
+        }
     }
 
     public static void show(Activity activity, String language) {
@@ -52,7 +86,15 @@ public final class AppGuide {
             {"🌐 Language", "Tap the globe in the header to change the language."},
             {"☁ Account and sync", "Supabase multi-device sync is not yet available. Do not assume your tasks are automatically synchronized."}
         };
-        for (String[] entry : entries) content.addView(section(activity, entry[0], entry[1]));
+        for (String[] entry : entries) {
+            content.addView(section(activity, entry[0], entry[1]));
+            if (entry == entries[2]) addPriorityLegend(activity, content, portuguese);
+        }
+        content.addView(section(activity,
+                portuguese ? "Personalizar a agenda" : "Customize your calendar",
+                portuguese
+                    ? "1. Toque numa data para mudar o dia selecionado. 2. Crie ou edite tarefas desse dia. 3. Defina horários e recorrências no editor. 4. Escolha a cor de prioridade. 5. Use filtros e ordenação para organizar a lista; os filtros não apagam tarefas. 6. Exporte um backup antes de restaurar dados."
+                    : "1. Tap a date to select it. 2. Add or edit tasks for that day. 3. Set times and recurrence in the editor. 4. Choose a priority color. 5. Use filters and sorting to organize the list; filtering never deletes tasks. 6. Export a backup before restoring data."));
         new AlertDialog.Builder(activity)
                 .setTitle(portuguese ? "Como usar o Checklist Orbis" : "Checklist Orbis user guide")
                 .setView(scroll)
