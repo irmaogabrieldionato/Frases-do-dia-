@@ -1173,3 +1173,10 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **CI do SHA final `fb5c4eb` ainda não confirmado**; [run 45080389497](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45080389497) era do SHA intermediário `a4ce8f5` e estava em andamento. Não declarar testes, APK, teste físico ou regressão aprovados para o SHA final.
 - **Escopo parcial:** rotina pura Java de preparação para restauração; NÃO integrada ainda ao backup global, UI, nem à execução real dos timers/cronômetros. CLOCK-13–16 continuam pendentes; contagem funcional **5/24**. Nenhum dos 15/33 concorrentes integralmente auditado nesta execução. Sem alteração em `main`, sem Google Agenda/API, sem rede nem chaves.
 - Próximo passo: confirmar CI do SHA `fb5c4eb`, integrar com segurança backup/restauração e UI; testar migração e persistência em aparelho.
+
+
+## Execução 153 — 22/11/2026 — entrada de restauração local do histórico
+- Consultados inicialmente os dois documentos obrigatórios; mantida a ordem vigente registrada neste arquivo (Microsoft To Do primeiro; Todoist/TickTick adiados por instrução posterior).
+- Confirmado [Actions 45080398224](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45080398224), SHA `fb5c4eb`, **completed/success** para os testes anteriores.
+- [639392d](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/639392d39d1f240e82eb34f2543de91d80f0a0a3) adiciona `TaskTimeHistoryStore.mergeRestore(String)`, conectando o merge versionado já testado à persistência local, sob método sincronizado. Conflitos e corrupção lançam erro antes de gravar; `commit()` reporta sucesso/falha.
+- **Pendente:** CI do SHA `639392d`, teste instrumental da SharedPreferences, integração ao backup global, UI, timers reais e teste físico. Não declarar APK aprovado para este SHA. Não houve mudança de agenda, dados legados, rede, chaves ou branch `main`. Incrementos funcionais permanecem **5/24**, CLOCK-13–16 incompletos.
