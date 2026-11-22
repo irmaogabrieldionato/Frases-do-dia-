@@ -61,17 +61,167 @@ jobs:
           test -x "$SDKMANAGER"
           echo "SDK manager: $SDKMANAGER"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
-          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+          "$SDKMANAGER" --install "platforms;android-36" "build-tools;35.0.0"
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.9'
+          gradle-version: '8.13'
       - name: Preparar os recursos offline
         run: |
           node scripts/sync-native.mjs
           python3 scripts/artwork.py
-      - name: Compilar dois APKs e dois bundles
+      - name: Compilar APKs, bundles e executar lint de release
         working-directory: native/android
-        run: gradle :app:assembleMobileDebug :app:assembleTvDebug :app:bundleMobileRelease :app:bundleTvRelease --no-daemon --stacktrace
+        run: gradle :app:assembleMobileDebug :app:assembleTvDebug :app:bundleMobileRelease :app:bundleTvRelease :app:lintMobileRelease :app:lintTvRelease --no-daemon --stacktrace
+      - name: Auditar API de destino, ativos e bibliotecas nativas dos APKs
+        shell: bash
+        run: |
+          set -euo pipefail
+          AAPT="$ANDROID_HOME/build-tools/35.0.0/aapt"
+          for flavor in mobile tv; do
+            APK="native/android/app/build/outputs/apk/$flavor/debug/app-$flavor-debug.apk"
+            test -s "$APK"
+            unzip -l "$APK" | grep -F 'assets/game-core.js'
+            unzip -l "$APK" | grep -F 'assets/privacy.html'
+            if unzip -Z1 "$APK" | grep -E '\.so
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 7-note-Android-APK-debug
+          path: native/android/app/build/outputs/apk/mobile/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 7-note-TV-Box-APK-debug
+          path: native/android/app/build/outputs/apk/tv/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 7-note-Android-AAB-unsigned
+          path: native/android/app/build/outputs/bundle/mobileRelease/*.aab
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 7-note-TV-Box-AAB-unsigned
+          path: native/android/app/build/outputs/bundle/tvRelease/*.aab
+          if-no-files-found: error
+          retention-days: 30
+
+  ios:
+    name: iOS (simulador e dispositivo sem assinatura)
+    needs: validate
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar gerador de projeto Xcode
+        run: brew install xcodegen
+      - name: Preparar os recursos offline
+        run: |
+          node scripts/sync-native.mjs
+          python3 scripts/artwork.py
+      - name: Gerar projeto Xcode
+        working-directory: native/ios
+        run: xcodegen generate
+      - name: Compilar para simulador iOS
+        working-directory: native/ios
+        run: |
+          set -o pipefail
+          xcodebuild -project SevenNote.xcodeproj -scheme SevenNote \
+            -configuration Release -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+      - name: Confirmar SDK iOS e recursos incluídos
+        run: |
+          APP=native/ios/build/Build/Products/Release-iphonesimulator/SevenNote.app
+          test -f "$APP/Web/index.html"
+          test -f "$APP/Web/game-core.js"
+          test -f "$APP/Web/privacy.html"
+          xcodebuild -version
+          VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
+          echo "iOS SDK $VERSION"
+          SDK_VERSION="$VERSION" python3 -c 'import os; assert int(os.environ["SDK_VERSION"].split(".")[0]) >= 26, "App Store requer iOS SDK 26+"'
+      - name: Gerar pacote para simulador
+        run: |
+          mkdir -p native/ios/artifacts
+          ditto -c -k --sequesterRsrc --keepParent \
+            native/ios/build/Build/Products/Release-iphonesimulator/SevenNote.app \
+            native/ios/artifacts/7-Note-iOS-Simulator.zip
+      - name: Compilar iOS físico sem assinatura
+        working-directory: native/ios
+        run: |
+          set -o pipefail
+          xcodebuild -project SevenNote.xcodeproj -scheme SevenNote \
+            -configuration Release -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+      - name: Gerar pacote de app físico para assinatura posterior
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent \
+            native/ios/build/Build/Products/Release-iphoneos/SevenNote.app \
+            native/ios/artifacts/7-Note-iOS-Device-UNSIGNED.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 7-note-iOS-Simulator
+          path: native/ios/artifacts/7-Note-iOS-Simulator.zip
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 7-note-iOS-Device-UNSIGNED
+          path: native/ios/artifacts/7-Note-iOS-Device-UNSIGNED.zip
+          if-no-files-found: error
+          retention-days: 30
+
+  windows:
+    name: Windows (instalador e portátil EXE)
+    needs: validate
+    runs-on: windows-2025
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Preparar arquivos e ícone
+        shell: pwsh
+        run: |
+          node scripts/sync-native.mjs
+          python scripts/artwork.py
+      - name: Instalar dependências do empacotador
+        run: npm install --prefix native/windows --no-audit --no-fund
+      - name: Auditar dependências do Windows
+        shell: pwsh
+        run: npm audit --prefix native/windows --audit-level=high
+      - name: Compilar Windows x64
+        run: npm run build --prefix native/windows
+      - name: Conferir executáveis Windows
+        shell: pwsh
+        run: |
+          $files = @(Get-ChildItem native/windows/dist/*.exe)
+          if ($files.Count -lt 2) { throw "Instalador ou portátil ausente" }
+          $files | Select-Object Name,Length
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 7-note-Windows-x64-EXE
+          path: native/windows/dist/*.exe
+          if-no-files-found: error
+          retention-days: 30
+; then
+              echo "Bibliotecas nativas encontradas: é preciso auditar compatibilidade 16 KB"
+              exit 1
+            fi
+            "$AAPT" dump badging "$APK" > "/tmp/$flavor-badging.txt"
+            grep -E 'package:|sdkVersion|targetSdkVersion' "/tmp/$flavor-badging.txt"
+          done
+          grep -F "targetSdkVersion:'36'" /tmp/mobile-badging.txt
+          grep -F "targetSdkVersion:'35'" /tmp/tv-badging.txt
+          test -n "$(find native/android/app/build/outputs/bundle/mobileRelease -name '*.aab' -type f -size +0c)"
+          test -n "$(find native/android/app/build/outputs/bundle/tvRelease -name '*.aab' -type f -size +0c)"
       - uses: actions/upload-artifact@v4
         with:
           name: 7-note-Android-APK-debug
