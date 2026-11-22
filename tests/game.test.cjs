@@ -232,3 +232,13 @@ test("conclusão inválida é corrigida, mas novo início ainda pode preservar o
   assert.equal(restarted.best, 1000);
   assert.equal(restarted.completed, false);
 });
+
+test("service worker limita o cache a arquivos próprios e não captura outras rotas", () => {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const sw = fs.readFileSync(path.join(__dirname, "..", "sw.js"), "utf8");
+  assert.match(sw, /const APP_URLS = new Set\(/);
+  assert.match(sw, /if \(url\.search \|\| !APP_URLS\.has\(url\.href\)\) return;/);
+  assert.match(sw, /response\.type === "basic"/);
+  assert.doesNotMatch(sw, /caches\.match\("\.\/index\.html"\)/);
+});
