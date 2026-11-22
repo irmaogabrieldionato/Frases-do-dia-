@@ -26,6 +26,10 @@ test("iOS XcodeGen project includes offline WKWebView and bundle icon",()=>{
  assert.match(ios,/platform: iOS/);
  assert.match(view,/loadFileURL/);
  assert.match(view,/WKWebView/);
+ assert.match(view,/address\.isFileURL/);
+ assert.match(view,/standardizedFileURL\.path/);
+ assert.match(view,/targetPath\.hasPrefix\(rootPath \+ "\/"\)/);
+ assert.doesNotMatch(view,/decisionHandler\(address\.isFileURL \? \.allow : \.cancel\)/);
  assert.equal(appIcon.images.length,1);
 });
 test("Windows installer and portable executable are configured safely",()=>{
