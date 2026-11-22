@@ -30,9 +30,26 @@ jobs:
       - name: Testar jogabilidade no navegador
         run: npm run test:browser
 
+  safari:
+    name: Navegador WebKit - compatibilidade com Safari/iOS
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependências
+        run: npm install --no-audit --no-fund
+      - name: Instalar WebKit
+        run: npx playwright install --with-deps webkit
+      - name: Exercitar a interface com WebKit
+        run: npm run test:browser
+        env:
+          TEST_BROWSER: webkit
+
   pacote:
     name: Gerar ZIP do jogo para download
-    needs: [regras, navegador]
+    needs: [regras, navegador, safari]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
