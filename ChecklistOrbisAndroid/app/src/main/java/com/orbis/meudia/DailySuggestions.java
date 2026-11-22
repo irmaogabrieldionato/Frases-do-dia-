@@ -9,7 +9,7 @@ import java.util.List;
 final class DailySuggestions {
     static List<JSONObject> pending(JSONArray tasks, String day) {
         ArrayList<JSONObject> result = new ArrayList<>();
-        if (tasks == null || day == null || !day.matches("\\d{4}-\\d{2}-\\d{2}")) return result;
+        if (tasks == null || !TaskDeadline.isValid(day)) return result;
         for (int i = 0; i < tasks.length(); i++) {
             JSONObject task = tasks.optJSONObject(i);
             if (task == null || !Schedule.occurs(task, day)) continue;
