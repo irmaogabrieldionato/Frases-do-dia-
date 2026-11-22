@@ -49,6 +49,10 @@ public class MainActivity extends ComponentActivity {
    s.setMediaPlaybackRequiresUserGesture(false);
    s.setAllowFileAccess(false);
    s.setAllowContentAccess(false);
+   // Defense in depth: no local-file origin may read files or remote resources.
+   s.setAllowFileAccessFromFileURLs(false);
+   s.setAllowUniversalAccessFromFileURLs(false);
+   s.setSupportMultipleWindows(false);
    s.setJavaScriptCanOpenWindowsAutomatically(false);
    s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
    WebViewAssetLoader loader=new WebViewAssetLoader.Builder()
