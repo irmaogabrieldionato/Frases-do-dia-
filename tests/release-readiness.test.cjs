@@ -53,3 +53,17 @@ test("contador inicial de conquistas corresponde às conquistas do motor",()=>{
  assert.equal(Number(count[1]),total);
  assert.equal(total,6);
 });
+
+test("instruções Android locais usam SDK, Gradle e lint do CI",()=>{
+ const docs=content("PACKAGES.md");
+ const workflow=content(".github/workflows/packages-7-note.yml");
+ assert.match(docs,/Android SDK API 36/);
+ assert.match(docs,/Gradle 8\.13/);
+ assert.match(docs,/:app:bundleMobileRelease/);
+ assert.match(docs,/:app:bundleTvRelease/);
+ assert.match(docs,/:app:lintMobileRelease/);
+ assert.match(docs,/:app:lintTvRelease/);
+ for(const task of ["bundleMobileRelease","bundleTvRelease","lintMobileRelease","lintTvRelease"]){
+   assert.ok(workflow.includes(task),task);
+ }
+});
