@@ -995,3 +995,10 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **APK debug**: [artefato 14732208772](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/44968617363/artifacts/14732208772), `Checklist-Orbis-Android-APK`, 95337 bytes, não expirado no momento da consulta. Não confundir APK debug com assinatura release estável.
 - Etapa 130 (1/5) agora tem evidência de CI aprovado. Não houve teste físico/instrumentado nem validação de importação em aparelhos distintos. Etapa 131 (calendário/recorrência, 2/5) **ainda não implementada**; não contá-la como concluída. Nenhuma mudança no código Android nesta execução; documentação apenas.
 - Supabase dedicado continua adiado até cinco incrementos independentes concluídos. Nenhum dos 15 concorrentes concluído. Sem Google Agenda/API; `main` não modificada.
+
+
+## Execução 132 — 2026-11-21 — etapa 2/5: validação de datas da agenda
+- Consultados primeiro os dois documentos obrigatórios na branch `checklist-orbis`. A ordem revisada continua Microsoft To Do agora, TickTick 14º, Todoist 15º; nenhum concorrente concluído.
+- Corrigida a aceitação silenciosa de datas impossíveis na avaliação de recorrências. Datas de início, término e dia consultado precisam ter formato `yyyy-MM-dd` e existir no calendário gregoriano. Evita que uma data inválida seja convertida implicitamente para hoje e crie ocorrência fantasma. [Código 1b3f1c3](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/1b3f1c3f7bf8a7f3d60fbd3966f544680c55516c).
+- Adicionados testes para ano bissexto, datas impossíveis, início/término inválidos e preservação de recorrências legítimas. [Testes 6faa593](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/6faa593fbb34d5b869450cc2ae331597927e94c6).
+- **Gate**: testes e APK do SHA 6faa593 ainda precisam ser confirmados no GitHub Actions. Não declarar esta etapa validada até o CI passar. Sem teste físico e sem assinatura release. Etapa 2/5 implementada, validação pendente; Supabase dedicado permanece adiado até completar cinco incrementos. Sem Google Agenda/API e sem alteração na `main`.
