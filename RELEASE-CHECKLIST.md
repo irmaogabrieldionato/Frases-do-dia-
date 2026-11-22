@@ -87,3 +87,11 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Acrescentado teste de regressão das configurações de isolamento Android em `tests/release-readiness.test.cjs`. Commit `db8f165`.
 - **Validação pendente:** conferir os novos workflows após os commits, inclusive Android Lint e APK/AAB mobile/TV. Nenhuma compilação ou execução em dispositivo local foi realizada nesta rodada. Os testes estáticos não comprovam o comportamento do WebView em aparelho real.
 - **Próximo foco:** conferir os jobs recém-disparados e os artefatos, depois testar Android/TV em hardware e preparar fichas de loja com capturas reais.
+
+## Evolução de 22/11/2026 — saturação de contadores persistidos
+
+- Confirmados quatro jobs **success** em [testes 45067697988](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45067697988) no commit `90489bf8` e quatro jobs **success** em [pacotes 45067688645](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45067688645) de revisão anterior. Esses resultados não comprovam os commits atuais.
+- Corrigida uma falha de limite em `game-core.js`: `totalWins`, `totalLosses`, `earPlayed` e `earCorrect` podiam ultrapassar o máximo aceito por `sanitizeProgress`, causando reset do contador ao recarregar o jogo. Agora os incrementos saturam em `Number.MAX_SAFE_INTEGER - 1`, preservando pontuação e registros sem alterar as 1.000 fases, os quatro modos ou a cadência de demonstração de anúncios. Commit `2d3e13c`.
+- Adicionado teste de regressão com contadores no limite, verificando vitória, derrota, treino de ouvido e persistência após sanitização. Commit `a39c703`.
+- **Validação pendente:** conferir o resultado de `7-note-tests.yml` e `packages-7-note.yml` nos commits novos. Não foram realizados testes locais ou físicos nesta rodada.
+- **Próximo foco:** verificar os jobs e artefatos novos, depois auditar instalação Windows e execução em dispositivos reais quando disponíveis.
