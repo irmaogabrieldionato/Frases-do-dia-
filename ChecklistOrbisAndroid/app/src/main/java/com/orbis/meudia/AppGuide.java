@@ -57,6 +57,21 @@ public final class AppGuide {
     }
 
     public static void show(Activity activity, String language) {
+        if (!"pt-BR".equals(language) && !"pt".equals(language) && !"en".equals(language)) {
+            ScrollView localizedScroll = new ScrollView(activity);
+            LinearLayout localizedContent = new LinearLayout(activity);
+            localizedContent.setOrientation(LinearLayout.VERTICAL);
+            localizedContent.setPadding(12, 12, 12, 12);
+            localizedContent.addView(section(activity,
+                    GuideTranslations.title(language), GuideTranslations.overview(language)));
+            localizedScroll.addView(localizedContent);
+            new AlertDialog.Builder(activity)
+                    .setTitle(GuideTranslations.title(language))
+                    .setView(localizedScroll)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
+            return;
+        }
         boolean portuguese = "pt".equals(language) || "pt-BR".equals(language);
         ScrollView scroll = new ScrollView(activity);
         LinearLayout content = new LinearLayout(activity);
