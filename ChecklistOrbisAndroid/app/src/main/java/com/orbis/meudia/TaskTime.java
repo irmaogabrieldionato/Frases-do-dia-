@@ -32,6 +32,24 @@ final class TaskTime {
         return minutes >= 1 && minutes <= 1440 ? minutes : 0;
     }
 
+    /** Detects an overlap between two tasks on the same local calendar day.
+     * Missing/invalid time or duration means the interval is unknown, not overlapping.
+     * Endpoints touching exactly are not considered overlapping. Intervals do not wrap
+     * to the following day; a duration crossing midnight is clipped at 24:00.
+     */
+    static boolean overlaps(JSONObject first, JSONObject second) {
+        String a = getTime(first);
+        String b = getTime(second);
+        int aDuration = getDurationMinutes(first);
+        int bDuration = getDurationMinutes(second);
+        if (a.isEmpty() || b.isEmpty() || aDuration == 0 || bDuration == 0) return false;
+        int aStart = Integer.parseInt(a.substring(0, 2)) * 60 + Integer.parseInt(a.substring(3));
+        int bStart = Integer.parseInt(b.substring(0, 2)) * 60 + Integer.parseInt(b.substring(3));
+        int aEnd = Math.min(1440, aStart + aDuration);
+        int bEnd = Math.min(1440, bStart + bDuration);
+        return aStart < bEnd && bStart < aEnd;
+    }
+
     static boolean setTime(JSONObject task, String time) throws JSONException {
         if (task == null || !isValidTime(time)) return false;
         if (time.equals(getTime(task))) return false;
