@@ -95,3 +95,12 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Adicionado teste de regressão com contadores no limite, verificando vitória, derrota, treino de ouvido e persistência após sanitização. Commit `a39c703`.
 - **Validação pendente:** conferir o resultado de `7-note-tests.yml` e `packages-7-note.yml` nos commits novos. Não foram realizados testes locais ou físicos nesta rodada.
 - **Próximo foco:** verificar os jobs e artefatos novos, depois auditar instalação Windows e execução em dispositivos reais quando disponíveis.
+
+## Evolução de 22/11/2026 — saturação de derrotas e cadência de anúncios
+
+- Conferido workflow de testes anterior no commit `f2d27da`: **success**, execução [45073120034](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45073120034). Esse resultado precede a correção atual.
+- Identificado defeito residual: o limite par `Number.MAX_SAFE_INTEGER - 1` fazia `adDue` permanecer verdadeiro em todas as derrotas adicionais quando o contador saturava, podendo repetir a tela de anúncio demonstrativo em cada derrota.
+- Corrigido `game-core.js` para saturar `totalLosses` no limite ímpar `Number.MAX_SAFE_INTEGER - 2`, incluindo migração segura do valor máximo par previamente persistido, sem zerar o histórico. Demais contadores permanecem inalterados. Commit `ae0fd916`.
+- Atualizados os testes de limite e adicionado caso específico que simula derrotas repetidas após a saturação, preservando a regra de uma tentativa a cada duas derrotas enquanto o contador ainda avança. Commit `bbe4868e`.
+- **Validação pendente:** confirmar os resultados de CI disparados após estes commits; nenhum teste local, navegador ou aparelho físico foi executado nesta rodada. A saturação ocorre somente em um limite numérico extremo, mas a correção impede repetição indefinida de publicidade demonstrativa.
+- **Próximo foco:** conferir CI, artefatos Android/TV/iOS/Windows e relatórios de lint, sem alterar branches de outros projetos.
