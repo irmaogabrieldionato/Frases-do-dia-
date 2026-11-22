@@ -71,6 +71,42 @@ public final class TaskTimeHistory {
         }
     }
 
+    /** Totals for one task, keeping timer target separate from actual elapsed time. */
+    public static final class Total {
+        public final int activeDays;
+        public final long stopwatchMillis;
+        public final long timerElapsedMillis;
+        public final long timerTargetMillis;
+        public final long stopwatchSessions;
+        public final long timerSessions;
+
+        private Total(int activeDays, long stopwatchMillis, long timerElapsedMillis,
+                      long timerTargetMillis, long stopwatchSessions, long timerSessions) {
+            this.activeDays = activeDays;
+            this.stopwatchMillis = stopwatchMillis;
+            this.timerElapsedMillis = timerElapsedMillis;
+            this.timerTargetMillis = timerTargetMillis;
+            this.stopwatchSessions = stopwatchSessions;
+            this.timerSessions = timerSessions;
+        }
+    }
+
+    /** Aggregate only recorded days. No timer target is counted as worked time. */
+    public static Total totalForTask(List<Session> sessions, String taskId) {
+        List<Day> days = byDate(sessions, taskId);
+        long stopwatch = 0, timerElapsed = 0, timerTarget = 0;
+        long stopwatchCount = 0, timerCount = 0;
+        for (Day day : days) {
+            stopwatch = Math.addExact(stopwatch, day.stopwatchMillis);
+            timerElapsed = Math.addExact(timerElapsed, day.timerElapsedMillis);
+            timerTarget = Math.addExact(timerTarget, day.timerTargetMillis);
+            stopwatchCount = Math.addExact(stopwatchCount, day.stopwatchSessions);
+            timerCount = Math.addExact(timerCount, day.timerSessions);
+        }
+        return new Total(days.size(), stopwatch, timerElapsed, timerTarget,
+                stopwatchCount, timerCount);
+    }
+
     private static boolean blank(String value) {
         return value == null || value.trim().isEmpty();
     }
