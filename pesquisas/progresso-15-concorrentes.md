@@ -1034,3 +1034,11 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **Retomada do Supabase**: consulta conectada em 2026-11-22 retornou apenas o projeto `24 H2O` (INACTIVE), que pertence a outro aplicativo. **Não utilizar nem alterar**. Criação de projeto exige escolha explícita da organização e confirmação de eventual custo; não criar ou contratar automaticamente. Esquema SQL proposto permanece não aplicado. Login/sync ainda não funcionam.
 - Próxima atividade sem bloqueio: aprimorar código local e testes de segurança, backup e UX offline, sem depender de Supabase; ao receber organização/projeto dedicado gratuito, aplicar esquema e testar RLS entre contas antes de integrar cliente Android.
 - Microsoft To Do segue em análise conforme ordem excepcional; TickTick penúltimo, Todoist último; nenhum dos 15 concorrentes concluído. Sem Google Agenda/API; `main` intocada.
+
+
+## Execução 137 — 2026-11-22 — participantes de conflitos locais (sem Supabase)
+- Consultados previamente os dois documentos obrigatórios na branch `checklist-orbis`. Microsoft To Do segue em análise na ordem excepcional; TickTick e Todoist permanecem penúltimo e último. Nenhum concorrente concluído.
+- Incremento original e independente de serviços externos: `TaskTime.conflictingTaskIndices(JSONArray)` retorna os índices, em ordem e sem duplicações, das tarefas participantes de conflitos horários na mesma data. Ignora registros inválidos, intervalos adjacentes e limita intervalos à meia-noite; não altera JSON, histórico ou persistência. É suporte de lógica para futuro destaque visual, **não é UI já integrada**. [Código 22ef5d3](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/22ef5d3e63e34e417752b1bbbd9fed0c92e1446d).
+- Testes unitários adicionados para participantes múltiplos, ausência de duplicatas, entradas inválidas, adjacência, virada de dia e não mutação. [Testes 55a4ef9](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/55a4ef93afeaa30fdbd799f32d6f4598edcd84db).
+- **Gate pendente**: ainda não confirmado GitHub Actions para SHA final `55a4ef93afeaa30fdbd799f32d6f4598edcd84db`; não afirmar compilação, testes ou APK desta evolução aprovados. Assinatura release e testes físicos pendentes.
+- Supabase dedicado permanece bloqueado; não usar projeto 24 H2O nem serviços Google Agenda. `main` intocada.
