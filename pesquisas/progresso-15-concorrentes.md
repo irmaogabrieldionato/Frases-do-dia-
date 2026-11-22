@@ -1042,3 +1042,11 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - Testes unitários adicionados para participantes múltiplos, ausência de duplicatas, entradas inválidas, adjacência, virada de dia e não mutação. [Testes 55a4ef9](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/55a4ef93afeaa30fdbd799f32d6f4598edcd84db).
 - **Gate pendente**: ainda não confirmado GitHub Actions para SHA final `55a4ef93afeaa30fdbd799f32d6f4598edcd84db`; não afirmar compilação, testes ou APK desta evolução aprovados. Assinatura release e testes físicos pendentes.
 - Supabase dedicado permanece bloqueado; não usar projeto 24 H2O nem serviços Google Agenda. `main` intocada.
+
+
+## Execução 138 — 2026-11-22 — ciclo adicional 1/24: aviso visual de conflitos
+- Consultados previamente este progresso e a pesquisa oficial de concorrentes na branch `checklist-orbis`. Ordem excepcional preservada: Microsoft To Do em análise, TickTick penúltimo, Todoist último. Nenhum dos 15 concorrentes concluído.
+- Gate da evolução 137 confirmado: [Actions 45000649216](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45000649216), SHA exato `55a4ef93afeaa30fdbd799f32d6f4598edcd84db`, `completed/success`.
+- **Incremento 1/24**: a lista de tarefas do dia agora mostra um símbolo de alerta ⚠ junto às tarefas com horários sobrepostos, usando `TaskTime.conflictingTaskIndices` no conjunto de tarefas exibidas após filtros/ordenação. Sem alteração de dados persistidos, sem integração externa; não compara tarefas ocultas pelos filtros. [Código 33b8184](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/33b818485fbd02b53ed647768089671c99b5bcc3).
+- **Validação do novo commit pendente**: verificar GitHub Actions do SHA `33b818485fbd02b53ed647768089671c99b5bcc3`, corrigir falhas antes de contar CI aprovado. A lógica de conflitos tem testes unitários existentes; a exibição visual ainda requer teste instrumentado/físico, acessibilidade e traduções de descrição. APK release/assinatura estável pendentes.
+- Nova regra do usuário: executar 24 incrementos locais reais adicionais (este é 1/24) antes de retornar ao Supabase dedicado. Não usar projeto 24 H2O; agenda própria offline, sem Google Agenda/API; `main` intocada.
