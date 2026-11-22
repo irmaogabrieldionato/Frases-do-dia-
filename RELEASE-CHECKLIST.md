@@ -71,3 +71,11 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Adicionado teste automatizado em `tests/release-readiness.test.cjs` que compara o contador inicial com a quantidade real retornada pelo motor, evitando divergência futura. Commit `9b204a6`.
 - **Validação pendente:** verificar os workflows após o commit de teste; não foi executado teste físico nem foi afirmada aprovação de CI desta revisão.
 - **Próximo foco:** conferir os novos testes e relatórios Android Lint, depois validar a versão Windows instalada e as capturas verdadeiras para lojas.
+
+## Evolução de 22/11/2026 — consistência do build Android local
+
+- Verificados os resultados finais das execuções anteriores: [testes 45056284135](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45056284135) com quatro jobs **success** (Chromium, WebKit, regras/PWA e ZIP); [pacotes 45056284170](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45056284170) com quatro jobs **success** (validação, Windows, iOS e Android/TV). Esses resultados precedem os commits desta seção.
+- Identificada documentação local desatualizada em `PACKAGES.md`: orientava Android SDK 35 e Gradle 8.9, mas o CI utiliza Android API 36, Build Tools 35.0.0 e Gradle 8.13. Corrigidas as versões e acrescentados os comandos de geração AAB e Android Lint. Commit `a961f2e`.
+- Acrescentado teste de regressão em `tests/release-readiness.test.cjs` que confronta os comandos Android documentados com as tarefas do workflow. Commit `19156ce`.
+- **Validação pendente:** conferir a execução CI disparada pelo commit de testes; os testes não foram executados localmente nesta rodada. A correção é de documentação/teste, não altera os binários Android.
+- **Próximo foco:** conferir o CI mais recente e a disponibilidade dos artefatos, auditar capturas verdadeiras e testar os instaladores em aparelhos reais quando houver acesso.
