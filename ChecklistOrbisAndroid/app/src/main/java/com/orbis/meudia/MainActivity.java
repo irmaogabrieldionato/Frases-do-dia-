@@ -1854,14 +1854,19 @@ public class MainActivity extends Activity {
         if(sortMode==1)java.util.Collections.sort(shown,(a,b)->Integer.compare(priority(b),priority(a)));
         else if(sortMode==2)java.util.Collections.sort(shown,(a,b)->a.optString("title","").compareToIgnoreCase(b.optString("title","")));
         else if(sortMode==3)java.util.Collections.sort(shown,(a,b)->Integer.compare(progress(a),progress(b)));
-        for(JSONObject item:shown)addTaskRow(item);
+        JSONArray shownForConflicts = new JSONArray();
+        for (JSONObject item : shown) shownForConflicts.put(item);
+        java.util.Set<Integer> conflictIndices = new java.util.HashSet<>(
+                TaskTime.conflictingTaskIndices(shownForConflicts));
+        for (int i = 0; i < shown.size(); i++)
+            addTaskRow(shown.get(i), conflictIndices.contains(i));
         int count=shown.size();
         emptyLabel.setText(count==0 && !taskSearch.isEmpty()
                 ?tr("no_search_results"):tr("empty"));
         emptyLabel.setVisibility(count==0?View.VISIBLE:View.GONE);
     }
 
-    private void addTaskRow(JSONObject job) {
+    private void addTaskRow(JSONObject job, boolean hasTimeConflict) {
         final int initialProgress = progress(job);
         String title = job.optString("title", "");
         String id = job.optString("id", "");
@@ -1886,6 +1891,14 @@ public class MainActivity extends Activity {
                 initialProgress == 100 ? Color.rgb(141, 161, 156) : INK, false);
         taskText.setPadding(dp(12), 0, dp(6), 0);
         row.addView(taskText, new LinearLayout.LayoutParams(0, -2, 1f));
+        // Visible, non-destructive warning for overlapping timed tasks on this day.
+        // The same filtered task set is used for the warning and the displayed rows.
+        if (hasTimeConflict) {
+            TextView conflict = text("⚠", 19, Color.rgb(176, 91, 0), true);
+            conflict.setGravity(Gravity.CENTER);
+            conflict.setContentDescription("⚠ " + TaskTime.getTime(job));
+            row.addView(conflict, lp(28, 28));
+        }
 
         TextView delete = text("×", 26, Color.rgb(155, 177, 170), false);
         delete.setGravity(Gravity.CENTER);
