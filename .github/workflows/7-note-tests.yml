@@ -39,7 +39,7 @@ jobs:
       - name: Empacotar apenas os arquivos do jogo
         run: |
           mkdir -p dist
-          zip -j dist/7-note-musical-game.zip index.html styles.css game-core.js app.js manifest.webmanifest icon.svg sw.js README-7-NOTE.md
+          zip -j dist/7-note-musical-game.zip index.html styles.css tv.css game-core.js app.js privacy.html manifest.webmanifest icon.svg sw.js README-7-NOTE.md
       - name: Disponibilizar jogo como artefato
         uses: actions/upload-artifact@v4
         with:
