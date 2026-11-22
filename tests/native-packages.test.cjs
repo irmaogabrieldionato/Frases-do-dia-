@@ -40,6 +40,9 @@ test("Windows installer and portable executable are configured safely",()=>{
  assert.match(app,/nodeIntegration:false/);
  assert.match(app,/contextIsolation:true/);
  assert.match(app,/sandbox:true/);
+ assert.match(app,/ses\.webRequest\.onBeforeRequest/);
+ assert.match(app,/cancel:!isAllowedLocalUrl\(details\.url\)/);
+ assert.match(app,/setPermissionRequestHandler/);
 });
 test("native assets include all the same files as the web game",()=>{
  const sync=file("scripts/sync-native.mjs");
