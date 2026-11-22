@@ -62,7 +62,8 @@ public class GuideTopicsTest {
             assertEquals("Priority color count for " + code, 5, names.length);
             for (String name : names) {
                 assertNotNull(name);
-                assertTrue("Empty color label for " + code, name.codePointCount(0, name.length()) >= 2);
+                assertTrue("Empty color label for " + code, !name.trim().isEmpty());
+                assertEquals("Unexpected surrounding whitespace for " + code, name.trim(), name);
             }
         }
     }
