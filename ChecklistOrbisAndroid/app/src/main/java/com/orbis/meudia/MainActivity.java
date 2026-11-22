@@ -1913,7 +1913,7 @@ public class MainActivity extends Activity {
                 for (Integer peerIndex : peers) {
                     JSONObject peer = visibleTasks.optJSONObject(peerIndex);
                     if (peer == null) continue;
-                    if (details.length() > 0) details.append("\\n");
+                    if (details.length() > 0) details.append("\n");
                     String peerTime = TaskTime.getTime(peer);
                     details.append("• ").append(peer.optString("title", ""));
                     if (!peerTime.isEmpty()) details.append(" (").append(peerTime).append(")");
