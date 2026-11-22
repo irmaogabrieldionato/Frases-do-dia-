@@ -70,3 +70,13 @@ test("instruções Android locais usam SDK, Gradle e lint do CI",()=>{
    assert.ok(workflow.includes(task),task);
  }
 });
+
+// A reprodução e as respostas devem compartilhar uma única sequência por fase.
+test("sequência da memória é reutilizada durante a fase 1000",()=>{
+ const app=content("app.js");
+ assert.match(app,/function currentMemorySequence\(\)/);
+ assert.match(app,/memorySequenceLevel !== progress\.level/);
+ assert.match(app,/playSequence\(currentMemorySequence\(\), "memory"\)/);
+ assert.match(app,/core\.evaluateNote\(currentMemorySequence\(\), inputIndex, id\)/);
+ assert.doesNotMatch(app,/core\.evaluateNote\(core\.sequenceForLevel\(/);
+});
