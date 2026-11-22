@@ -1,5 +1,4 @@
 name: 7-Note - Pacotes Android, TV Box, iOS e Windows
-
 on:
   workflow_dispatch:
   push:
@@ -13,12 +12,11 @@ on:
       - 'styles.css'
       - 'game-core.js'
       - 'tv.css'
+      - 'privacy.html'
       - 'sw.js'
-      - 'tests/native-packages.test.cjs'
-
+      - 'tests/**'
 permissions:
   contents: read
-
 jobs:
   validate:
     name: Validar código compartilhado
@@ -28,20 +26,27 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm test
-      - run: node --check app.js
-      - run: node --check native/windows/main.cjs
-      - run: node scripts/sync-native.mjs
-      - run: python3 scripts/artwork.py
-      - name: Verificar geração de recursos
+      - name: Testes de regras, segurança e arquivos
+        run: npm test
+      - name: Verificar sintaxe do JavaScript
+        run: |
+          node --check app.js
+          node --check native/windows/main.cjs
+      - name: Sincronizar conteúdo e gerar ícones
+        run: |
+          node scripts/sync-native.mjs
+          python3 scripts/artwork.py
+      - name: Confirmar recursos em cada plataforma
         run: |
           test -f native/android/app/src/main/assets/index.html
+          test -f native/android/app/src/main/assets/privacy.html
           test -f native/ios/SevenNote/Resources/Web/index.html
+          test -f native/ios/SevenNote/Resources/Web/privacy.html
           test -f native/windows/web/index.html
-          test -f native/android/app/src/main/res/drawable-nodpi/tv_banner.png
+          test -f native/windows/web/privacy.html
 
   android:
-    name: Android e TV Box (APK + AAB sem assinatura de loja)
+    name: Android 36 e TV 35 - APK e AAB
     needs: validate
     runs-on: ubuntu-24.04
     steps:
@@ -53,26 +58,26 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Preparar SDK Android do runner
+      - name: Preparar Android SDK 36
         shell: bash
         run: |
+          set -e
           test -d "$ANDROID_HOME"
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)"
           test -x "$SDKMANAGER"
-          echo "SDK manager: $SDKMANAGER"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
           "$SDKMANAGER" --install "platforms;android-36" "build-tools;35.0.0"
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.13'
-      - name: Preparar os recursos offline
+      - name: Preparar recursos locais
         run: |
           node scripts/sync-native.mjs
           python3 scripts/artwork.py
-      - name: Compilar APKs, bundles e executar lint de release
+      - name: Compilar e executar Android Lint
         working-directory: native/android
         run: gradle :app:assembleMobileDebug :app:assembleTvDebug :app:bundleMobileRelease :app:bundleTvRelease :app:lintMobileRelease :app:lintTvRelease --no-daemon --stacktrace
-      - name: Auditar API de destino, ativos e bibliotecas nativas dos APKs
+      - name: Auditar API, recursos e bibliotecas nativas dos APKs
         shell: bash
         run: |
           set -euo pipefail
@@ -82,137 +87,8 @@ jobs:
             test -s "$APK"
             unzip -l "$APK" | grep -F 'assets/game-core.js'
             unzip -l "$APK" | grep -F 'assets/privacy.html'
-            if unzip -Z1 "$APK" | grep -E '\.so
-      - uses: actions/upload-artifact@v4
-        with:
-          name: 7-note-Android-APK-debug
-          path: native/android/app/build/outputs/apk/mobile/debug/*.apk
-          if-no-files-found: error
-          retention-days: 30
-      - uses: actions/upload-artifact@v4
-        with:
-          name: 7-note-TV-Box-APK-debug
-          path: native/android/app/build/outputs/apk/tv/debug/*.apk
-          if-no-files-found: error
-          retention-days: 30
-      - uses: actions/upload-artifact@v4
-        with:
-          name: 7-note-Android-AAB-unsigned
-          path: native/android/app/build/outputs/bundle/mobileRelease/*.aab
-          if-no-files-found: error
-          retention-days: 30
-      - uses: actions/upload-artifact@v4
-        with:
-          name: 7-note-TV-Box-AAB-unsigned
-          path: native/android/app/build/outputs/bundle/tvRelease/*.aab
-          if-no-files-found: error
-          retention-days: 30
-
-  ios:
-    name: iOS (simulador e dispositivo sem assinatura)
-    needs: validate
-    runs-on: macos-15
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Instalar gerador de projeto Xcode
-        run: brew install xcodegen
-      - name: Preparar os recursos offline
-        run: |
-          node scripts/sync-native.mjs
-          python3 scripts/artwork.py
-      - name: Gerar projeto Xcode
-        working-directory: native/ios
-        run: xcodegen generate
-      - name: Compilar para simulador iOS
-        working-directory: native/ios
-        run: |
-          set -o pipefail
-          xcodebuild -project SevenNote.xcodeproj -scheme SevenNote \
-            -configuration Release -sdk iphonesimulator \
-            -destination 'generic/platform=iOS Simulator' \
-            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
-      - name: Confirmar SDK iOS e recursos incluídos
-        run: |
-          APP=native/ios/build/Build/Products/Release-iphonesimulator/SevenNote.app
-          test -f "$APP/Web/index.html"
-          test -f "$APP/Web/game-core.js"
-          test -f "$APP/Web/privacy.html"
-          xcodebuild -version
-          VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
-          echo "iOS SDK $VERSION"
-          SDK_VERSION="$VERSION" python3 -c 'import os; assert int(os.environ["SDK_VERSION"].split(".")[0]) >= 26, "App Store requer iOS SDK 26+"'
-      - name: Gerar pacote para simulador
-        run: |
-          mkdir -p native/ios/artifacts
-          ditto -c -k --sequesterRsrc --keepParent \
-            native/ios/build/Build/Products/Release-iphonesimulator/SevenNote.app \
-            native/ios/artifacts/7-Note-iOS-Simulator.zip
-      - name: Compilar iOS físico sem assinatura
-        working-directory: native/ios
-        run: |
-          set -o pipefail
-          xcodebuild -project SevenNote.xcodeproj -scheme SevenNote \
-            -configuration Release -sdk iphoneos \
-            -destination 'generic/platform=iOS' \
-            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
-      - name: Gerar pacote de app físico para assinatura posterior
-        run: |
-          ditto -c -k --sequesterRsrc --keepParent \
-            native/ios/build/Build/Products/Release-iphoneos/SevenNote.app \
-            native/ios/artifacts/7-Note-iOS-Device-UNSIGNED.zip
-      - uses: actions/upload-artifact@v4
-        with:
-          name: 7-note-iOS-Simulator
-          path: native/ios/artifacts/7-Note-iOS-Simulator.zip
-          if-no-files-found: error
-          retention-days: 30
-      - uses: actions/upload-artifact@v4
-        with:
-          name: 7-note-iOS-Device-UNSIGNED
-          path: native/ios/artifacts/7-Note-iOS-Device-UNSIGNED.zip
-          if-no-files-found: error
-          retention-days: 30
-
-  windows:
-    name: Windows (instalador e portátil EXE)
-    needs: validate
-    runs-on: windows-2025
-    env:
-      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Preparar arquivos e ícone
-        shell: pwsh
-        run: |
-          node scripts/sync-native.mjs
-          python scripts/artwork.py
-      - name: Instalar dependências do empacotador
-        run: npm install --prefix native/windows --no-audit --no-fund
-      - name: Auditar dependências do Windows
-        shell: pwsh
-        run: npm audit --prefix native/windows --audit-level=high
-      - name: Compilar Windows x64
-        run: npm run build --prefix native/windows
-      - name: Conferir executáveis Windows
-        shell: pwsh
-        run: |
-          $files = @(Get-ChildItem native/windows/dist/*.exe)
-          if ($files.Count -lt 2) { throw "Instalador ou portátil ausente" }
-          $files | Select-Object Name,Length
-      - uses: actions/upload-artifact@v4
-        with:
-          name: 7-note-Windows-x64-EXE
-          path: native/windows/dist/*.exe
-          if-no-files-found: error
-          retention-days: 30
-; then
-              echo "Bibliotecas nativas encontradas: é preciso auditar compatibilidade 16 KB"
+            if unzip -Z1 "$APK" | grep -E '[.]so$'; then
+              echo "Bibliotecas nativas encontradas: auditar alinhamento 16 KB"
               exit 1
             fi
             "$AAPT" dump badging "$APK" > "/tmp/$flavor-badging.txt"
@@ -248,7 +124,7 @@ jobs:
           retention-days: 30
 
   ios:
-    name: iOS (simulador e dispositivo sem assinatura)
+    name: iOS - simulador e app sem assinatura
     needs: validate
     runs-on: macos-15
     steps:
@@ -256,42 +132,37 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Instalar gerador de projeto Xcode
+      - name: Gerador de projeto Xcode
         run: brew install xcodegen
-      - name: Preparar os recursos offline
+      - name: Preparar recursos offline
         run: |
           node scripts/sync-native.mjs
           python3 scripts/artwork.py
       - name: Gerar projeto Xcode
         working-directory: native/ios
         run: xcodegen generate
-      - name: Compilar para simulador iOS
+      - name: Compilar iOS simulador
         working-directory: native/ios
+        run: xcodebuild -project SevenNote.xcodeproj -scheme SevenNote -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+      - name: Verificar SDK iOS e recursos embutidos
         run: |
-          set -o pipefail
-          xcodebuild -project SevenNote.xcodeproj -scheme SevenNote \
-            -configuration Release -sdk iphonesimulator \
-            -destination 'generic/platform=iOS Simulator' \
-            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
-      - name: Gerar pacote para simulador
+          APP=native/ios/build/Build/Products/Release-iphonesimulator/SevenNote.app
+          test -f "$APP/Web/index.html"
+          test -f "$APP/Web/game-core.js"
+          test -f "$APP/Web/privacy.html"
+          xcodebuild -version
+          VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
+          echo "iOS SDK $VERSION"
+          SDK_VERSION="$VERSION" python3 -c 'import os; assert int(os.environ["SDK_VERSION"].split(".")[0]) >= 26, "App Store exige iOS SDK 26+"'
+      - name: Empacotar simulador
         run: |
           mkdir -p native/ios/artifacts
-          ditto -c -k --sequesterRsrc --keepParent \
-            native/ios/build/Build/Products/Release-iphonesimulator/SevenNote.app \
-            native/ios/artifacts/7-Note-iOS-Simulator.zip
-      - name: Compilar iOS físico sem assinatura
+          ditto -c -k --sequesterRsrc --keepParent native/ios/build/Build/Products/Release-iphonesimulator/SevenNote.app native/ios/artifacts/7-Note-iOS-Simulator.zip
+      - name: Compilar app iOS sem assinatura
         working-directory: native/ios
-        run: |
-          set -o pipefail
-          xcodebuild -project SevenNote.xcodeproj -scheme SevenNote \
-            -configuration Release -sdk iphoneos \
-            -destination 'generic/platform=iOS' \
-            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
-      - name: Gerar pacote de app físico para assinatura posterior
-        run: |
-          ditto -c -k --sequesterRsrc --keepParent \
-            native/ios/build/Build/Products/Release-iphoneos/SevenNote.app \
-            native/ios/artifacts/7-Note-iOS-Device-UNSIGNED.zip
+        run: xcodebuild -project SevenNote.xcodeproj -scheme SevenNote -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+      - name: Empacotar iOS sem assinatura
+        run: ditto -c -k --sequesterRsrc --keepParent native/ios/build/Build/Products/Release-iphoneos/SevenNote.app native/ios/artifacts/7-Note-iOS-Device-UNSIGNED.zip
       - uses: actions/upload-artifact@v4
         with:
           name: 7-note-iOS-Simulator
@@ -306,7 +177,7 @@ jobs:
           retention-days: 30
 
   windows:
-    name: Windows (instalador e portátil EXE)
+    name: Windows - instalador e portátil EXE
     needs: validate
     runs-on: windows-2025
     env:
@@ -321,10 +192,18 @@ jobs:
         run: |
           node scripts/sync-native.mjs
           python scripts/artwork.py
-      - name: Instalar dependências do empacotador
+      - name: Instalar dependências
         run: npm install --prefix native/windows --no-audit --no-fund
+      - name: Auditar vulnerabilidades das dependências
+        run: npm audit --prefix native/windows --audit-level=high
       - name: Compilar Windows x64
         run: npm run build --prefix native/windows
+      - name: Conferir EXEs
+        shell: pwsh
+        run: |
+          $files = @(Get-ChildItem native/windows/dist/*.exe)
+          if ($files.Count -lt 2) { throw "Instalador ou portátil ausente" }
+          $files | Select-Object Name,Length
       - uses: actions/upload-artifact@v4
         with:
           name: 7-note-Windows-x64-EXE
