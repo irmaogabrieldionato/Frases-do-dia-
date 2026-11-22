@@ -253,14 +253,27 @@ test("contadores próximos do limite seguro não transbordam nem apagam progress
   assert.equal(won.totalWins, cap);
   assert.equal(won.completed, true);
   const lost = registerLoss(near);
-  assert.equal(lost.totalLosses, cap);
-  assert.equal(sanitizeProgress(lost).totalLosses, cap);
+  assert.equal(lost.totalLosses, cap - 1);
+  assert.equal(sanitizeProgress(lost).totalLosses, cap - 1);
   const heard = recordEarAnswer(near, true);
   assert.equal(heard.earPlayed, cap);
   assert.equal(heard.earCorrect, cap);
   assert.equal(sanitizeProgress(heard).earPlayed, cap);
   assert.equal(sanitizeProgress(heard).earCorrect, cap);
   const missed = recordEarAnswer(near, false);
-  assert.equal(missed.totalLosses, cap);
+  assert.equal(missed.totalLosses, cap - 1);
   assert.equal(missed.earPlayed, cap);
+});
+
+
+test("contador saturado de derrotas não repete anúncio a cada erro", () => {
+  const max = Number.MAX_SAFE_INTEGER - 2;
+  let progress = sanitizeProgress({ totalLosses: max + 1 });
+  assert.equal(progress.totalLosses, max, "estado antigo de limite par migra sem zerar");
+  assert.equal(adDue(progress.totalLosses), false);
+  for (let i = 0; i < 3; i++) {
+    progress = registerLoss(progress);
+    assert.equal(progress.totalLosses, max);
+    assert.equal(adDue(progress.totalLosses), false);
+  }
 });
