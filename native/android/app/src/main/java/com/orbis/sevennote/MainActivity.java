@@ -44,7 +44,7 @@ public class MainActivity extends Activity {
           OnBackInvokedDispatcher.PRIORITY_DEFAULT, this::handleBack);
    }
    WebSettings s=game.getSettings();
-   s.setSafeBrowsingEnabled(true);
+   if (Build.VERSION.SDK_INT >= 26) s.setSafeBrowsingEnabled(true);
    s.setJavaScriptEnabled(true);
    s.setDomStorageEnabled(true);
    s.setMediaPlaybackRequiresUserGesture(false);
