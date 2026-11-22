@@ -35,6 +35,11 @@ app.whenReady().then(()=>{
   const ses=session.fromPartition("persist:seven-note");
   ses.setPermissionRequestHandler((webContents,permission,callback)=>callback(false));
   ses.setPermissionCheckHandler(()=>false);
+  // O jogo e seus recursos são inteiramente locais: bloquear inclusive fetch,
+  // imagens, frames e redirecionamentos para fora do pacote, não só navegação.
+  ses.webRequest.onBeforeRequest((details,callback)=>{
+    callback({cancel:!isAllowedLocalUrl(details.url)});
+  });
   start();
   app.on("activate",()=>{if(BrowserWindow.getAllWindows().length===0)start();});
 });
