@@ -47,6 +47,18 @@
   let messageKind = "default";
   let lastFocused = null;
 
+  // Reutiliza a sequência da fase durante as até 1.000 entradas do jogador.
+  // Recalcula somente ao mudar de fase ou reiniciar a campanha.
+  let memorySequenceLevel = null;
+  let memorySequence = null;
+  function currentMemorySequence() {
+    if (memorySequenceLevel !== progress.level || !memorySequence) {
+      memorySequence = core.sequenceForLevel(progress.level);
+      memorySequenceLevel = progress.level;
+    }
+    return memorySequence;
+  }
+
   function saveProgress() { saveJSON(STORAGE_KEY, progress); }
   function setMessage(text, kind = "default") { message = text; messageKind = kind; }
   function delay(ms) { return new Promise((resolve) => window.setTimeout(resolve, ms)); }
@@ -304,7 +316,7 @@
   async function startMemory() {
     if (mode !== "memory" || phase === "playing" || adBusy || progress.completed) return;
     inputIndex = 0;
-    await playSequence(core.sequenceForLevel(progress.level), "memory");
+    await playSequence(currentMemorySequence(), "memory");
   }
 
   async function startEarQuestion() {
@@ -409,7 +421,7 @@
     } else if (mode === "ear") {
       answerEar(id);
     } else if (phase === "input") {
-      const result = core.evaluateNote(core.sequenceForLevel(progress.level), inputIndex, id);
+      const result = core.evaluateNote(currentMemorySequence(), inputIndex, id);
       if (result.result === "loss") {
         const expected = notes.get(result.expected).name;
         progress = core.registerLoss(progress);
