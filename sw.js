@@ -1,5 +1,5 @@
-/* Cache offline da aplicação; não armazena conteúdo publicitário externo. */
-const CACHE_NAME = "seven-note-musical-game-v5";
+/* Cache offline limitado aos recursos próprios do jogo. Não armazena outras aplicações nem anúncios. */
+const CACHE_NAME = "seven-note-musical-game-v6";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -11,6 +11,7 @@ const APP_FILES = [
   "./manifest.webmanifest",
   "./icon.svg"
 ];
+const APP_URLS = new Set(APP_FILES.map((path) => new URL(path, self.registration.scope).href));
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_FILES))
@@ -28,17 +29,18 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   const url = new URL(event.request.url);
-  if (url.origin !== self.location.origin) return;
+  // A URL deve pertencer exatamente ao conjunto de arquivos do jogo.
+  // Ignorar consultas, outras rotas e solicitações cross-origin evita
+  // cachear dados privados ou arquivos de outros aplicativos do mesmo host.
+  if (url.search || !APP_URLS.has(url.href)) return;
   event.respondWith(
     fetch(event.request).then((response) => {
-      if (response.ok) {
+      if (response.ok && response.type === "basic") {
         const copy = response.clone();
         event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy)));
       }
       return response;
     }).catch(() => caches.match(event.request)
-      .then((cached) => cached || (event.request.mode === "navigate"
-        ? caches.match("./index.html") : Response.error()))
-    )
+      .then((cached) => cached || Response.error()))
   );
 });
