@@ -63,13 +63,14 @@ public final class AppGuide {
             localizedContent.setOrientation(LinearLayout.VERTICAL);
             localizedContent.setPadding(12, 12, 12, 12);
             String[] headings = GuideTopics.headings(language);
+            String[] details = GuideTopics.details(language);
             String overview = GuideTranslations.overview(language);
             // A concise translated overview remains visible while the topics give
             // users an accessible index; the full illustrated guide is still being localized.
             localizedContent.addView(section(activity,
                     GuideTranslations.title(language), overview));
             for (int i = 0; i < headings.length; i++) {
-                TextView heading = section(activity, (i + 1) + ". " + headings[i], "");
+                TextView heading = section(activity, (i + 1) + ". " + headings[i], details[i]);
                 heading.setTextSize(17);
                 heading.setTypeface(null, android.graphics.Typeface.BOLD);
                 localizedContent.addView(heading);
