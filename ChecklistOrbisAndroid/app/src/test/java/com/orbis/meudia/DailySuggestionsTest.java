@@ -21,4 +21,15 @@ public class DailySuggestionsTest {
         assertTrue(DailySuggestions.pending(null,"2026-11-21").isEmpty());
         assertTrue(DailySuggestions.pending(new JSONArray(),"invalid").isEmpty());
     }
+    @Test public void impossibleCalendarDaysNeverProduceSuggestions() throws Exception {
+        JSONObject task = new JSONObject().put("title", "Study").put("start", "2026-01-01");
+        JSONArray tasks = new JSONArray().put(task);
+        String snapshot = tasks.toString();
+        assertTrue(DailySuggestions.pending(tasks, "2026-02-30").isEmpty());
+        assertTrue(DailySuggestions.pending(tasks, "2025-02-29").isEmpty());
+        assertTrue(DailySuggestions.pending(tasks, "2026-13-01").isEmpty());
+        assertTrue(DailySuggestions.pending(tasks, "2026-11-21extra").isEmpty());
+        assertEquals(1, DailySuggestions.pending(tasks, "2026-11-21").size());
+        assertEquals(snapshot, tasks.toString());
+    }
 }
