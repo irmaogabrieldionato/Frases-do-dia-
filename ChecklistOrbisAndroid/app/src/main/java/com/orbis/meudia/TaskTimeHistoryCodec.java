@@ -39,6 +39,38 @@ public final class TaskTimeHistoryCodec {
         return out.toString();
     }
 
+    /**
+     * Prepare a non-destructive import from a versioned history payload.
+     * Identical session IDs are idempotent; conflicting IDs abort the entire merge.
+     * Caller must persist the result only after this method returns successfully.
+     */
+    public static List<TaskTimeHistory.Session> mergeForRestore(
+            List<TaskTimeHistory.Session> existing, String incomingEncoded) {
+        // Validate existing data before processing an import; never overwrite corruption.
+        decode(encode(existing));
+        List<TaskTimeHistory.Session> incoming = decode(incomingEncoded);
+        java.util.LinkedHashMap<String, TaskTimeHistory.Session> merged =
+                new java.util.LinkedHashMap<>();
+        for (TaskTimeHistory.Session session : existing) merged.put(session.id, session);
+        for (TaskTimeHistory.Session session : incoming) {
+            TaskTimeHistory.Session old = merged.get(session.id);
+            if (old != null) {
+                if (!old.taskId.equals(session.taskId)
+                        || !old.occurrenceDate.equals(session.occurrenceDate)
+                        || old.kind != session.kind
+                        || old.elapsedMillis != session.elapsedMillis
+                        || old.targetMillis != session.targetMillis)
+                    throw new IllegalArgumentException("Conflicting time session id");
+            } else {
+                merged.put(session.id, session);
+            }
+        }
+        List<TaskTimeHistory.Session> result = new ArrayList<>(merged.values());
+        // Enforce the same count and payload limits before persistence.
+        encode(result);
+        return Collections.unmodifiableList(result);
+    }
+
     private static void field(StringBuilder out, String value) {
         if (value == null || value.length() > MAX_TEXT)
             throw new IllegalArgumentException("Invalid field length");
