@@ -69,6 +69,31 @@ final class TaskTime {
         return conflicts;
     }
 
+    /** Indices of tasks participating in at least one overlap, in input order.
+     * The caller supplies tasks for a single occurrence date. No persisted state
+     * is modified and invalid entries never appear in the result.
+     */
+    static java.util.List<Integer> conflictingTaskIndices(JSONArray tasks) {
+        java.util.List<Integer> indices = new java.util.ArrayList<>();
+        if (tasks == null) return indices;
+        boolean[] conflicting = new boolean[tasks.length()];
+        for (int i = 0; i < tasks.length(); i++) {
+            JSONObject first = tasks.optJSONObject(i);
+            if (first == null) continue;
+            for (int j = i + 1; j < tasks.length(); j++) {
+                JSONObject second = tasks.optJSONObject(j);
+                if (second != null && overlaps(first, second)) {
+                    conflicting[i] = true;
+                    conflicting[j] = true;
+                }
+            }
+        }
+        for (int i = 0; i < conflicting.length; i++) {
+            if (conflicting[i]) indices.add(i);
+        }
+        return indices;
+    }
+
     static boolean setTime(JSONObject task, String time) throws JSONException {
         if (task == null || !isValidTime(time)) return false;
         if (time.equals(getTime(task))) return false;
