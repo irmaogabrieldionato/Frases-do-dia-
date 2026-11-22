@@ -56,4 +56,37 @@ public class TaskTimeHistoryTest {
                 s("x", "task", "2026-11-12", TaskTimeHistory.Kind.TIMER, 100, 100)
         ), "task");
     }
+
+    @Test public void totalAcrossDatesDoesNotMixTargetWithWorkedTime() {
+        TaskTimeHistory.Total total = TaskTimeHistory.totalForTask(Arrays.asList(
+                s("a", "study", "2026-11-11", TaskTimeHistory.Kind.STOPWATCH, 2700000, 0),
+                s("b", "study", "2026-11-11", TaskTimeHistory.Kind.TIMER, 900000, 1800000),
+                s("c", "study", "2026-11-12", TaskTimeHistory.Kind.STOPWATCH, 4200000, 0),
+                s("d", "study", "2026-11-12", TaskTimeHistory.Kind.TIMER, 1200000, 1500000),
+                s("e", "other", "2026-11-12", TaskTimeHistory.Kind.TIMER, 9999, 9999)
+        ), "study");
+        assertEquals(2, total.activeDays);
+        assertEquals(6900000, total.stopwatchMillis);
+        assertEquals(2100000, total.timerElapsedMillis);
+        assertEquals(3300000, total.timerTargetMillis);
+        assertEquals(2, total.stopwatchSessions);
+        assertEquals(2, total.timerSessions);
+    }
+
+    @Test public void totalEmptyTaskHasZeroDaysAndDurations() {
+        TaskTimeHistory.Total total = TaskTimeHistory.totalForTask(
+                Collections.<TaskTimeHistory.Session>emptyList(), "task");
+        assertEquals(0, total.activeDays);
+        assertEquals(0, total.stopwatchMillis);
+        assertEquals(0, total.timerElapsedMillis);
+        assertEquals(0, total.timerTargetMillis);
+    }
+
+    @Test(expected = ArithmeticException.class)
+    public void totalRejectsOverflowAcrossDays() {
+        TaskTimeHistory.totalForTask(Arrays.asList(
+                s("a", "task", "2026-11-11", TaskTimeHistory.Kind.STOPWATCH, Long.MAX_VALUE, 0),
+                s("b", "task", "2026-11-12", TaskTimeHistory.Kind.STOPWATCH, 1, 0)
+        ), "task");
+    }
 }
