@@ -14,7 +14,8 @@ test("Android and TV Box use separate package IDs and launchers",()=>{
  assert.match(gradle,/applicationIdSuffix\s*=\s*"\.tv"/);
  assert.match(manifest,/\$\{launcherCategory\}/);
  assert.match(tv,/LEANBACK|leanback/i);
- assert.match(tv,/android\.intent\.category\.LAUNCHER/);
+ assert.match(tv,/android\.intent\.category\.LEANBACK_LAUNCHER/);
+ assert.match(gradle,/manifestPlaceholders\["launcherCategory"\]\s*=\s*"android.intent.category.LAUNCHER"/);
 });
 test("iOS XcodeGen project includes offline WKWebView and bundle icon",()=>{
  const ios=file("native/ios/project.yml");
