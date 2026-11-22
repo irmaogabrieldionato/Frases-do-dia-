@@ -104,3 +104,11 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Atualizados os testes de limite e adicionado caso específico que simula derrotas repetidas após a saturação, preservando a regra de uma tentativa a cada duas derrotas enquanto o contador ainda avança. Commit `bbe4868e`.
 - **Validação pendente:** confirmar os resultados de CI disparados após estes commits; nenhum teste local, navegador ou aparelho físico foi executado nesta rodada. A saturação ocorre somente em um limite numérico extremo, mas a correção impede repetição indefinida de publicidade demonstrativa.
 - **Próximo foco:** conferir CI, artefatos Android/TV/iOS/Windows e relatórios de lint, sem alterar branches de outros projetos.
+
+## Evolução de 22/11/2026 — desempenho na fase 1.000
+
+- Conferidos os últimos workflows: testes no commit `3b08b0a4` [45078890011](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45078890011) **success** e pacotes no commit `bbe4868e` [45078877746](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45078877746) **success**. As falhas intermediárias em `ae0fd916` foram superadas nos commits seguintes; esses resultados são anteriores à otimização atual.
+- Otimizado `app.js`: a sequência determinística da fase é gerada uma vez e reutilizada tanto na reprodução quanto nas entradas do jogador, evitando reconstruir até 1.000 notas a cada tecla na fase final. A cache é invalidada automaticamente quando `progress.level` muda. Não altera o motor, a ordem das notas, as 1.000 fases, os modos nem a persistência.
+- Adicionado teste estático de regressão em `tests/release-readiness.test.cjs` para verificar reutilização em reprodução e avaliação.
+- **Validação pendente:** conferir os novos workflows após os commits. Não foi realizado benchmark de hardware ou teste físico nesta rodada; o teste estático não substitui medição de desempenho.
+- **Próximo foco:** medir a latência de entrada na fase 1.000 em Chromium/WebKit e confirmar pacotes atualizados.
