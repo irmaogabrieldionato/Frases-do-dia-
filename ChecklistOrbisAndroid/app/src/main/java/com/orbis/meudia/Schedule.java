@@ -42,12 +42,27 @@ final class Schedule {
         return days;
     }
 
+    /** Reject malformed dates rather than treating them as today. */
+    static boolean validDateKey(String value) {
+        if (value == null || !value.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}")) return false;
+        try {
+            Calendar c = new GregorianCalendar(Integer.parseInt(value.substring(0, 4)),
+                    Integer.parseInt(value.substring(5, 7)) - 1,
+                    Integer.parseInt(value.substring(8, 10)));
+            c.setLenient(false);
+            c.getTime();
+            return key(c).equals(value);
+        } catch (RuntimeException ex) {
+            return false;
+        }
+    }
+
     static boolean occurs(JSONObject task, String key) {
-        if(task==null)return false;
+        if(task==null || !validDateKey(key))return false;
         String start=task.optString("start","");
-        if(start.isEmpty() || key.compareTo(start)<0)return false;
+        if(!validDateKey(start) || key.compareTo(start)<0)return false;
         String until=task.optString("until","");
-        if(!until.isEmpty() && key.compareTo(until)>0)return false;
+        if(!until.isEmpty() && (!validDateKey(until) || key.compareTo(until)>0))return false;
         JSONArray excluded=task.optJSONArray("skips");
         if(excluded!=null)for(int i=0;i<excluded.length();i++)
             if(key.equals(excluded.optString(i)))return false;
