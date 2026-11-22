@@ -106,3 +106,5 @@ GitHub Actions executa as duas suítes em cada push: regras de negócio e fluxo 
 - tests/game.test.cjs, tests/browser-smoke.cjs — testes automatizados.
 
 O jogo funciona sem cadastro, sem API externa, sem músicas ou bibliotecas de terceiros durante a execução. O armazenamento local pertence ao navegador do jogador; o progresso não é sincronizado entre aparelhos.
+
+[Política de privacidade](privacy.html) · [Requisitos finais para as lojas](RELEASE-CHECKLIST.md).

@@ -20,9 +20,9 @@ Selecione uma execução com todos os processos aprovados, desça até a seção
 
 ### Android e TV Box
 
-Android: API mínima 24 (Android 7), pacote com.orbis.sevennote. Instalação técnica: adb install -r app-mobile-debug.apk.
+Android: API mínima 24 (Android 7), API de destino 36 para o Google Play, pacote com.orbis.sevennote. Instalação técnica: adb install -r app-mobile-debug.apk.
 
-TV: aplicativo separado com.orbis.sevennote.tv; inicia em paisagem, oferece categorias para launcher Android TV e launcher Android genérico. Use setas do controle remoto (D-pad), OK/Enter para selecionar e Voltar para sair ou fechar diálogos. TV Boxes sem Android não são compatíveis. Alguns aparelhos exigem Android System WebView atualizado.
+TV: API de destino 35. Aplicativo separado com.orbis.sevennote.tv; inicia em paisagem, oferece categorias para launcher Android TV e launcher Android genérico. Use setas do controle remoto (D-pad), OK/Enter para selecionar e Voltar para sair ou fechar diálogos. TV Boxes sem Android não são compatíveis. Alguns aparelhos exigem Android System WebView atualizado.
 
 Para publicar no Google Play, o desenvolvedor deverá configurar uma chave de assinatura privada e Play App Signing. Os arquivos debug não são a versão final para a loja.
 

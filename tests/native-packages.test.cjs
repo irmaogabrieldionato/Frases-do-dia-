@@ -36,7 +36,7 @@ test("Windows installer and portable executable are configured safely",()=>{
 });
 test("native assets include all the same files as the web game",()=>{
  const sync=file("scripts/sync-native.mjs");
- for(const name of ["index.html","game-core.js","app.js","styles.css","tv.css","sw.js"]){
+ for(const name of ["index.html","game-core.js","app.js","styles.css","tv.css","sw.js","privacy.html"]){
    assert.ok(sync.includes(name),name);
    assert.ok(existsSync(join(root,name)),name);
  }
