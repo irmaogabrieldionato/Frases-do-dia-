@@ -35,6 +35,9 @@ test("Android: nenhum pedido de permissão sensível",()=>{
  const main=content("native/android/app/src/main/java/com/orbis/sevennote/MainActivity.java");
  assert.doesNotMatch(manifest,/uses-permission/);
  assert.match(main,/setSafeBrowsingEnabled\(true\)/);
+ for(const setting of ["setAllowFileAccess(false)","setAllowContentAccess(false)","setAllowFileAccessFromFileURLs(false)","setAllowUniversalAccessFromFileURLs(false)","setSupportMultipleWindows(false)","setJavaScriptCanOpenWindowsAutomatically(false)","setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW)"]){
+   assert.ok(main.includes(setting),`Android WebView: ${setting}`);
+ }
  assert.match(main,/getOnBackPressedDispatcher/);
  assert.match(main,/setOnApplyWindowInsetsListener/);
 });
