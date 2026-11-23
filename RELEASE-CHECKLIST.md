@@ -144,3 +144,10 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Consulta de execuções associadas ao commit anterior `e4d80a6` pelo conector retornou lista vazia; esse endpoint consulta apenas execuções disparadas por pull request, portanto **não comprova ausência nem aprovação de CI por push**. A execução nova Chromium/WebKit e os artefatos precisam ser conferidos na página GitHub Actions.
 - **Validação pendente:** teste Playwright ainda não executado localmente nesta rodada; conferir Chromium/WebKit e os jobs de empacotamento posteriores a `35cf5ed`. Nenhuma medição física ou publicação realizada.
 - **Próximo foco:** verificar CI novo, investigar eventual falha e medir reprodução/entrada real da fase 1.000 no modo Memória.
+
+## Evolução de 23/11/2026 — auditoria dinâmica de toda a campanha
+
+- Confirmado que a execução de testes [45107120638](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45107120638), referente ao commit `82d2d07`, terminou com **success** em 23/11/2026 às 03:39 UTC. Este resultado é anterior à alteração desta seção.
+- Em `tests/browser-smoke.cjs`, acrescentada auditoria no motor efetivamente carregado pela interface: todas as 1.000 fases têm exatamente seu número de notas, preservam integralmente o prefixo anterior, respeitam as nove notas iniciais aprovadas e rejeitam a fase 1.001. Commit `a55c521`.
+- **Validação pendente:** verificar o CI Chromium/WebKit após `a55c521`; o teste novo ainda não foi executado localmente nesta rodada. Não equivale a tocar ou ouvir fisicamente as mil notas, nem valida instalações em aparelhos reais.
+- **Próximo foco:** conferir os resultados deste commit, depois medir reprodução da sequência completa no modo Memória e revisar artefatos e Android Lint atualizados.
