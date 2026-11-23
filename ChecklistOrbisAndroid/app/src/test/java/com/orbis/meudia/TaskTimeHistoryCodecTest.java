@@ -118,4 +118,19 @@ public class TaskTimeHistoryCodecTest {
                 Collections.singletonList(item))).get(0).id);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void importRejectsUnpairedHighSurrogateInSessionId() {
+        String valid = TaskTimeHistoryCodec.encode(Collections.singletonList(
+                session("a", "2026-11-11", TaskTimeHistory.Kind.TIMER)));
+        TaskTimeHistoryCodec.decode(valid.replace("1:a", "1:" + Character.toString((char) 0xD83D)));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void importRejectsUnpairedLowSurrogateInTaskId() {
+        String valid = TaskTimeHistoryCodec.encode(Collections.singletonList(
+                new TaskTimeHistory.Session("id", "x", "2026-11-11",
+                        TaskTimeHistory.Kind.STOPWATCH, 1000, 0)));
+        TaskTimeHistoryCodec.decode(valid.replace("1:x", "1:" + Character.toString((char) 0xDC00)));
+    }
+
 }
