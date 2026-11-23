@@ -120,3 +120,10 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Acrescentado teste de regressão para as condições de cache em `tests/release-readiness.test.cjs`. Commit `3579bb8`.
 - **Validação pendente:** confirmar CI após os commits desta seção e medir latência em Chromium/WebKit/dispositivo real. Não foi executado benchmark ou teste físico nesta rodada. O teste novo é estático, não mede FPS.
 - **Próximo foco:** verificar os novos workflows e executar medição automatizada de latência de entrada e renderização da fase 1.000.
+
+## Evolução de 22/11/2026 — regressão dinâmica de 1.000 entradas
+
+- Conferidos os quatro jobs **success** dos workflows anteriores: testes [45084386409](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45084386409) e pacotes [45084384095](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45084384095). Esses resultados precedem os commits desta seção.
+- Acrescentado cenário Playwright em `tests/browser-smoke.cjs` para Chromium e WebKit: carregar a fase 1.000 ainda não concluída, entrar no modo Livre, realizar 1.000 entradas de teclado musical sem som, medir duração e verificar que o painel de seis conquistas conserva os mesmos nós DOM quando nenhuma condição de desbloqueio muda. Commit `9f4e043`.
+- **Limite da medição:** a duração é apenas diagnóstico registrado nos logs do CI, sem limite absoluto arbitrário entre máquinas; o cenário não mede reprodução auditiva das 1.000 notas nem latência em aparelho físico. Não se afirma aprovação dos novos testes antes da conclusão do workflow.
+- **Próximo foco:** conferir o novo CI Chromium/WebKit e comparar duração, depois medir reprodução e resposta no modo Memória da fase final em dispositivos reais.
