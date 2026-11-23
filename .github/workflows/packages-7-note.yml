@@ -76,7 +76,21 @@ jobs:
           python3 scripts/artwork.py
       - name: Compilar e executar Android Lint
         working-directory: native/android
-        run: gradle :app:assembleMobileDebug :app:assembleTvDebug :app:bundleMobileRelease :app:bundleTvRelease :app:lintMobileRelease :app:lintTvRelease --no-daemon --stacktrace
+        shell: bash
+        run: |
+          # Maven Central pode responder 429 temporariamente ao baixar dependências.
+          # Repetir a compilação completa sem ocultar falhas persistentes de build/lint.
+          for attempt in 1 2 3; do
+            if gradle :app:assembleMobileDebug :app:assembleTvDebug :app:bundleMobileRelease :app:bundleTvRelease :app:lintMobileRelease :app:lintTvRelease --no-daemon --stacktrace; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Gradle falhou após três tentativas; verificar log completo."
+              exit 1
+            fi
+            echo "::warning::Gradle falhou na tentativa $attempt; aguardando antes de repetir."
+            sleep $((attempt * 45))
+          done
       - name: Exibir os problemas do Android Lint quando houver falha
         if: failure()
         shell: bash
