@@ -156,11 +156,12 @@ public final class TaskTimeHistory {
             throw new IllegalArgumentException("Missing input");
         }
         List<Session> result = new ArrayList<>();
+        java.util.HashSet<String> seen = new java.util.HashSet<>();
         for (Session session : sessions) {
             if (session == null) throw new IllegalArgumentException("Null session");
-            if (taskId.equals(session.taskId)
-                    && occurrenceDate.equals(session.occurrenceDate)) {
-                result.add(session);
+            if (taskId.equals(session.taskId)) {
+                if (!seen.add(session.id)) throw new IllegalArgumentException("Duplicate session id");
+                if (occurrenceDate.equals(session.occurrenceDate)) result.add(session);
             }
         }
         return Collections.unmodifiableList(result);
