@@ -645,6 +645,12 @@
     cancelPlayback();
     render();
   });
+  // pagehide também cobre navegação e entrada no cache de histórico (bfcache).
+  // Não mantenha a sequência ativa ao sair da página, mesmo sem visibilitychange.
+  window.addEventListener("pagehide", () => {
+    cancelPlayback();
+    render();
+  });
   window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();
     deferredInstall = event;
