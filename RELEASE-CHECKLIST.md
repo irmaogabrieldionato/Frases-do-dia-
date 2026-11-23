@@ -174,3 +174,11 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Adicionado em `tests/browser-smoke.cjs` cenário de **navegação real** durante reprodução da Memória: abrir `privacy.html`, voltar pelo histórico, confirmar que a reprodução pode ser reiniciada e que timers anteriores não voltam a bloquear o botão. Complementa o evento `pagehide` sintético já testado. Commit `028fe50`.
 - **Validação pendente:** conferir Chromium/WebKit após este commit; não foi executado Playwright local nem teste em aparelho físico nesta rodada. A navegação real do navegador automatizado não substitui o ensaio de bfcache em Safari/iOS nativo.
 - **Próximo foco:** investigar eventual falha no novo CI e medir a reprodução da sequência de 1.000 notas no modo Memória, além de revisar assinaturas e testes físicos.
+
+## Evolução de 23/11/2026 — interrupção da reprodução na fase 1.000
+
+- Conferidos os três documentos obrigatórios e os resultados recentes do GitHub Actions: testes [45133845024](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45133845024) e pacotes [45133832793](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45133832793) concluídos com **success** nos commits anteriores.
+- Ampliado o teste real de navegador em `tests/browser-smoke.cjs`: inicia a reprodução da fase 1.000 no modo Memória, verifica bloqueio durante a execução, simula `pagehide`, verifica desbloqueio e ausência de vitória indevida após temporizadores pendentes. Commit `1ea5f43`.
+- O tempo impresso é apenas o tempo do cenário incluindo a espera de cancelamento; **não é benchmark de reprodução de 1.000 notas**, que exigiria duração prolongada e testes em dispositivos reais.
+- **Validação pendente:** conferir os jobs Chromium/WebKit disparados pelo novo commit e os artefatos; não foram realizados testes locais nem físicos nesta rodada.
+- **Próximo foco:** validar CI atualizado, depois medir reprodução integral e estabilidade do áudio na fase 1.000, sem alterar outras branches.
