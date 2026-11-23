@@ -31,6 +31,11 @@ function verify(dir) {
     const hash = crypto.createHash("sha256");
     const fd = fs.openSync(file, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0));
     try {
+      // Validar o descritor aberto evita confiar apenas no lstat anterior (TOCTOU).
+      const opened = fs.fstatSync(fd);
+      if (!opened.isFile() || opened.size === 0 || opened.dev !== stat.dev || opened.ino !== stat.ino) {
+        throw new Error("Pacote alterado durante abertura: " + name);
+      }
       const buffer = Buffer.allocUnsafe(1024 * 1024);
       let count;
       while ((count = fs.readSync(fd, buffer, 0, buffer.length, null)) !== 0) {
