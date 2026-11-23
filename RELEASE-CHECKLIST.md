@@ -190,3 +190,12 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Adicionado cenário Playwright em `tests/browser-smoke.cjs` com uma página isolada sem `AudioContext` nem `webkitAudioContext`: o modo Memória deve exibir mensagem explicativa, liberar novamente o botão de reprodução e manter nível, vitórias e derrotas inalterados. Commit `36386ab`.
 - **Validação pendente:** conferir Chromium/WebKit após o commit; o teste não foi executado localmente nem em aparelho físico nesta rodada. Não foram alterados os arquivos de outros aplicativos.
 - **Próximo foco:** verificar CI atualizado e depois avançar para ensaio de reprodução integral e estabilidade do áudio das mil notas em hardware real, sem confundir cancelamento com execução completa.
+
+
+## Evolução de 23/11/2026 — recuperação de contexto de áudio encerrado
+
+- Lidos `RELEASE-CHECKLIST.md`, `PACKAGES.md` e `README-7-NOTE.md`; conferidos os resultados atuais do GitHub Actions. Testes no commit `42cda582` [45152631426](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45152631426) **success**; pacotes no commit `36386ab2` [45152598713](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45152598713) **success**. Esses resultados precedem esta alteração.
+- Corrigido `app.js`: ao encontrar `AudioContext.state === "closed"`, o jogo recria o contexto na próxima tentativa, em vez de reutilizar permanentemente um contexto impossível de retomar. Commit `3777fa5`.
+- Adicionado teste de navegador `tests/browser-smoke.cjs`: primeira tentativa recebe um contexto encerrado e falha de forma recuperável; segunda tentativa usa um contexto válido e chega ao estado de entrada, preservando nível e vitórias. Commit `1f0c12c`.
+- **Validação pendente:** confirmar os novos jobs Chromium/WebKit e empacotamento após os commits; os testes não foram executados localmente nem em dispositivo físico nesta rodada. A simulação de contexto encerrado não substitui um ensaio de interrupção de áudio real no iOS/Android.
+- **Próximo foco:** inspecionar o CI desta revisão, medir reprodução integral de 1.000 notas no modo Memória e verificar estabilidade do áudio em aparelhos reais.
