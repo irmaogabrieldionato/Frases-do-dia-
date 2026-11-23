@@ -1339,3 +1339,10 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **Limite crítico**: ainda não integrado ao backup geral das tarefas, nem à interface. A gravação da seção de tempo NÃO é atômica com a gravação das tarefas. Não declarar backup integral pronto, restauração global sem perda ou rollback interarmazenamentos. Testes JVM do envelope passaram no CI anterior, mas **CI do commit novo ainda não confirmado**, sem APK novo aprovado nem teste em aparelho.
 - Contagem funcional **5/24**, CLOCK-13–16 parciais; assinatura release bloqueada por keystore/secrets privados. Próximo: criar coordenador de restauração transacional ou estratégia de recuperação verificável e testar compatibilidade com backups antigos, sem apagar dados.
 - Agenda própria, offline, sem Google Agenda/API, terceiros ou alteração em `main`.
+
+
+## Execução 172 — 23/11/2026 — limite explícito na exportação portátil
+- Consultados inicialmente os dois documentos obrigatórios na branch `checklist-orbis`; Microsoft To Do permanece em foco segundo a ordem revisada, sem declarar concorrente concluído.
+- [1d2efbc](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/1d2efbcfe39ae08019904eff3dda7b04cd74b7df) acrescenta verificação explícita de 2.000.000 bytes UTF-8 na exportação da seção de tempo, alinhada ao limite do importador. Defesa adicional: o codec de histórico já aplicava o mesmo limite; portanto, não se trata de nova integração de backup global nem incremento funcional concluído.
+- CI deste SHA não confirmado nesta execução; não declarar testes executados, APK validado, teste físico ou restauração transacional. Pendente: integração atômica com tarefas, compatibilidade de backups antigos, testes Android instrumentados, assinatura release privada e interface de backup.
+- Mantidos 5/24 incrementos e 0/15 concorrentes concluídos; calendário próprio offline, sem Google Agenda/API, sem serviços externos e sem alteração em `main`.
