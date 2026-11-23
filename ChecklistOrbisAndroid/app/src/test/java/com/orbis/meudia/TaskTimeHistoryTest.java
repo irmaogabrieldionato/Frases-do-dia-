@@ -218,4 +218,20 @@ public class TaskTimeHistoryTest {
                 s("b", "work", "2026-11-12", TaskTimeHistory.Kind.TIMER, 200, 500)), "a").clear();
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void sessionRejectsYearZero() {
+        s("zero", "work", "0000-01-01", TaskTimeHistory.Kind.STOPWATCH, 1, 0);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void queryRejectsYearZero() {
+        TaskTimeHistory.forOccurrence(Collections.<TaskTimeHistory.Session>emptyList(),
+                "work", "0000-01-01");
+    }
+
+    @Test public void firstIsoYearIsAccepted() {
+        assertEquals(0, TaskTimeHistory.forOccurrence(
+                Collections.<TaskTimeHistory.Session>emptyList(), "work", "0001-01-01").size());
+    }
+
 }
