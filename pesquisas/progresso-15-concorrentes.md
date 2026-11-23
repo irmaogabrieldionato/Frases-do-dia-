@@ -1294,3 +1294,11 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - [c89aaa8](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/c89aaa8160422ceec8f963fb64aef75e8ef98162) adiciona dois testes JVM: duplicação entre dias e isolamento de tarefas.
 - CI dos novos commits pendente de confirmação no momento deste registro; não alegar execução de testes nem APK validado. Sem teste instrumentado/físico. Sem alteração de formato persistido, UI, recorrências, backup global, idiomas, prioridades, calendário ou `main`.
 - Progresso funcional permanece 5/24; CLOCK-13–16 parciais. Próximo: confirmar CI final, integrar histórico à UI/timers reais e backup geral. Assinatura estável requer keystore privado e secrets; Google Agenda permanece proibido.
+
+
+## Execução 167 — 23/11/2026 — exclusão de sessão com histórico previamente corrompido
+- Consultados inicialmente os dois documentos obrigatórios na branch `checklist-orbis`; Microsoft To Do segue em foco conforme a ordem revisada registrada neste arquivo. 0/15 concorrentes integralmente concluídos.
+- Revisão estática identificou que `TaskTimeHistory.withoutSession` rejeitava duplicação apenas do ID solicitado, permitindo persistir duplicações de outros IDs após uma exclusão. [ee30472](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/ee3047274087fd3e276a2a6e1eba4c0ba90f30d9) rejeita qualquer ID duplicado antes de retornar o resultado, evitando gravar histórico ambiguamente corrompido.
+- [d2de640](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/d2de640937f4d518c5510be2ca7e760691c096b5) acrescenta dois testes JVM: duplicação não relacionada à sessão excluída e preservação de registros distintos/entrada original.
+- **CI do SHA final ainda não confirmado**; testes foram escritos, não comprovadamente executados nesta etapa. Não há APK validado nem teste instrumentado/físico. Verificar Actions do SHA final antes de declarar aprovação.
+- Sem alteração no formato de dados, UI, recorrências, calendário, filtros, idiomas, backup global ou `main`. Progresso funcional permanece **5/24**, CLOCK-13–16 parciais. Integração com timers reais, UI e backup geral segue pendente. Assinatura release requer keystore privado e secrets seguros. Google Agenda/API não utilizados.
