@@ -119,4 +119,15 @@ public class TaskTimeHistoryTest {
                 "study", " ");
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void occurrenceFilterRejectsImpossibleCalendarDate() {
+        TaskTimeHistory.forOccurrence(Collections.<TaskTimeHistory.Session>emptyList(),
+                "study", "2026-02-30");
+    }
+
+    @Test public void occurrenceFilterAcceptsValidLeapDay() {
+        assertTrue(TaskTimeHistory.forOccurrence(Collections.<TaskTimeHistory.Session>emptyList(),
+                "study", "2028-02-29").isEmpty());
+    }
+
 }
