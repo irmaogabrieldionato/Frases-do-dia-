@@ -1346,3 +1346,12 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - [1d2efbc](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/1d2efbcfe39ae08019904eff3dda7b04cd74b7df) acrescenta verificação explícita de 2.000.000 bytes UTF-8 na exportação da seção de tempo, alinhada ao limite do importador. Defesa adicional: o codec de histórico já aplicava o mesmo limite; portanto, não se trata de nova integração de backup global nem incremento funcional concluído.
 - CI deste SHA não confirmado nesta execução; não declarar testes executados, APK validado, teste físico ou restauração transacional. Pendente: integração atômica com tarefas, compatibilidade de backups antigos, testes Android instrumentados, assinatura release privada e interface de backup.
 - Mantidos 5/24 incrementos e 0/15 concorrentes concluídos; calendário próprio offline, sem Google Agenda/API, sem serviços externos e sem alteração em `main`.
+
+
+## Execução 173 — 23/11/2026 — testes adicionais do envelope de backup
+- Consultados antes da alteração este progresso e o inventário competitivo na branch `checklist-orbis`. Microsoft To Do continua em foco segundo a ordem revisada, sem declarar qualquer concorrente concluído.
+- CI da etapa 172 verificado na API oficial: [Actions 45243478484](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45243478484), SHA `1d2efbc`, `completed/success` em 23/11/2026.
+- [548985f](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/548985f45f676c0ff76be8183a8b02bf47d7b469) acrescenta dois testes JVM ao envelope portátil: restauração de seção vazia sem apagar sessões existentes e rejeição de metadados de tamanho/CRC malformados.
+- Testes **adicionados, mas execução do novo SHA ainda não confirmada**. Não afirmar novo APK validado ou testes físicos/instrumentados. Sem mudança de código de produção ou formato persistido.
+- **Bloqueios**: restauração global ainda não é atômica entre tarefas e histórico; falta integrar UI/timers reais, testar recuperação em Android e configurar assinatura release com keystore e secrets privados.
+- Permanecem **5/24** incrementos funcionais e **0/15** concorrentes integralmente concluídos. Agenda independente e offline; sem Google Agenda/API, serviços externos ou alterações na `main`.
