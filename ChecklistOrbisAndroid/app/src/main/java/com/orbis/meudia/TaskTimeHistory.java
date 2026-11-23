@@ -107,6 +107,21 @@ public final class TaskTimeHistory {
                 stopwatchCount, timerCount);
     }
 
+    /** Aggregate a task only inside an inclusive date range, without counting timer targets as worked time. */
+    public static Total totalBetweenDates(List<Session> sessions, String taskId,
+                                          String startDate, String endDate) {
+        List<Day> days = betweenDates(sessions, taskId, startDate, endDate);
+        long stopwatch = 0, elapsed = 0, target = 0, stopwatchCount = 0, timerCount = 0;
+        for (Day day : days) {
+            stopwatch = Math.addExact(stopwatch, day.stopwatchMillis);
+            elapsed = Math.addExact(elapsed, day.timerElapsedMillis);
+            target = Math.addExact(target, day.timerTargetMillis);
+            stopwatchCount = Math.addExact(stopwatchCount, day.stopwatchSessions);
+            timerCount = Math.addExact(timerCount, day.timerSessions);
+        }
+        return new Total(days.size(), stopwatch, elapsed, target, stopwatchCount, timerCount);
+    }
+
     private static boolean blank(String value) {
         return value == null || value.trim().isEmpty();
     }
