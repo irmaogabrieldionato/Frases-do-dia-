@@ -1232,3 +1232,13 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - CI intermediário [45120276143](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45120276143) estava `in_progress`; **CI do SHA final 41c3d0b ainda não confirmado**. Não afirmar APK validado, teste em dispositivo nem ausência de regressões.
 - Funcionalidade ainda isolada da interface, timers reais e backup geral; progresso funcional permanece **5/24**. Assinatura estável bloqueada por falta de keystore privado e secrets. Sem Google Agenda/API, sem rede, sem alteração na `main`.
 - Próximo: confirmar CI do SHA final; integrar registros reais e backup geral com testes instrumentados antes de marcar CLOCK-13–16 concluídos.
+
+
+## Execução 160 — 23/11/2026 — exclusão direcionada de sessão de tempo
+- Consultados primeiro os dois documentos obrigatórios na branch `checklist-orbis`. Mantida a ordem vigente do progresso (Microsoft To Do em foco; Todoist e TickTick adiados por decisão posterior), sem declarar concorrente concluído.
+- [a23ba65](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/a23ba653d144fb5477dca0eb12f038d75ddd2265) adiciona `TaskTimeHistory.withoutSession`: remove apenas o ID solicitado de uma cópia imutável, rejeita ID ausente/duplicado e entrada inválida, preserva os demais dias e tarefas.
+- [ee60d85](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/ee60d85573c2b4076b4ac0ddcd4116d99c5f0e56) conecta a exclusão explícita ao armazenamento local, serializando e validando antes do commit síncrono; sem limpeza automática.
+- [39b32e4](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/39b32e428f096543fe8fa0c718a7fd4cd3cf714c) acrescenta três testes JVM de isolamento de tarefas/datas, ID inexistente e imutabilidade.
+- **CI do SHA final ainda não verificado**; testes adicionados não equivalem a testes executados. Não há teste em dispositivo nem APK validado nesta etapa. Interface, timers reais e backup global continuam sem integração, e a exclusão não é ainda um controle visível ao usuário. Progresso funcional **5/24** inalterado; CLOCK-13–16 ainda parciais.
+- Assinatura release continua bloqueada por keystore privado/secrets não provisionados. Nenhuma integração com Google Agenda ou terceiros; branch `main` não modificada.
+- Próximo: verificar CI final, conectar histórico ao backup geral e fluxo real, testar persistência Android e restauração sem perda de dados.
