@@ -130,4 +130,38 @@ public class TaskTimeHistoryTest {
                 "study", "2028-02-29").isEmpty());
     }
 
+
+    @Test public void dateRangeIsInclusiveAndTaskScoped() {
+        List<TaskTimeHistory.Day> days = TaskTimeHistory.betweenDates(Arrays.asList(
+                s("a", "study", "2026-11-10", TaskTimeHistory.Kind.TIMER, 1, 2),
+                s("b", "study", "2026-11-11", TaskTimeHistory.Kind.TIMER, 3, 5),
+                s("c", "study", "2026-11-12", TaskTimeHistory.Kind.STOPWATCH, 7, 0),
+                s("d", "study", "2026-11-13", TaskTimeHistory.Kind.STOPWATCH, 9, 0),
+                s("e", "other", "2026-11-11", TaskTimeHistory.Kind.TIMER, 99, 100)
+        ), "study", "2026-11-11", "2026-11-12");
+        assertEquals(2, days.size());
+        assertEquals("2026-11-11", days.get(0).date);
+        assertEquals(3, days.get(0).timerElapsedMillis);
+        assertEquals("2026-11-12", days.get(1).date);
+        assertEquals(7, days.get(1).stopwatchMillis);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void dateRangeRejectsReverseBounds() {
+        TaskTimeHistory.betweenDates(Collections.<TaskTimeHistory.Session>emptyList(),
+                "study", "2026-11-12", "2026-11-11");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void dateRangeRejectsImpossibleDate() {
+        TaskTimeHistory.betweenDates(Collections.<TaskTimeHistory.Session>emptyList(),
+                "study", "2026-02-30", "2026-03-01");
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void dateRangeResultIsImmutable() {
+        TaskTimeHistory.betweenDates(Collections.<TaskTimeHistory.Session>emptyList(),
+                "study", "2026-11-11", "2026-11-12").clear();
+    }
+
 }
