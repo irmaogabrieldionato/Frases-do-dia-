@@ -159,3 +159,11 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Acrescentada verificação dinâmica no Playwright da transição do penúltimo e último acerto da fase 1.000 pelo motor real: resultado `correct` antes da última nota, `win` na última, `completed=true`, 1.000 vitórias, nível fixado em 1.000, conquista final desbloqueada, persistência após serialização e impossibilidade de pontuar novamente após concluir. Commits `05bd4bc` e `62581d4` (ajuste da ordem dos parâmetros).
 - **Validação pendente:** conferir o workflow de testes disparado após `62581d4`, em Chromium e WebKit. Não foi executado Playwright local, teste físico ou medição de reprodução sonora de 1.000 notas nesta rodada.
 - **Próximo foco:** conferir CI e artefatos atualizados; medir reprodução/latência da fase 1.000 no modo Memória sem reduzir a duração real da sequência; continuar revisão de instalação e política de privacidade.
+
+## Evolução de 23/11/2026 — cancelamento ao navegar e retorno do histórico
+
+- Conferidos `RELEASE-CHECKLIST.md`, `PACKAGES.md`, `README-7-NOTE.md` e os jobs do Actions. Testes no commit `fe4e62f` [45119180101](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45119180101): **4/4 success**, incluindo Chromium e WebKit. Empacotamento anterior [45119168336](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45119168336): **4/4 success**, incluindo Android/TV, Windows e iOS. Esses resultados **precedem** as alterações desta seção.
+- `app.js`: adicionada limpeza explícita de reprodução em `pagehide` (navegação e entrada em bfcache), com invalidação dos timers pendentes e liberação da interface. Commit `b81054f`.
+- `tests/browser-smoke.cjs`: adicionado teste dinâmico de cancelamento durante a reprodução, verificando que o botão volta a ficar disponível e não bloqueia após um timer pendente. Commit `10522e3`.
+- **Validação pendente:** conferir Chromium/WebKit e os pacotes nos workflows dos commits novos. Não foram executados testes locais nem em hardware físico nesta rodada; `pagehide` sintético não substitui ensaio de navegação real em iOS/Android.
+- **Próximo foco:** validar CI novo e medir reprodução da sequência de mil notas no modo Memória; revisar instalação e assinatura dos artefatos sem publicar.
