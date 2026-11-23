@@ -78,7 +78,8 @@
       return false;
     }
     try {
-      if (!audioContext) audioContext = new Context();
+      // Um contexto encerrado não pode ser retomado; recrie-o na próxima tentativa.
+      if (!audioContext || audioContext.state === "closed") audioContext = new Context();
       if (audioContext.state === "suspended") await audioContext.resume();
       if (audioContext.state !== "running") throw new Error("Áudio suspenso.");
       return true;
