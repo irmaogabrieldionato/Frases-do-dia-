@@ -130,6 +130,18 @@ test("manifesto SHA256 portátil rejeita alteração, duplicata e arquivo ausent
    });
    fs.writeFileSync(path.join(dir,"SHA256SUMS.txt"),lines.join("\n")+"\n");
    assert.doesNotThrow(()=>verify(dir));
+   // Um hash inválido no último pacote não pode produzir mensagens parciais "OK".
+   const originalWrite=process.stdout.write;
+   let output="";
+   process.stdout.write=function(chunk){output+=String(chunk);return true;};
+   try {
+     fs.appendFileSync(path.join(dir,names[3]),"corrompido");
+     assert.throws(()=>verify(dir),/Hash divergente/);
+     assert.equal(output,"","nenhum pacote deve ser anunciado como OK antes da validação completa");
+     fs.writeFileSync(path.join(dir,names[3]),"fixture-3");
+     verify(dir);
+     assert.equal((output.match(/^OK /gm)||[]).length,4);
+   } finally {process.stdout.write=originalWrite;}
    fs.appendFileSync(path.join(dir,names[0]),"alterado");
    assert.throws(()=>verify(dir),/Hash divergente/);
    fs.writeFileSync(path.join(dir,names[0]),"fixture-0");
