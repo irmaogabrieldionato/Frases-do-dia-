@@ -312,11 +312,25 @@
         if (epoch === playbackEpoch) { phase = "idle"; render(); }
         return false;
       }
+      // Se o sistema interromper o áudio durante uma sequência longa, não
+      // avance silenciosamente para a fase de resposta como se tivesse tocado.
+      if (!audioContext || audioContext.state !== "running") {
+        phase = "idle";
+        setMessage("O áudio foi interrompido. Toque em Reproduzir para ouvir a sequência novamente.", "error");
+        render();
+        return false;
+      }
       tone(id);
       if (hasPreview) flash(id);
       await delay(core.TEMPOS[preferences.tempo]);
     }
     if (epoch !== playbackEpoch || mode !== owner) return false;
+    if (!audioContext || audioContext.state !== "running") {
+      phase = "idle";
+      setMessage("O áudio foi interrompido. Toque em Reproduzir para ouvir a sequência novamente.", "error");
+      render();
+      return false;
+    }
     phase = owner === "memory" ? "input" : "idle";
     setMessage(owner === "memory"
       ? "Agora repita a sequência! Cada erro conta como uma derrota."
