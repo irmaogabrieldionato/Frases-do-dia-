@@ -241,6 +241,51 @@ async function run() {
     console.log("✓ Reprodução da fase 1.000 inicia e cancela sem bloquear a UI (" +
       (Date.now() - finalPlaybackStarted) + " ms, incluindo espera de cancelamento)");
 
+    // Regressão dinâmica: o contexto pode ser suspenso no meio das mil notas.
+    // Não acelerar nem reproduzir toda a fase; validar a interrupção real do laço.
+    const interruptedPage = await context.newPage();
+    await interruptedPage.addInitScript(() => {
+      const NativeContext = window.AudioContext || window.webkitAudioContext;
+      window.__interruptSevenNoteAudio = false;
+      window.AudioContext = class {
+        constructor() {
+          const ctx = new NativeContext();
+          const nativeState = Object.getOwnPropertyDescriptor(
+            Object.getPrototypeOf(ctx), "state"
+          );
+          Object.defineProperty(ctx, "state", {
+            configurable: true,
+            get() {
+              return window.__interruptSevenNoteAudio ? "suspended" :
+                (nativeState ? nativeState.get.call(ctx) : "running");
+            }
+          });
+          return ctx;
+        }
+      };
+    });
+    await interruptedPage.goto(url, { waitUntil: "domcontentloaded" });
+    await interruptedPage.evaluate(() => {
+      localStorage.setItem("seven-note-musical-game:v2",
+        JSON.stringify({ level: 1000, best: 1000, completed: false,
+          totalWins: 999, points: 500000, totalLosses: 2 }));
+    });
+    await interruptedPage.reload({ waitUntil: "domcontentloaded" });
+    await interruptedPage.locator("#play-button").click();
+    await interruptedPage.waitForFunction(() =>
+      document.getElementById("message").textContent.includes("Escute com atenção"));
+    await interruptedPage.evaluate(() => { window.__interruptSevenNoteAudio = true; });
+    await interruptedPage.waitForFunction(() =>
+      document.getElementById("message").textContent.includes("O áudio foi interrompido"),
+      { timeout: 10000 });
+    assert.equal(await interruptedPage.locator("#play-button").isEnabled(), true,
+      "Áudio suspenso durante a fase 1.000 deve liberar nova tentativa");
+    assert.equal(await interruptedPage.locator("#wins").textContent(), "999");
+    assert.equal(await interruptedPage.locator("#level").textContent(), "1000");
+    assert.equal(await interruptedPage.locator("#losses").textContent(), "2");
+    await interruptedPage.close();
+    console.log("✓ Suspensão dinâmica do áudio na fase 1.000 não concede vitória nem bloqueia reinício");
+
     // Testa a transição real do motor no último acerto, sem falsificar o estado final no storage.
     const finalTransition = await page.evaluate(() => {
       const core = window.SevenNoteCore;
