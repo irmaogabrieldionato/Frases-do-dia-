@@ -89,4 +89,34 @@ public class TaskTimeHistoryTest {
                 s("b", "task", "2026-11-12", TaskTimeHistory.Kind.STOPWATCH, 1, 0)
         ), "task");
     }
+    @Test public void occurrenceFilterKeepsIndividualSessionsWithoutMixingDatesOrTasks() {
+        TaskTimeHistory.Session first = s("a", "study", "2026-11-11",
+                TaskTimeHistory.Kind.STOPWATCH, 2700000, 0);
+        TaskTimeHistory.Session second = s("b", "study", "2026-11-11",
+                TaskTimeHistory.Kind.TIMER, 1200000, 1800000);
+        List<TaskTimeHistory.Session> result = TaskTimeHistory.forOccurrence(Arrays.asList(
+                first, s("other-date", "study", "2026-11-12",
+                        TaskTimeHistory.Kind.TIMER, 2000, 3000),
+                second, s("other-task", "work", "2026-11-11",
+                        TaskTimeHistory.Kind.STOPWATCH, 1000, 0)
+        ), "study", "2026-11-11");
+        assertEquals(2, result.size());
+        assertSame(first, result.get(0));
+        assertSame(second, result.get(1));
+        assertEquals(1800000, result.get(1).targetMillis);
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void occurrenceFilterResultIsImmutable() {
+        TaskTimeHistory.forOccurrence(Collections.singletonList(
+                s("a", "study", "2026-11-11", TaskTimeHistory.Kind.TIMER, 1, 2)),
+                "study", "2026-11-11").clear();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void occurrenceFilterRejectsMissingDate() {
+        TaskTimeHistory.forOccurrence(Collections.<TaskTimeHistory.Session>emptyList(),
+                "study", " ");
+    }
+
 }
