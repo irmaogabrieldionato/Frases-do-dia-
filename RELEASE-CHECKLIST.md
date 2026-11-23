@@ -209,3 +209,12 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - `tests/release-readiness.test.cjs`: regressão estática para exigir verificações durante e ao final da reprodução. Commit `f6bd839`.
 - **Validação pendente:** conferir GitHub Actions após estes commits, especialmente Chromium/WebKit; teste estático não simula uma interrupção real de hardware. Não foi executado teste físico nem afirmada aprovação dos commits atuais.
 - **Próximo foco:** cenário dinâmico de interrupção do AudioContext durante a fase 1.000 e medição real da reprodução completa, além de validar artefatos de publicação.
+
+## Evolução de 23/11/2026 — falha transitória de dependências Android no CI
+
+- Lidos `RELEASE-CHECKLIST.md`, `PACKAGES.md` e `README-7-NOTE.md` e conferidos jobs e logs reais do Actions.
+- Testes [45167538293](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45167538293): **4/4 success** (regras, Chromium, WebKit e ZIP), validando a revisão anterior de áudio.
+- Pacotes [45167538036](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45167538036): **3/4 success**. Validação, iOS e Windows aprovados; **Android/TV falhou antes de gerar artefatos**. Log do job `137668465024` mostra HTTP **429 Too Many Requests** do Maven Central ao buscar `com.google.code.findbugs:jsr305:3.0.2`. Não há evidência nessa execução de erro de Android Lint ou código do aplicativo: a resolução de dependências foi interrompida antes.
+- Alterado exclusivamente `.github/workflows/packages-7-note.yml` para repetir a execução completa do Gradle até três vezes, com esperas progressivas de 45 e 90 segundos; falhas persistentes continuam retornando erro. Commit `b22132d`.
+- **Validação pendente:** conferir nova execução do workflow no commit `b22132d` e exigir APK/AAB Android/TV e relatórios Lint válidos; o retry não prova que o serviço externo responderá. Não houve teste físico, assinatura ou publicação.
+- **Próximo foco:** se a falha 429 persistir, investigar cache/dependências e disponibilidade do Maven Central; depois implementar teste dinâmico de interrupção de áudio na fase 1.000.
