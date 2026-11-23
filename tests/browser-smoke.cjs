@@ -175,6 +175,25 @@ async function run() {
     assert.deepEqual(campaignAudit, { valid: true, level: 1000, finalLength: 1000 },
       "Campanha deve manter os prefixos e terminar exatamente na fase 1.000");
     console.log("✓ Campanha completa: 1.000 prefixos estáveis e fase 1.001 proibida");
+    // A fase final precisa iniciar sem percorrer as mil notas sincronicamente.
+    // Interromper uma reprodução longa não pode deixar a UI travada ou premiar o jogador.
+    const finalPlaybackStarted = Date.now();
+    await page.locator("#play-button").click();
+    assert.match(await page.locator("#message").textContent(), /Escute com atenção/);
+    assert.equal(await page.locator("#play-button").isDisabled(), true,
+      "A fase 1.000 deve bloquear novas reproduções enquanto toca");
+    await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
+    assert.equal(await page.locator("#play-button").isEnabled(), true,
+      "Interromper a fase 1.000 deve liberar o botão imediatamente");
+    await page.waitForTimeout(400);
+    assert.equal(await page.locator("#play-button").isEnabled(), true,
+      "Temporizadores pendentes da fase 1.000 não podem rebloquear o botão");
+    assert.equal(await page.locator("#level").textContent(), "1000");
+    assert.equal(await page.locator("#wins").textContent(), "999",
+      "Interromper a reprodução não deve registrar vitória");
+    console.log("✓ Reprodução da fase 1.000 inicia e cancela sem bloquear a UI (" +
+      (Date.now() - finalPlaybackStarted) + " ms, incluindo espera de cancelamento)");
+
     // Testa a transição real do motor no último acerto, sem falsificar o estado final no storage.
     const finalTransition = await page.evaluate(() => {
       const core = window.SevenNoteCore;
