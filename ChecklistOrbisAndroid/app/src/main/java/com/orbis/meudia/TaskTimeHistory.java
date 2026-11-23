@@ -38,6 +38,8 @@ public final class TaskTimeHistory {
                 int day = Integer.parseInt(occurrenceDate.substring(8, 10));
                 java.util.GregorianCalendar calendar = new java.util.GregorianCalendar();
                 calendar.setLenient(false);
+                // ISO dates use the proleptic Gregorian calendar, including historical dates.
+                calendar.setGregorianChange(new java.util.Date(Long.MIN_VALUE));
                 calendar.clear();
                 calendar.set(year, month - 1, day);
                 calendar.getTimeInMillis();
@@ -136,6 +138,8 @@ public final class TaskTimeHistory {
             int day = Integer.parseInt(date.substring(8, 10));
             java.util.GregorianCalendar calendar = new java.util.GregorianCalendar();
             calendar.setLenient(false);
+            // ISO dates use the proleptic Gregorian calendar, including historical dates.
+            calendar.setGregorianChange(new java.util.Date(Long.MIN_VALUE));
             calendar.clear();
             calendar.set(year, month - 1, day);
             calendar.getTimeInMillis();
