@@ -2,6 +2,7 @@ package com.orbis.meudia;
 
 import org.junit.Test;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import static org.junit.Assert.*;
@@ -79,6 +80,24 @@ public class TaskTimeHistoryCodecTest {
     public void restoreRejectsCorruptImport() {
         TaskTimeHistoryCodec.mergeForRestore(Collections.<TaskTimeHistory.Session>emptyList(),
                 "ORBIS-TIME-1\\n1\\ncorrupt");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void rejectsUtf8PayloadLargerThanByteLimit() {
+        StringBuilder text = new StringBuilder();
+        for (int i = 0; i < 400; i++) text.append('界');
+        List<TaskTimeHistory.Session> sessions = new ArrayList<>();
+        for (int i = 0; i < 1800; i++) {
+            sessions.add(new TaskTimeHistory.Session("id-" + i,
+                    text.toString(), "2026-11-11", TaskTimeHistory.Kind.STOPWATCH, 1000, 0));
+        }
+        TaskTimeHistoryCodec.encode(sessions);
+    }
+
+    @Test public void acceptsSmallUtf8Payload() {
+        TaskTimeHistory.Session item = session("日本語", "2026-11-12", TaskTimeHistory.Kind.TIMER);
+        assertEquals(item.taskId, TaskTimeHistoryCodec.decode(
+                TaskTimeHistoryCodec.encode(Collections.singletonList(item))).get(0).taskId);
     }
 
 }
