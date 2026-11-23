@@ -1213,3 +1213,12 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - [c48ed74](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/c48ed744fa392162d113a042eb0cf37ab7f7036b) adiciona testes JVM para 30/02/2026 e 29/02/2028.
 - **CI do SHA final `c48ed74` ainda não confirmado nesta execução**; não declarar APK validado nem teste em aparelho. Sem mudança de dados persistidos, UI, backup global, timers ativos, agenda, integrações externas, `main` ou chaves.
 - Progresso funcional permanece **5/24**; CLOCK-13–16 parciais. Próximo: verificar Actions do SHA final, depois integrar consultas ao fluxo real de interface/backup com testes instrumentados.
+
+
+## Execução 158 — 23/11/2026 — consulta por intervalo de datas do histórico
+- Consultados primeiro os dois documentos obrigatórios. O plano de concorrentes permanece aberto; nenhum dos 15 foi declarado integralmente concluído.
+- Confirmado CI anterior do SHA `c48ed744fa392162d113a042eb0cf37ab7f7036b`: [Actions 45108615315](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45108615315), `completed/success`.
+- [d81443b](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/d81443bb84cd6f02d8869e5ee1df0eae5ed272f0) adiciona `TaskTimeHistory.betweenDates`, filtrando dias por limites inclusivos, tarefa e datas ISO válidas; rejeita intervalo invertido, sem modificar dados.
+- [8ae4c70](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/8ae4c70e93772bee2ac41a8ee45d2cf007efd32f) acrescenta quatro testes JVM: limites inclusivos, isolamento de tarefa, intervalo invertido, data impossível e imutabilidade.
+- [cbda1f9](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/cbda1f99ea17da971a7d012c6c8b0bc1224a0f74) expõe consulta no armazenamento local. **CI dos novos commits não confirmado nesta execução**; sem APK validado nem teste físico.
+- Integração com interface, timers ativos e backup geral ainda pendente; CLOCK-13–16 parciais, **5/24** incrementos concluídos. Nenhuma alteração em `main`, Google Agenda, serviços externos, autenticação ou assinatura.
