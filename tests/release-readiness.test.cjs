@@ -96,3 +96,12 @@ test("conquistas só são redesenhadas quando a condição de desbloqueio muda",
    assert.ok(core.includes("p."+field),field);
  }
 });
+
+// O painel do compositor não deve reconstruir o DOM durante 1.000 entradas no modo Livre.
+test("compositor mantém os chips quando a melodia não muda",()=>{
+ const app=content("app.js");
+ assert.match(app,/let melodyRenderKey = null/);
+ assert.match(app,/if \(key !== melodyRenderKey\)/);
+ assert.match(app,/melodyRenderKey = key/);
+ assert.match(app,/const key = melody\.join\(","\)/);
+});
