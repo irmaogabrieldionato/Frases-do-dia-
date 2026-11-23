@@ -1180,3 +1180,12 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - Confirmado [Actions 45080398224](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45080398224), SHA `fb5c4eb`, **completed/success** para os testes anteriores.
 - [639392d](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/639392d39d1f240e82eb34f2543de91d80f0a0a3) adiciona `TaskTimeHistoryStore.mergeRestore(String)`, conectando o merge versionado já testado à persistência local, sob método sincronizado. Conflitos e corrupção lançam erro antes de gravar; `commit()` reporta sucesso/falha.
 - **Pendente:** CI do SHA `639392d`, teste instrumental da SharedPreferences, integração ao backup global, UI, timers reais e teste físico. Não declarar APK aprovado para este SHA. Não houve mudança de agenda, dados legados, rede, chaves ou branch `main`. Incrementos funcionais permanecem **5/24**, CLOCK-13–16 incompletos.
+
+
+## Execução 154 — 22/11/2026 — limite de bytes no histórico offline
+- Consultados primeiro os dois documentos obrigatórios; preservada a ordem vigente de concorrentes registrada neste progresso.
+- Confirmado CI anterior de `639392d`: [Actions 45085763061](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45085763061) `completed/success`.
+- [22a2f3f](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/22a2f3f87963b2e922b535f5a78d99108107c86a) corrige validação de tamanho do payload do histórico: limite de 2 MB agora verifica bytes UTF-8, além de caracteres Java, impedindo que muitos textos multibyte escapem do limite do armazenamento/importação.
+- [cee4130](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/cee4130cd77e84363c08a7706e7c1c54a7ef11ee) acrescenta dois testes JVM (rejeição de payload Unicode acima do limite em bytes e round-trip Unicode pequeno).
+- **CI novo não confirmado:** [Actions 45091528710](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45091528710) estava `in_progress` para SHA intermediário `22a2f3f`; ainda falta CI para `cee4130`. Não afirmar APK, teste físico, regressão ou testes finais aprovados.
+- Mudança limitada ao codec/testes: não integra UI, cronômetros ativos, backup global ou autenticação; CLOCK-13–16 continuam parciais e contagem **5/24** inalterada. Agenda offline, sem Google Agenda, `main` intocada.
