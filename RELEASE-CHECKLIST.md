@@ -167,3 +167,10 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - `tests/browser-smoke.cjs`: adicionado teste dinâmico de cancelamento durante a reprodução, verificando que o botão volta a ficar disponível e não bloqueia após um timer pendente. Commit `10522e3`.
 - **Validação pendente:** conferir Chromium/WebKit e os pacotes nos workflows dos commits novos. Não foram executados testes locais nem em hardware físico nesta rodada; `pagehide` sintético não substitui ensaio de navegação real em iOS/Android.
 - **Próximo foco:** validar CI novo e medir reprodução da sequência de mil notas no modo Memória; revisar instalação e assinatura dos artefatos sem publicar.
+
+## Evolução de 23/11/2026 — navegação real e retorno do histórico
+
+- Confirmados os workflows mais recentes do commit `330fc1f`: testes [45125124105](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45125124105) **success** e pacotes [45125110255](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45125110255) **success**. Esses resultados são anteriores ao teste novo.
+- Adicionado em `tests/browser-smoke.cjs` cenário de **navegação real** durante reprodução da Memória: abrir `privacy.html`, voltar pelo histórico, confirmar que a reprodução pode ser reiniciada e que timers anteriores não voltam a bloquear o botão. Complementa o evento `pagehide` sintético já testado. Commit `028fe50`.
+- **Validação pendente:** conferir Chromium/WebKit após este commit; não foi executado Playwright local nem teste em aparelho físico nesta rodada. A navegação real do navegador automatizado não substitui o ensaio de bfcache em Safari/iOS nativo.
+- **Próximo foco:** investigar eventual falha no novo CI e medir a reprodução da sequência de 1.000 notas no modo Memória, além de revisar assinaturas e testes físicos.
