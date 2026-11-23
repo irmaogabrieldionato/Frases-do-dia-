@@ -1260,3 +1260,12 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - [3b62c66](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/3b62c664bfb4dfafe211c17800588b396a494bb7) corrige os testes usando `Character.toString((char) 0xD83D)`, `Character.toString((char) 0xDC00)` e `Character.toChars(0x1F680)`, sem alterar o código de produção.
 - **CI do SHA final 3b62c66 ainda não confirmado**. A alteração foi inspecionada estaticamente; testes JVM, instrumentados Android, aparelho físico, regressões e APK novo não foram validados nesta execução. Confirmar GitHub Actions antes de declarar sucesso; caso falhe, corrigir antes de seguir.
 - Contagem funcional **5/24**, CLOCK-13–16 parciais, nenhum concorrente concluído. Interface, timers reais e backup global continuam pendentes. Assinatura release bloqueada por keystore privado/secrets; sem Google Agenda/API, serviços externos ou alterações na `main`.
+
+
+## Execução 163 — 23/11/2026 — validação Unicode na importação
+- Consultados primeiro este progresso e o inventário competitivo. Microsoft To Do continua em foco conforme a ordem revisada registrada anteriormente; nenhum concorrente concluído.
+- Confirmado [Actions 45142845408](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45142845408) para SHA `3b62c66`: `completed/success`. A execução anterior [45134479192](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45134479192) havia falhado, antes da correção dos testes.
+- [06aa62d](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/06aa62d44dba94ce7da729354be44f4c29d000a4) aplica a validação UTF-16 também ao caminho de leitura/importação de campos do histórico; anteriormente a validação existia apenas na exportação, permitindo texto malformado vindo de payload externo.
+- [28703ac](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/28703ac690815031e8b757c712bc63f0d87cfa4) adiciona dois testes JVM de importação com surrogate alto/baixo isolados.
+- **CI dos commits novos ainda não confirmado**; não declarar testes aprovados, APK validado ou teste físico. O formato de dados válidos permanece inalterado; nenhuma integração externa ou Google Agenda, nem modificação da `main`.
+- Funcionalidades **5/24**; CLOCK-13–16 parciais. Próximos passos: confirmar CI, integração com UI/timers reais e backup geral; assinatura release depende de keystore e secrets privados.
