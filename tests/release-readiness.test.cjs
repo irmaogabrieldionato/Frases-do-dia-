@@ -105,3 +105,13 @@ test("compositor mantém os chips quando a melodia não muda",()=>{
  assert.match(app,/melodyRenderKey = key/);
  assert.match(app,/const key = melody\.join\(","\)/);
 });
+
+test("reprodução interrompida não habilita respostas silenciosas", () => {
+ const app=content("app.js");
+ const section=app.slice(app.indexOf("async function playSequence("),app.indexOf("async function startMemory("));
+ assert.match(section,/for \(const id of sequence\)/);
+ assert.equal((section.match(/audioContext\.state !== "running"/g)||[]).length,2,
+   "verificar interrupção durante e ao concluir a reprodução");
+ assert.match(section,/phase = "idle";[\s\S]*?setMessage\("O áudio foi interrompido/);
+ assert.match(section,/phase = owner === "memory" \? "input" : "idle"/);
+});
