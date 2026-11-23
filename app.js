@@ -148,7 +148,12 @@
     if (reveal) flash(id);
   }
 
+  let achievementRenderKey = null;
   function renderAchievements() {
+    // Conquistas mudam somente com o progresso, não a cada nota pressionada.
+    const key = [progress.level, progress.best, progress.completed, progress.totalWins,
+      progress.totalLosses, progress.earBest, progress.earCorrect].join(":");
+    if (key === achievementRenderKey) return;
     const all = core.achievements(progress);
     $("achievement-count").textContent = all.filter((item) => item.unlocked).length + "/" + all.length;
     const list = $("achievement-list");
@@ -169,6 +174,7 @@
       card.append(icon, label);
       list.appendChild(card);
     });
+    achievementRenderKey = key;
   }
 
   function renderMelody() {
