@@ -199,3 +199,13 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Adicionado teste de navegador `tests/browser-smoke.cjs`: primeira tentativa recebe um contexto encerrado e falha de forma recuperável; segunda tentativa usa um contexto válido e chega ao estado de entrada, preservando nível e vitórias. Commit `1f0c12c`.
 - **Validação pendente:** confirmar os novos jobs Chromium/WebKit e empacotamento após os commits; os testes não foram executados localmente nem em dispositivo físico nesta rodada. A simulação de contexto encerrado não substitui um ensaio de interrupção de áudio real no iOS/Android.
 - **Próximo foco:** inspecionar o CI desta revisão, medir reprodução integral de 1.000 notas no modo Memória e verificar estabilidade do áudio em aparelhos reais.
+
+
+## Evolução de 23/11/2026 — interrupção de áudio durante a reprodução
+
+- Conferidos os documentos `RELEASE-CHECKLIST.md`, `PACKAGES.md` e `README-7-NOTE.md`. Os workflows anteriores concluíram com **success**: [testes 45158346471](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45158346471) (commit `53eecd3`) e [pacotes 45158325226](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45158325226) (commit `1f0c12c`).
+- Identificado risco adicional: durante uma sequência longa, o contexto de áudio pode deixar de estar `running` depois da preparação inicial. O laço continuava silenciosamente e podia liberar a fase de resposta como se as notas tivessem sido ouvidas.
+- `app.js`: interromper a reprodução e devolver o estado para `idle` quando o áudio parar durante a sequência ou antes da transição final para entrada; informar ao jogador que deve reproduzir novamente. Commit `2845ee1`.
+- `tests/release-readiness.test.cjs`: regressão estática para exigir verificações durante e ao final da reprodução. Commit `f6bd839`.
+- **Validação pendente:** conferir GitHub Actions após estes commits, especialmente Chromium/WebKit; teste estático não simula uma interrupção real de hardware. Não foi executado teste físico nem afirmada aprovação dos commits atuais.
+- **Próximo foco:** cenário dinâmico de interrupção do AudioContext durante a fase 1.000 e medição real da reprodução completa, além de validar artefatos de publicação.
