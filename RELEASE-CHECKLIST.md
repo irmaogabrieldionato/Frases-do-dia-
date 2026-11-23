@@ -112,3 +112,11 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Adicionado teste estático de regressão em `tests/release-readiness.test.cjs` para verificar reutilização em reprodução e avaliação.
 - **Validação pendente:** conferir os novos workflows após os commits. Não foi realizado benchmark de hardware ou teste físico nesta rodada; o teste estático não substitui medição de desempenho.
 - **Próximo foco:** medir a latência de entrada na fase 1.000 em Chromium/WebKit e confirmar pacotes atualizados.
+
+## Evolução de 22/11/2026 — renderização de conquistas na fase 1.000
+
+- Confirmados testes no commit `83712168` com **success** ([45084386409](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45084386409)) e pacotes no commit `b6eaccb6` com **success** ([45084384095](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45084384095)). São resultados anteriores à otimização desta seção.
+- Identificada reconstrução integral do DOM das seis conquistas a cada resposta musical, inclusive nas 1.000 respostas da fase final. Em `app.js`, agora o painel é reconstruído somente quando muda uma das seis condições efetivas de desbloqueio; a renderização inicial continua obrigatória. Commits `38f470f` e `b8cff67`.
+- Acrescentado teste de regressão para as condições de cache em `tests/release-readiness.test.cjs`. Commit `3579bb8`.
+- **Validação pendente:** confirmar CI após os commits desta seção e medir latência em Chromium/WebKit/dispositivo real. Não foi executado benchmark ou teste físico nesta rodada. O teste novo é estático, não mede FPS.
+- **Próximo foco:** verificar os novos workflows e executar medição automatizada de latência de entrada e renderização da fase 1.000.
