@@ -27,7 +27,19 @@ function verify(dir) {
     const file = path.join(dir, name);
     const stat = fs.lstatSync(file);
     if (!stat.isFile() || stat.size === 0) throw new Error("Pacote inválido: " + name);
-    const actual = crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
+    // Processar APK/AAB em blocos de 1 MiB evita carregar bundles inteiros na RAM.
+    const hash = crypto.createHash("sha256");
+    const fd = fs.openSync(file, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0));
+    try {
+      const buffer = Buffer.allocUnsafe(1024 * 1024);
+      let count;
+      while ((count = fs.readSync(fd, buffer, 0, buffer.length, null)) !== 0) {
+        hash.update(buffer.subarray(0, count));
+      }
+    } finally {
+      fs.closeSync(fd);
+    }
+    const actual = hash.digest("hex");
     if (actual !== entries.get(name)) throw new Error("Hash divergente: " + name);
   }
   // Só anunciar sucesso depois que TODOS os quatro pacotes forem validados.
