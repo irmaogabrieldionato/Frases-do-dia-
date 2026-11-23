@@ -138,5 +138,13 @@ test("manifesto SHA256 portátil rejeita alteração, duplicata e arquivo ausent
    fs.writeFileSync(path.join(dir,"SHA256SUMS.txt"),lines.join("\n"));
    fs.unlinkSync(path.join(dir,names[3]));
    assert.throws(()=>verify(dir),/ENOENT/);
+   fs.writeFileSync(path.join(dir,names[3]),"fixture-3");
+   fs.writeFileSync(path.join(dir,"SHA256SUMS.txt"),"x".repeat(513));
+   assert.throws(()=>verify(dir),/Manifesto SHA256 inválido/);
+   fs.writeFileSync(path.join(dir,"SHA256SUMS.txt"),lines.join("\n")+"\n");
+   const original=path.join(dir,"original-manifest.txt");
+   fs.renameSync(path.join(dir,"SHA256SUMS.txt"),original);
+   fs.symlinkSync(original,path.join(dir,"SHA256SUMS.txt"));
+   assert.throws(()=>verify(dir),/Manifesto SHA256 inválido/);
  } finally {fs.rmSync(dir,{recursive:true,force:true});}
 });
