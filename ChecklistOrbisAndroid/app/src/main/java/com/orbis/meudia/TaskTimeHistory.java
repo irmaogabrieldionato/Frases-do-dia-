@@ -111,6 +111,23 @@ public final class TaskTimeHistory {
         return value == null || value.trim().isEmpty();
     }
 
+    /** Returns individual sessions for exactly one task occurrence, in original order. */
+    public static List<Session> forOccurrence(List<Session> sessions,
+                                               String taskId, String occurrenceDate) {
+        if (sessions == null || blank(taskId) || blank(occurrenceDate)) {
+            throw new IllegalArgumentException("Missing input");
+        }
+        List<Session> result = new ArrayList<>();
+        for (Session session : sessions) {
+            if (session == null) throw new IllegalArgumentException("Null session");
+            if (taskId.equals(session.taskId)
+                    && occurrenceDate.equals(session.occurrenceDate)) {
+                result.add(session);
+            }
+        }
+        return Collections.unmodifiableList(result);
+    }
+
     /** Groups a task's sessions by occurrence date; does not mix other tasks. */
     public static List<Day> byDate(List<Session> sessions, String taskId) {
         if (sessions == null || blank(taskId)) throw new IllegalArgumentException("Missing input");
