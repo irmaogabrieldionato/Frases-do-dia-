@@ -150,6 +150,8 @@ jobs:
             sha256sum app-mobile-debug.apk app-tv-debug.apk app-mobile-release.aab app-tv-release.aab > SHA256SUMS.txt
             sha256sum --check --strict SHA256SUMS.txt
           )
+          # Exercitar também o verificador distribuído com os binários reais do build.
+          node scripts/verify-android-packages.cjs native/android/checksums
       - uses: actions/upload-artifact@v4
         with:
           name: 7-note-Android-TV-SHA256
