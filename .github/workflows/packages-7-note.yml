@@ -123,6 +123,10 @@ jobs:
           done
           grep -F "targetSdkVersion:'36'" /tmp/mobile-badging.txt
           grep -F "targetSdkVersion:'35'" /tmp/tv-badging.txt
+          # Verificar a integridade de cada APK antes de distribuir o artefato.
+          for flavor in mobile tv; do
+            unzip -t "native/android/app/build/outputs/apk/$flavor/debug/app-$flavor-debug.apk" >/dev/null
+          done
           # Auditar o conteúdo real dos dois bundles, não apenas seu tamanho.
           for flavor in mobile tv; do
             BUNDLE="native/android/app/build/outputs/bundle/${flavor}Release/app-${flavor}-release.aab"
@@ -134,6 +138,17 @@ jobs:
             sha256sum "$BUNDLE"
             sha256sum "native/android/app/build/outputs/apk/$flavor/debug/app-$flavor-debug.apk"
           done
+          # Publicar checksums verificáveis junto aos pacotes, não apenas nos logs.
+          mkdir -p native/android/checksums
+          sha256sum native/android/app/build/outputs/apk/{mobile,tv}/debug/*.apk \
+            native/android/app/build/outputs/bundle/{mobile,tv}Release/*.aab \
+            > native/android/checksums/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 7-note-Android-TV-SHA256
+          path: native/android/checksums/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
       - uses: actions/upload-artifact@v4
         with:
           name: 7-note-Android-APK-debug
