@@ -1222,3 +1222,13 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - [8ae4c70](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/8ae4c70e93772bee2ac41a8ee45d2cf007efd32f) acrescenta quatro testes JVM: limites inclusivos, isolamento de tarefa, intervalo invertido, data impossível e imutabilidade.
 - [cbda1f9](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/cbda1f99ea17da971a7d012c6c8b0bc1224a0f74) expõe consulta no armazenamento local. **CI dos novos commits não confirmado nesta execução**; sem APK validado nem teste físico.
 - Integração com interface, timers ativos e backup geral ainda pendente; CLOCK-13–16 parciais, **5/24** incrementos concluídos. Nenhuma alteração em `main`, Google Agenda, serviços externos, autenticação ou assinatura.
+
+
+## Execução 159 — 23/11/2026 — totalização de histórico por intervalo
+- Consultados primeiro os dois documentos obrigatórios na branch `checklist-orbis`. Respeitada a ordem vigente registrada neste progresso (Microsoft To Do em foco; Todoist e TickTick adiados por instrução posterior). Nenhum concorrente declarado concluído.
+- Confirmado CI do código anterior `cbda1f9`: [Actions 45114335932](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45114335932) `completed/success`.
+- [86326c9](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/86326c9558707d73e632c6af2c13c8d1329bae04) adiciona `TaskTimeHistory.totalBetweenDates`: somatório por tarefa e intervalo inclusivo, separando cronômetro, timer decorrido e timer programado, com `Math.addExact`.
+- [4fba47c](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/4fba47cce20617a80e0291c313b3d2fdc3f60e31) expõe consulta no armazenamento offline; [41c3d0b](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/41c3d0b1ae907b1512fd988268f7c4f6fd2e1a8c) acrescenta três testes JVM (limites inclusivos, isolamento por tarefa, vazio e intervalo invertido).
+- CI intermediário [45120276143](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45120276143) estava `in_progress`; **CI do SHA final 41c3d0b ainda não confirmado**. Não afirmar APK validado, teste em dispositivo nem ausência de regressões.
+- Funcionalidade ainda isolada da interface, timers reais e backup geral; progresso funcional permanece **5/24**. Assinatura estável bloqueada por falta de keystore privado e secrets. Sem Google Agenda/API, sem rede, sem alteração na `main`.
+- Próximo: confirmar CI do SHA final; integrar registros reais e backup geral com testes instrumentados antes de marcar CLOCK-13–16 concluídos.
