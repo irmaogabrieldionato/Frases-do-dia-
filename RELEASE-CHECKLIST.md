@@ -151,3 +151,11 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Em `tests/browser-smoke.cjs`, acrescentada auditoria no motor efetivamente carregado pela interface: todas as 1.000 fases têm exatamente seu número de notas, preservam integralmente o prefixo anterior, respeitam as nove notas iniciais aprovadas e rejeitam a fase 1.001. Commit `a55c521`.
 - **Validação pendente:** verificar o CI Chromium/WebKit após `a55c521`; o teste novo ainda não foi executado localmente nesta rodada. Não equivale a tocar ou ouvir fisicamente as mil notas, nem valida instalações em aparelhos reais.
 - **Próximo foco:** conferir os resultados deste commit, depois medir reprodução da sequência completa no modo Memória e revisar artefatos e Android Lint atualizados.
+
+
+## Evolução de 23/11/2026 — transição real da última nota
+
+- Verificados os três documentos de lançamento e os resultados mais recentes do Actions: testes no commit `441d869` [45112729241](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45112729241) **success**; testes no commit `a55c521` [45112717954](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45112717954) **success**; pacotes no commit `a55c521` [45112717971](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45112717971) **success**. Esses resultados são anteriores à nova alteração.
+- Acrescentada verificação dinâmica no Playwright da transição do penúltimo e último acerto da fase 1.000 pelo motor real: resultado `correct` antes da última nota, `win` na última, `completed=true`, 1.000 vitórias, nível fixado em 1.000, conquista final desbloqueada, persistência após serialização e impossibilidade de pontuar novamente após concluir. Commits `05bd4bc` e `62581d4` (ajuste da ordem dos parâmetros).
+- **Validação pendente:** conferir o workflow de testes disparado após `62581d4`, em Chromium e WebKit. Não foi executado Playwright local, teste físico ou medição de reprodução sonora de 1.000 notas nesta rodada.
+- **Próximo foco:** conferir CI e artefatos atualizados; medir reprodução/latência da fase 1.000 no modo Memória sem reduzir a duração real da sequência; continuar revisão de instalação e política de privacidade.
