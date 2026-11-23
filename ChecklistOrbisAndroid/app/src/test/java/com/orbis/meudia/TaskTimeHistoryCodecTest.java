@@ -100,4 +100,22 @@ public class TaskTimeHistoryCodecTest {
                 TaskTimeHistoryCodec.encode(Collections.singletonList(item))).get(0).taskId);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void rejectsUnpairedHighSurrogateBeforePersisting() {
+        TaskTimeHistoryCodec.encode(Collections.singletonList(
+                session("broken\\uD83D", "2026-11-11", TaskTimeHistory.Kind.TIMER)));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void rejectsUnpairedLowSurrogateBeforePersisting() {
+        TaskTimeHistoryCodec.encode(Collections.singletonList(
+                session("broken\\uDC00", "2026-11-11", TaskTimeHistory.Kind.STOPWATCH)));
+    }
+
+    @Test public void acceptsValidSurrogatePairWithoutLoss() {
+        TaskTimeHistory.Session item = session("emoji-\\uD83D\\uDE80", "2026-11-11", TaskTimeHistory.Kind.TIMER);
+        assertEquals(item.id, TaskTimeHistoryCodec.decode(TaskTimeHistoryCodec.encode(
+                Collections.singletonList(item))).get(0).id);
+    }
+
 }
