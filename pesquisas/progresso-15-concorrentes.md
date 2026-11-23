@@ -1311,3 +1311,12 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - [27d390a](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/27d390a1ce5ac461228226baa7fc283c7946ed55) acrescenta dois testes JVM para contagem correta e overflow.
 - CI do novo SHA ainda não confirmado nesta execução. Testes escritos não significam testes executados; nenhum APK ou dispositivo físico validado. Contagem funcional 5/24 inalterada, CLOCK-13–16 parciais. Integração com UI/timers reais/backup geral e assinatura release ainda pendentes.
 - Agenda própria e offline, sem Google Agenda/API ou serviços externos; main não alterada.
+
+
+## Execução 169 — 23/11/2026 — auditoria de CI e bloqueios
+- Consultados primeiro os dois documentos obrigatórios na branch `checklist-orbis`; mantida a ordem revisada (Microsoft To Do em foco, Todoist e TickTick ao final) e 0/15 concorrentes integralmente concluídos.
+- **CI da execução 168 confirmado** por consulta à API oficial do GitHub Actions: [run 45199585472](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45199585472), `completed/success`, SHA `27d390a1ce5ac461228226baa7fc283c7946ed55`, iniciado em 23/11/2026 às 14:56 UTC e concluído às 14:57 UTC. Isso confirma o workflow configurado, não testes físicos ou instrumentados.
+- Inspecionado `TaskTimeHistory.java`: `workedMillis()` soma cronômetro e timer decorrido via `Math.addExact`, excluindo tempo-alvo; `withoutSession` rejeita IDs duplicados antes de excluir. Não foi introduzida alteração funcional sem teste nesta execução.
+- **Bloqueios**: histórico ainda não integrado à UI, aos timers reais e ao backup global; faltam testes Android instrumentados e restauração em dispositivo; assinatura release depende de keystore privado e secrets seguros, sem chaves no Git.
+- **Próximo incremento de produto**: integrar o histórico de tempo ao backup geral com versão e restauração atômica, preservar compatibilidade com backups legados e testar ida/volta e falhas de importação antes de alterar a interface. Contagem funcional permanece **5/24**; nenhuma alegação de APK de release assinado ou de concorrente concluído.
+- Agenda própria, offline, sem API ou integração com Google Agenda; nenhuma alteração na branch `main`.
