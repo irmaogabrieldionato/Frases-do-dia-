@@ -168,3 +168,13 @@ test("verificador de APK/AAB calcula SHA256 em blocos sem carregar pacote inteir
  assert.match(verifier,/hash\.update\(buffer\.subarray\(0, count\)\)/);
  assert.doesNotMatch(verifier,/fs\.readFileSync\(file\)/);
 });
+
+
+test("verificador valida identidade e tipo do arquivo após abrir o descritor",()=>{
+ const verifier=content("scripts/verify-android-packages.cjs");
+ assert.match(verifier,/fs\.fstatSync\(fd\)/);
+ assert.match(verifier,/opened\.isFile\(\)/);
+ assert.match(verifier,/opened\.dev !== stat\.dev/);
+ assert.match(verifier,/opened\.ino !== stat\.ino/);
+ assert.match(verifier,/finally \{\s*fs\.closeSync\(fd\)/);
+});
