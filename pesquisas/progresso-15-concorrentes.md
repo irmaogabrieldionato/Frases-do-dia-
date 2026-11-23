@@ -1189,3 +1189,10 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - [cee4130](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/cee4130cd77e84363c08a7706e7c1c54a7ef11ee) acrescenta dois testes JVM (rejeição de payload Unicode acima do limite em bytes e round-trip Unicode pequeno).
 - **CI novo não confirmado:** [Actions 45091528710](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45091528710) estava `in_progress` para SHA intermediário `22a2f3f`; ainda falta CI para `cee4130`. Não afirmar APK, teste físico, regressão ou testes finais aprovados.
 - Mudança limitada ao codec/testes: não integra UI, cronômetros ativos, backup global ou autenticação; CLOCK-13–16 continuam parciais e contagem **5/24** inalterada. Agenda offline, sem Google Agenda, `main` intocada.
+
+
+## Execução 155 — 22/11/2026 — consulta local do histórico por tarefa
+- Consultados primeiro os dois documentos obrigatórios. Confirmado CI de `cee4130`: [Actions 45091538986](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45091538986), `completed/success`.
+- [41c13b5](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/41c13b54c416af704a1353aca5066a0a60954941) adiciona a `TaskTimeHistoryStore` métodos somente leitura `daysForTask(taskId)`, `totalForTask(taskId)` e `exportSnapshot()`, reutilizando agregador e codec versionado existentes. O snapshot não está conectado ao backup geral; não afirmar exportação disponível ao usuário.
+- Testes unitários existentes cobrem separação por data/tarefa, totalização e round-trip; **CI do novo SHA ainda não confirmado** e faltam testes instrumentados do armazenamento e integração real com interface, timers e backup. Sem APK novo validado para este SHA.
+- Contagem funcional **5/24**, CLOCK-13–16 parciais, concorrentes não concluídos. Branch `main` intocada, agenda própria e offline, sem Google Agenda/API, sem serviços externos ou chaves.
