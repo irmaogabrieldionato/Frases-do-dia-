@@ -159,8 +159,8 @@ async function run() {
       const before = core.sanitizeProgress({
         level: 1000, best: 1000, completed: false, totalWins: 999, points: 500000
       });
-      const penultimate = core.evaluateNote(sequence, sequence[998], 998);
-      const last = core.evaluateNote(sequence, sequence[999], 999);
+      const penultimate = core.evaluateNote(sequence, 998, sequence[998]);
+      const last = core.evaluateNote(sequence, 999, sequence[999]);
       const finished = core.advanceLevel(before);
       const repeated = core.advanceLevel(finished);
       const persisted = core.sanitizeProgress(JSON.parse(JSON.stringify(finished)));
