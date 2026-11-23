@@ -1302,3 +1302,12 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - [d2de640](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/d2de640937f4d518c5510be2ca7e760691c096b5) acrescenta dois testes JVM: duplicação não relacionada à sessão excluída e preservação de registros distintos/entrada original.
 - **CI do SHA final ainda não confirmado**; testes foram escritos, não comprovadamente executados nesta etapa. Não há APK validado nem teste instrumentado/físico. Verificar Actions do SHA final antes de declarar aprovação.
 - Sem alteração no formato de dados, UI, recorrências, calendário, filtros, idiomas, backup global ou `main`. Progresso funcional permanece **5/24**, CLOCK-13–16 parciais. Integração com timers reais, UI e backup geral segue pendente. Assinatura release requer keystore privado e secrets seguros. Google Agenda/API não utilizados.
+
+
+## Execução 168 — 23/11/2026 — tempo efetivamente trabalhado no histórico
+- Consultados primeiro este progresso e o inventário competitivo; Microsoft To Do em foco, Todoist/TickTick adiados conforme decisão anterior; 0/15 concorrentes concluídos.
+- CI da execução 167 confirmado para SHA de testes d2de640: [Actions 45188698321](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45188698321), completed/success.
+- [0498f36](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/0498f3646e1db88d317fb3ae2f7bbd9b2ca8b7a0) adiciona workedMillis() aos resumos diários e totais, somando apenas cronômetro + timer decorrido, sem incluir meta programada; Math.addExact rejeita overflow.
+- [27d390a](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/27d390a1ce5ac461228226baa7fc283c7946ed55) acrescenta dois testes JVM para contagem correta e overflow.
+- CI do novo SHA ainda não confirmado nesta execução. Testes escritos não significam testes executados; nenhum APK ou dispositivo físico validado. Contagem funcional 5/24 inalterada, CLOCK-13–16 parciais. Integração com UI/timers reais/backup geral e assinatura release ainda pendentes.
+- Agenda própria e offline, sem Google Agenda/API ou serviços externos; main não alterada.
