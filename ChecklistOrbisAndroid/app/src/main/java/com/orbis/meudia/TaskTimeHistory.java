@@ -176,6 +176,24 @@ public final class TaskTimeHistory {
         return Collections.unmodifiableList(result);
     }
 
+    /** Remove exactly one recorded session by ID, without changing any other day or task. */
+    public static List<Session> withoutSession(List<Session> sessions, String sessionId) {
+        if (sessions == null || blank(sessionId)) throw new IllegalArgumentException("Missing input");
+        List<Session> result = new ArrayList<>();
+        boolean found = false;
+        for (Session session : sessions) {
+            if (session == null) throw new IllegalArgumentException("Null session");
+            if (sessionId.equals(session.id)) {
+                if (found) throw new IllegalArgumentException("Duplicate session id");
+                found = true;
+            } else {
+                result.add(session);
+            }
+        }
+        if (!found) throw new IllegalArgumentException("Session not found");
+        return Collections.unmodifiableList(result);
+    }
+
     /** Groups a task's sessions by occurrence date; does not mix other tasks. */
     public static List<Day> byDate(List<Session> sessions, String taskId) {
         if (sessions == null || blank(taskId)) throw new IllegalArgumentException("Missing input");
