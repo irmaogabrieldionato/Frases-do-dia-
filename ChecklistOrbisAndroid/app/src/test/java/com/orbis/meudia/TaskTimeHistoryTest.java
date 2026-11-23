@@ -194,4 +194,28 @@ public class TaskTimeHistoryTest {
         TaskTimeHistory.totalBetweenDates(Collections.<TaskTimeHistory.Session>emptyList(),
                 "work", "2026-11-12", "2026-11-11");
     }
+    @Test public void targetedDeletionPreservesOtherTasksAndDates() {
+        List<TaskTimeHistory.Session> original = Arrays.asList(
+                s("a", "work", "2026-11-11", TaskTimeHistory.Kind.STOPWATCH, 100, 0),
+                s("b", "work", "2026-11-12", TaskTimeHistory.Kind.TIMER, 200, 500),
+                s("c", "other", "2026-11-11", TaskTimeHistory.Kind.STOPWATCH, 300, 0));
+        List<TaskTimeHistory.Session> result = TaskTimeHistory.withoutSession(original, "b");
+        assertEquals(2, result.size());
+        assertEquals("a", result.get(0).id);
+        assertEquals("c", result.get(1).id);
+        assertEquals(3, original.size());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void targetedDeletionRejectsMissingId() {
+        TaskTimeHistory.withoutSession(Collections.<TaskTimeHistory.Session>emptyList(), "missing");
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void targetedDeletionReturnsImmutableList() {
+        TaskTimeHistory.withoutSession(Arrays.asList(
+                s("a", "work", "2026-11-11", TaskTimeHistory.Kind.STOPWATCH, 100, 0),
+                s("b", "work", "2026-11-12", TaskTimeHistory.Kind.TIMER, 200, 500)), "a").clear();
+    }
+
 }
