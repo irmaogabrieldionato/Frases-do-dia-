@@ -1204,3 +1204,12 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - [4f29ea9](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/4f29ea98b483c780e8ed20629a25357300acd2b7), [b052dfc](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/b052dfc088597dda0ca4e5f980094140af83251c) e [a66d243](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/a66d243ddf477b68e2824898520a7fba6e50446c) acrescentam filtro de sessões individuais por `taskId` + data de ocorrência, com resultado imutável, para uso futuro na interface. O armazenamento delega ao método puro Java testável.
 - [44a7a53](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/44a7a5315551f19d0cb0c3fde004b6a69c3e7d7b) adiciona três testes JVM (filtro por tarefa/data e ordem, imutabilidade e rejeição de data ausente).
 - **CI do SHA `44a7a53` ainda não confirmado**. Não afirmar testes novos aprovados, APK novo validado ou teste físico. Ainda faltam ligação com UI, timers ativos, backup geral e testes instrumentados. Contagem funcional **5/24**, CLOCK-13–16 incompletos. Sem Google Agenda, serviços externos, chaves ou alteração de `main`.
+
+
+## Execução 157 — 23/11/2026 — validação de datas na consulta de sessões
+- Consultados primeiro os dois documentos obrigatórios. A ordem vigente preserva Microsoft To Do como concorrente em foco, Todoist e TickTick adiados por instrução anterior; nenhum concorrente concluído nesta etapa.
+- Confirmado [Actions 45103248073](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45103248073), SHA `44a7a53`, `completed/success` (testes da etapa 156).
+- [1126a82](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/1126a82d7889012f7560ebb73699fb27fbc5cf61) valida a data consultada em `TaskTimeHistory.forOccurrence` inclusive calendário real (não apenas formato), rejeitando datas impossíveis mesmo quando não existem sessões.
+- [c48ed74](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/c48ed744fa392162d113a042eb0cf37ab7f7036b) adiciona testes JVM para 30/02/2026 e 29/02/2028.
+- **CI do SHA final `c48ed74` ainda não confirmado nesta execução**; não declarar APK validado nem teste em aparelho. Sem mudança de dados persistidos, UI, backup global, timers ativos, agenda, integrações externas, `main` ou chaves.
+- Progresso funcional permanece **5/24**; CLOCK-13–16 parciais. Próximo: verificar Actions do SHA final, depois integrar consultas ao fluxo real de interface/backup com testes instrumentados.
