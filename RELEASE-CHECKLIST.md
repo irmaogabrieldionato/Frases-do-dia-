@@ -136,3 +136,11 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - `tests/release-readiness.test.cjs`: adicionada verificação estática de regressão da cache. Commit: `9363e28b`.
 - Conferido resultado anterior de quatro jobs aprovados em [testes 45084386409](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45084386409), anterior a estas mudanças.
 - **Validação pendente:** verificar novos jobs Chromium/WebKit e pacotes; não foi medido ganho real em mil entradas, nem executado teste físico. Preservadas as 1.000 fases e todas as regras de jogo.
+
+## Evolução de 23/11/2026 — regressão dinâmica do compositor na fase 1.000
+
+- Revisados `RELEASE-CHECKLIST.md`, `PACKAGES.md` e `README-7-NOTE.md`; inspecionado o cenário Playwright existente de 1.000 entradas e os seletores reais em `index.html`.
+- `tests/browser-smoke.cjs`: o cenário existente agora verifica também que o primeiro chip da composição persiste como o mesmo nó DOM durante 1.000 entradas no modo Livre, além da estabilidade do painel de conquistas. Commits `62cda8c` e `35cf5ed` (correção do seletor para `#sequence-chips`).
+- Consulta de execuções associadas ao commit anterior `e4d80a6` pelo conector retornou lista vazia; esse endpoint consulta apenas execuções disparadas por pull request, portanto **não comprova ausência nem aprovação de CI por push**. A execução nova Chromium/WebKit e os artefatos precisam ser conferidos na página GitHub Actions.
+- **Validação pendente:** teste Playwright ainda não executado localmente nesta rodada; conferir Chromium/WebKit e os jobs de empacotamento posteriores a `35cf5ed`. Nenhuma medição física ou publicação realizada.
+- **Próximo foco:** verificar CI novo, investigar eventual falha e medir reprodução/entrada real da fase 1.000 no modo Memória.
