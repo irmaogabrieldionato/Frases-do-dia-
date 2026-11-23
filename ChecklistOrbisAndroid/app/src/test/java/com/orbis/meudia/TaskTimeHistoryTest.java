@@ -247,4 +247,19 @@ public class TaskTimeHistoryTest {
         s("bad", "work", "1500-02-29", TaskTimeHistory.Kind.STOPWATCH, 1, 0);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void occurrenceQueryRejectsDuplicateIdsAcrossDatesForSameTask() {
+        TaskTimeHistory.forOccurrence(Arrays.asList(
+                s("duplicate", "work", "2026-11-11", TaskTimeHistory.Kind.STOPWATCH, 1, 0),
+                s("duplicate", "work", "2026-11-12", TaskTimeHistory.Kind.TIMER, 2, 3)),
+                "work", "2026-11-11");
+    }
+
+    @Test public void occurrenceQueryIgnoresOtherTasksWithoutMixingSessions() {
+        List<TaskTimeHistory.Session> sessions = Arrays.asList(
+                s("shared", "work", "2026-11-11", TaskTimeHistory.Kind.STOPWATCH, 1, 0),
+                s("shared", "other", "2026-11-11", TaskTimeHistory.Kind.TIMER, 2, 3));
+        assertEquals(1, TaskTimeHistory.forOccurrence(sessions, "work", "2026-11-11").size());
+    }
+
 }
