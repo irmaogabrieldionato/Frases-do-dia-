@@ -85,6 +85,33 @@ async function run() {
     await noAudioPage.close();
     console.log("✓ Falta de Web Audio API informa erro sem bloquear ou alterar progresso");
 
+    // Um AudioContext encerrado pode ocorrer após interrupção do sistema de áudio.
+    // A segunda tentativa deve criar um novo contexto em vez de reutilizar o fechado.
+    const closedAudioPage = await context.newPage();
+    await closedAudioPage.addInitScript(() => {
+      const NativeContext = window.AudioContext || window.webkitAudioContext;
+      let instances = 0;
+      window.AudioContext = class {
+        constructor() {
+          instances += 1;
+          if (instances === 1) return { state: "closed" };
+          return new NativeContext();
+        }
+      };
+    });
+    await closedAudioPage.goto(url, { waitUntil: "domcontentloaded" });
+    await closedAudioPage.locator("#play-button").click();
+    await closedAudioPage.waitForFunction(() =>
+      document.getElementById("message").textContent.includes("Não foi possível iniciar"));
+    assert.equal(await closedAudioPage.locator("#play-button").isEnabled(), true);
+    await closedAudioPage.locator("#play-button").click();
+    await waitMessage(closedAudioPage, "Agora repita");
+    assert.equal(await closedAudioPage.locator("#level").textContent(), "1");
+    assert.equal(await closedAudioPage.locator("#wins").textContent(), "0");
+    await closedAudioPage.close();
+    console.log("✓ AudioContext encerrado recupera na próxima tentativa sem perder progresso");
+
+
 
 
     // Sair da página durante uma sequência não pode deixar a fase bloqueada.
