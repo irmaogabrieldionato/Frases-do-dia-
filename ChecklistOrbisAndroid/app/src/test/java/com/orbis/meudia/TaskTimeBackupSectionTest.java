@@ -49,9 +49,9 @@ public class TaskTimeBackupSectionTest {
 
     @Test public void malformedLengthAndChecksumMetadataAreRejected() {
         String section = TaskTimeBackupSection.exportSection(Arrays.asList(session("one", 100)));
-        int first = section.indexOf('\\n') + 1;
-        int second = section.indexOf('\\n', first);
-        int third = section.indexOf('\\n', second + 1);
+        int first = section.indexOf('\n') + 1;
+        int second = section.indexOf('\n', first);
+        int third = section.indexOf('\n', second + 1);
         String badLength = section.substring(0, first) + "0001" + section.substring(second);
         String badChecksum = section.substring(0, second + 1) + "NOT_HEX" + section.substring(third);
         assertThrows(IllegalArgumentException.class,
