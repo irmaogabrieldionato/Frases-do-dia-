@@ -1278,3 +1278,10 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - [1f181b1](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/1f181b1086208048696ac1744a8c9aaa82ecc588) acrescenta três testes JVM para rejeição de 0000 na criação/consulta e aceitação do ano 0001.
 - **CI do SHA novo ainda não confirmado** no momento do registro; não declarar APK validado nem testes físicos/instrumentados. Integração com UI, timers reais e backup global segue pendente. Contagem funcional 5/24 e concorrentes 0/15 concluídos.
 - Agenda original offline sem Google Agenda ou terceiros; nenhuma alteração na branch main. Assinatura release continua condicionada a keystore privado e secrets.
+
+
+## Execução 165 — 23/11/2026 — datas históricas no histórico offline
+- Consultados inicialmente este registro e o inventário competitivo, na branch `checklist-orbis`. Microsoft To Do permanece em foco conforme a ordem revisada; 0/15 concorrentes integralmente concluídos.
+- [951954e](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/951954e12aa88a90f84821baee1d98518c746f3d) corrige a validação de datas históricas do histórico: `GregorianCalendar` agora usa calendário gregoriano proléptico em ambos os caminhos de validação. Isso evita rejeitar datas ISO legítimas entre 5 e 14/10/1582 e evita aceitar 29/02/1500, inválido no calendário gregoriano proléptico.
+- [8bdaa8b](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/8bdaa8b9df68b30fd9a2e80778ab9291712c21b6) adiciona testes JVM para a data histórica 1582-10-10 e o ano secular 1500. Testes adicionados, **execução/CI do SHA final ainda não confirmados**; não declarar compilação, regressão, aparelho físico ou APK aprovado.
+- Nenhuma mudança em dados persistidos, UI, recorrências, calendário principal, traduções, prioridades ou backup global. CLOCK-13–16 seguem parciais; **5/24** incrementos concluídos. Pendente: verificar Actions do SHA final, integrar histórico à interface, timers reais e backup, testar Android instrumentado e providenciar assinatura privada. Sem Google Agenda, terceiros, chaves ou alteração em `main`.
