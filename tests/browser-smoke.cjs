@@ -277,7 +277,7 @@ async function run() {
     await interruptedPage.evaluate(() => { window.__interruptSevenNoteAudio = true; });
     await interruptedPage.waitForFunction(() =>
       document.getElementById("message").textContent.includes("O áudio foi interrompido"),
-      { timeout: 10000 });
+      null, { timeout: 10000 });
     assert.equal(await interruptedPage.locator("#play-button").isEnabled(), true,
       "Áudio suspenso durante a fase 1.000 deve liberar nova tentativa");
     assert.equal(await interruptedPage.locator("#wins").textContent(), "999");
