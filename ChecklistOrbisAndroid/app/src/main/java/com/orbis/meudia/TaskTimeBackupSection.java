@@ -18,6 +18,9 @@ public final class TaskTimeBackupSection {
     public static String exportSection(List<TaskTimeHistory.Session> sessions) {
         String history = TaskTimeHistoryCodec.encode(sessions);
         byte[] bytes = history.getBytes(StandardCharsets.UTF_8);
+        // Never emit a backup that our own importer is guaranteed to reject.
+        if (bytes.length > 2000000)
+            throw new IllegalArgumentException("Backup too large");
         CRC32 crc = new CRC32();
         crc.update(bytes, 0, bytes.length);
         return HEADER + bytes.length + "\n" + Long.toHexString(crc.getValue()) + "\n" + history;
