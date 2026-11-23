@@ -286,3 +286,11 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Acrescentada regressão estática em `tests/release-readiness.test.cjs` para impedir retorno ao carregamento integral. Commit `ba008d70`.
 - **Validação pendente:** confirmar CI dos novos commits e executar o verificador com os quatro APK/AAB reais baixados de uma mesma execução. Não foram baixados pacotes nem executados testes físicos nesta rodada; os testes anteriores não aprovam automaticamente esta alteração.
 - **Próximo foco:** conferir CI e manifesto de hashes reais; continuar testes de áudio, offline e hardware e preparar metadados de lojas sem publicar. Permanecem pendentes assinaturas, política e suporte públicos confirmados e revisão humana.
+
+## Evolução de 23/11/2026 — validação do descritor APK/AAB
+
+- Reconsultados RELEASE-CHECKLIST.md, PACKAGES.md e README-7-NOTE.md na branch exclusiva. Os jobs conhecidos de [testes 45250668254](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45250668254) e [pacotes 45250668238](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45250668238) terminaram com quatro jobs success cada, mas antecedem esta revisão.
+- Identificada janela de troca de arquivo entre lstatSync e openSync no verificador SHA-256. O descritor aberto agora passa por fstatSync, que exige arquivo regular não vazio e identidade dev/ino igual à observada antes da abertura. Commit `1baf9214`.
+- Acrescentada regressão estática para fstatSync, tipo, identidade e fechamento do descritor. Commit `4eed761f`.
+- **Validação pendente:** confirmar GitHub Actions dos novos commits, executar teste dinâmico de troca de caminho e baixar os quatro binários reais com manifesto da mesma execução para verificação independente. Nenhum teste local/físico nem assinatura/publicação foi realizado nesta rodada.
+- **Próximo foco:** priorizar CI, depois verificação real de APK/AAB, áudio na fase 1000, acessibilidade e dispositivos físicos. As pendências externas de identidade, políticas públicas, suporte e contas de loja permanecem.
