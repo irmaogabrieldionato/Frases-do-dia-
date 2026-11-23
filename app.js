@@ -151,8 +151,8 @@
   let achievementRenderKey = null;
   function renderAchievements() {
     // Conquistas mudam somente com o progresso, não a cada nota pressionada.
-    const key = [progress.level, progress.best, progress.completed, progress.totalWins,
-      progress.totalLosses, progress.earBest, progress.earCorrect].join(":");
+    const key = [progress.totalWins > 0, progress.best >= 8, progress.bestStreak >= 5,
+      progress.earBest >= core.EAR_ROUNDS, progress.best >= 25, progress.completed].join(":");
     if (key === achievementRenderKey) return;
     const all = core.achievements(progress);
     $("achievement-count").textContent = all.filter((item) => item.unlocked).length + "/" + all.length;
