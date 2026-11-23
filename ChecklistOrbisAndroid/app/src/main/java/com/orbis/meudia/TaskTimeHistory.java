@@ -111,10 +111,27 @@ public final class TaskTimeHistory {
         return value == null || value.trim().isEmpty();
     }
 
+    private static boolean validOccurrenceDate(String date) {
+        if (date == null || !date.matches("\\d{4}-\\d{2}-\\d{2}")) return false;
+        try {
+            int year = Integer.parseInt(date.substring(0, 4));
+            int month = Integer.parseInt(date.substring(5, 7));
+            int day = Integer.parseInt(date.substring(8, 10));
+            java.util.GregorianCalendar calendar = new java.util.GregorianCalendar();
+            calendar.setLenient(false);
+            calendar.clear();
+            calendar.set(year, month - 1, day);
+            calendar.getTimeInMillis();
+            return true;
+        } catch (IllegalArgumentException error) {
+            return false;
+        }
+    }
+
     /** Returns individual sessions for exactly one task occurrence, in original order. */
     public static List<Session> forOccurrence(List<Session> sessions,
                                                String taskId, String occurrenceDate) {
-        if (sessions == null || blank(taskId) || blank(occurrenceDate)) {
+        if (sessions == null || blank(taskId) || !validOccurrenceDate(occurrenceDate)) {
             throw new IllegalArgumentException("Missing input");
         }
         List<Session> result = new ArrayList<>();
