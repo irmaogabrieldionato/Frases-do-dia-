@@ -177,20 +177,25 @@
     achievementRenderKey = key;
   }
 
+  let melodyRenderKey = null;
   function renderMelody() {
     const holder = $("sequence-chips");
-    holder.replaceChildren();
-    melody.forEach((id, index) => {
+    const key = melody.join(",");
+    if (key !== melodyRenderKey) {
+      holder.replaceChildren();
+      melody.forEach((id, index) => {
       const item = document.createElement("span");
       item.className = "sequence-chip";
       item.textContent = (index + 1) + " · " + notes.get(id).name;
       holder.appendChild(item);
-    });
-    if (!melody.length) {
+      });
+      if (!melody.length) {
       const empty = document.createElement("span");
       empty.className = "sequence-empty";
       empty.textContent = "Toque as teclas para criar sua melodia...";
       holder.appendChild(empty);
+      }
+      melodyRenderKey = key;
     }
     $("undo-button").disabled = melody.length === 0 || adBusy || phase === "playing";
     $("clear-button").disabled = melody.length === 0 || adBusy || phase === "playing";
