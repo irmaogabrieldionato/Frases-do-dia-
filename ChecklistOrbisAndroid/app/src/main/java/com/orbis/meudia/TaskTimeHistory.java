@@ -145,6 +145,22 @@ public final class TaskTimeHistory {
         return Collections.unmodifiableList(result);
     }
 
+    /** Inclusive date-range view for the future weekly/monthly history screen. */
+    public static List<Day> betweenDates(List<Session> sessions, String taskId,
+                                          String startDate, String endDate) {
+        if (!validOccurrenceDate(startDate) || !validOccurrenceDate(endDate)
+                || startDate.compareTo(endDate) > 0) {
+            throw new IllegalArgumentException("Invalid date range");
+        }
+        List<Day> result = new ArrayList<>();
+        for (Day day : byDate(sessions, taskId)) {
+            if (day.date.compareTo(startDate) >= 0 && day.date.compareTo(endDate) <= 0) {
+                result.add(day);
+            }
+        }
+        return Collections.unmodifiableList(result);
+    }
+
     /** Groups a task's sessions by occurrence date; does not mix other tasks. */
     public static List<Day> byDate(List<Session> sessions, String taskId) {
         if (sessions == null || blank(taskId)) throw new IllegalArgumentException("Missing input");
