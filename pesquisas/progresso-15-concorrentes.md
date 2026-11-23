@@ -1269,3 +1269,12 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - [28703ac](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/28703ac690815031e8b757c712bc63f0d87cfa4) adiciona dois testes JVM de importação com surrogate alto/baixo isolados.
 - **CI dos commits novos ainda não confirmado**; não declarar testes aprovados, APK validado ou teste físico. O formato de dados válidos permanece inalterado; nenhuma integração externa ou Google Agenda, nem modificação da `main`.
 - Funcionalidades **5/24**; CLOCK-13–16 parciais. Próximos passos: confirmar CI, integração com UI/timers reais e backup geral; assinatura release depende de keystore e secrets privados.
+
+
+## Execução 164 — 23/11/2026 — validação de ano zero em histórico offline
+- Consultados antes da implementação este progresso e o inventário oficial. Ordem vigente: Microsoft To Do em foco; Todoist e TickTick adiados conforme decisão anterior.
+- CI da etapa 163 confirmado: [Actions 45152005770](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45152005770), SHA 28703ac, completed/success (23/11/2026 10:01 UTC).
+- [0d49be5](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/0d49be5f9c7fd90a3865cb64836025175090d90e) rejeita o ano 0000, inválido no calendário ISO de uso do app, tanto na criação de sessões quanto na validação de datas consultadas. Nenhum dado válido ou formato de armazenamento foi alterado.
+- [1f181b1](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/1f181b1086208048696ac1744a8c9aaa82ecc588) acrescenta três testes JVM para rejeição de 0000 na criação/consulta e aceitação do ano 0001.
+- **CI do SHA novo ainda não confirmado** no momento do registro; não declarar APK validado nem testes físicos/instrumentados. Integração com UI, timers reais e backup global segue pendente. Contagem funcional 5/24 e concorrentes 0/15 concluídos.
+- Agenda original offline sem Google Agenda ou terceiros; nenhuma alteração na branch main. Assinatura release continua condicionada a keystore privado e secrets.
