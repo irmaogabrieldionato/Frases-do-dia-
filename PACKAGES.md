@@ -18,6 +18,14 @@ Selecione uma execução com todos os processos aprovados, desça até a seção
 | iPhone e iPad físico | 7-note-iOS-Device-UNSIGNED | ZIP com .app de dispositivo, **sem assinatura**; não é IPA instalável |
 | Windows x64 | 7-note-Windows-x64-EXE | Setup.exe (instalador) e Portable.exe (portátil), sem assinatura digital |
 
+### Conferir integridade dos pacotes Android e TV
+
+Na [execução de empacotamento](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/workflows/packages-7-note.yml), baixe **da mesma execução** os cinco artefatos `7-note-Android-TV-SHA256`, `7-note-Android-APK-debug`, `7-note-TV-Box-APK-debug`, `7-note-Android-AAB-unsigned` e `7-note-TV-Box-AAB-unsigned`. Extraia os quatro binários e o `SHA256SUMS.txt` em uma única pasta, sem renomeá-los. Na raiz do código desta mesma revisão, execute:
+
+    node scripts/verify-android-packages.cjs /caminho/para/pasta
+
+O comando confere os quatro nomes, impede entradas duplicadas e rejeita qualquer pacote ausente, vazio ou com hash divergente. A saída deve mostrar quatro linhas `OK`; qualquer erro retorna código de saída diferente de zero. **Não misture arquivos de execuções diferentes.** Os hashes verificam integridade, mas não comprovam autenticidade da origem, assinatura de loja ou segurança do binário.
+
 ### Android e TV Box
 
 Android: API mínima 24 (Android 7), API de destino 36 para o Google Play, pacote com.orbis.sevennote. Instalação técnica: adb install -r app-mobile-debug.apk.
