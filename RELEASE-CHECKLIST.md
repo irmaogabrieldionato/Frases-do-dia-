@@ -261,3 +261,11 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Documentado o procedimento em `PACKAGES.md`, inclusive o alerta para não misturar artefatos de execuções diferentes. Commit `3d5eb85`.
 - **Validação pendente:** os jobs aprovados são anteriores aos novos commits; conferir o próximo CI para o teste adicionado e executar o verificador contra os binários efetivamente baixados. Não foram baixados nem instalados APK/AAB nesta rodada. Os hashes não substituem assinatura nem testes em hardware.
 - **Próximo foco:** conferir novo CI, depois reproduzir e medir integralmente a sequência de mil notas em Chromium/WebKit e equipamentos reais, mantendo pendentes as assinaturas, a política pública/contato confirmados e a revisão de loja.
+
+## Evolução de 23/11/2026 — proteção do manifesto SHA-256
+
+- Reconsultados `RELEASE-CHECKLIST.md`, `PACKAGES.md` e `README-7-NOTE.md` na branch exclusiva. Conferidos os jobs das execuções anteriores [testes 45218199845](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45218199845) e [pacotes 45218199751](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45218199751): **4/4 success** em cada uma. Essas execuções são anteriores às alterações desta seção.
+- Identificado risco residual no verificador local: `SHA256SUMS.txt` era lido sem limitar seu tamanho e podia ser um link simbólico. Agora é exigido arquivo regular, não vazio, com até 512 bytes, suficiente para exatamente quatro entradas SHA-256. Commit `3e0eeaf`.
+- Acrescentados testes de regressão para manifesto acima do limite e manifesto como link simbólico, além dos casos existentes de alteração de binário, duplicata e arquivo ausente. Commit `33407ad`.
+- **Validação pendente:** conferir CI Chromium/WebKit e empacotamento após `33407ad`; a consulta de status combinado do commit retornou lista vazia e não prova sucesso ou ausência de workflows. Não foram executados testes locais nem verificações com APK/AAB reais nesta rodada.
+- **Próximo foco:** validar os testes novos, baixar os quatro pacotes e manifesto da mesma execução e verificar os hashes; continuar ensaios de áudio da fase 1.000 e testes físicos. Nenhuma assinatura, publicação ou alteração em outros aplicativos foi realizada.
