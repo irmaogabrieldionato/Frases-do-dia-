@@ -243,3 +243,12 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - No workflow exclusivo do jogo, adicionada verificação `unzip -t` dos dois APK debug; mantidas as verificações de integridade e recursos dos dois AAB. Gerado `SHA256SUMS.txt` contendo hashes dos quatro binários e publicado como artefato `7-note-Android-TV-SHA256` com retenção de 30 dias. Commit `62880437`.
 - **Validação pendente:** conferir o próximo job Android/TV e a existência do artefato de checksums; verificar os quatro hashes contra os binários baixados. Não foi executado Gradle localmente, nem download de pacotes ou teste em dispositivos reais nesta rodada. Nenhum APK/AAB foi assinado ou enviado a lojas.
 - **Próximo foco:** investigar eventual falha no novo passo de auditoria e prosseguir com testes reais da fase 1.000 e revisão de distribuição.
+
+## Evolução de 23/11/2026 — checksums portáteis Android/TV
+
+- Conferidos os três documentos obrigatórios. O último workflow de testes no commit `772764d` foi **success** ([45211650807](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45211650807)), com quatro jobs aprovados. O empacotamento anterior no commit `6288043` foi **success** ([45211603196](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45211603196)); não valida as mudanças atuais.
+- Detectada limitação operacional: o arquivo SHA256SUMS.txt anterior continha caminhos internos do runner, impossibilitando verificação direta após extrair os artefatos separados.
+- Alterado o workflow para copiar os quatro APK/AAB para uma área de auditoria, gerar hashes com nomes de arquivo portáteis e executar `sha256sum --check --strict SHA256SUMS.txt` antes do upload. Commit `8162cb6`.
+- Acrescentado teste estático para exigir manifesto portátil e validação de hashes. Commit `49a4e08`.
+- **Validação pendente:** conferir execução dos novos jobs, existência do artefato SHA256 e teste real de `sha256sum -c` com os quatro arquivos baixados. O ZIP dos checksums contém apenas o manifesto, não os APK/AAB; baixar os quatro pacotes separadamente e colocá-los no mesmo diretório do manifesto antes de conferir.
+- Não foram alterados código do jogo, 1.000 fases, quatro modos, `main` ou `24-h2o-android`. Sem testes físicos, assinaturas ou publicação.
