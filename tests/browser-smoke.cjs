@@ -152,6 +152,35 @@ async function run() {
     assert.deepEqual(campaignAudit, { valid: true, level: 1000, finalLength: 1000 },
       "Campanha deve manter os prefixos e terminar exatamente na fase 1.000");
     console.log("✓ Campanha completa: 1.000 prefixos estáveis e fase 1.001 proibida");
+    // Testa a transição real do motor no último acerto, sem falsificar o estado final no storage.
+    const finalTransition = await page.evaluate(() => {
+      const core = window.SevenNoteCore;
+      const sequence = core.sequenceForLevel(1000);
+      const before = core.sanitizeProgress({
+        level: 1000, best: 1000, completed: false, totalWins: 999, points: 500000
+      });
+      const penultimate = core.evaluateNote(sequence, sequence[998], 998);
+      const last = core.evaluateNote(sequence, sequence[999], 999);
+      const finished = core.advanceLevel(before);
+      const repeated = core.advanceLevel(finished);
+      const persisted = core.sanitizeProgress(JSON.parse(JSON.stringify(finished)));
+      return {
+        penultimate: penultimate.result,
+        last: last.result,
+        level: finished.level,
+        completed: finished.completed,
+        wins: finished.totalWins,
+        stable: JSON.stringify(repeated) === JSON.stringify(finished),
+        persisted: JSON.stringify(persisted) === JSON.stringify(finished),
+        finalAchievement: core.achievements(finished).find((item) => item.id === "final").unlocked
+      };
+    });
+    assert.deepEqual(finalTransition, {
+      penultimate: "correct", last: "win", level: 1000,
+      completed: true, wins: 1000, stable: true, persisted: true, finalAchievement: true
+    }, "Última nota deve concluir a fase 1.000 uma única vez e persistir sem fase 1.001");
+    console.log("✓ Último acerto conclui a fase 1.000, persiste e não duplica a vitória");
+
     await page.locator('[data-mode="free"]').click();
     const performanceSample = await page.evaluate(() => {
       const firstAchievement = document.querySelector("#achievement-list .achievement");
