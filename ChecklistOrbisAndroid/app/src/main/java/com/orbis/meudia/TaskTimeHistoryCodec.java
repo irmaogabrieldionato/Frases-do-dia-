@@ -1,5 +1,6 @@
 package com.orbis.meudia;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -36,7 +37,10 @@ public final class TaskTimeHistoryCodec {
             field(out, Long.toString(session.targetMillis));
             if (out.length() > MAX_BYTES) throw new IllegalArgumentException("History too large");
         }
-        return out.toString();
+        String encoded = out.toString();
+        if (encoded.getBytes(StandardCharsets.UTF_8).length > MAX_BYTES)
+            throw new IllegalArgumentException("History too large in UTF-8");
+        return encoded;
     }
 
     /**
@@ -78,7 +82,9 @@ public final class TaskTimeHistoryCodec {
     }
 
     public static List<TaskTimeHistory.Session> decode(String encoded) {
-        if (encoded == null || encoded.length() > MAX_BYTES || !encoded.startsWith(HEADER))
+        if (encoded == null || encoded.length() > MAX_BYTES
+                || encoded.getBytes(StandardCharsets.UTF_8).length > MAX_BYTES
+                || !encoded.startsWith(HEADER))
             throw new IllegalArgumentException("Invalid history header");
         int newline = encoded.indexOf('\n', HEADER.length());
         if (newline < 0) throw new IllegalArgumentException("Missing count");
