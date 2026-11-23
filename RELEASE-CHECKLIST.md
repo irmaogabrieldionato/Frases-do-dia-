@@ -252,3 +252,12 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Acrescentado teste estático para exigir manifesto portátil e validação de hashes. Commit `49a4e08`.
 - **Validação pendente:** conferir execução dos novos jobs, existência do artefato SHA256 e teste real de `sha256sum -c` com os quatro arquivos baixados. O ZIP dos checksums contém apenas o manifesto, não os APK/AAB; baixar os quatro pacotes separadamente e colocá-los no mesmo diretório do manifesto antes de conferir.
 - Não foram alterados código do jogo, 1.000 fases, quatro modos, `main` ou `24-h2o-android`. Sem testes físicos, assinaturas ou publicação.
+
+## Evolução de 23/11/2026 — verificador reproduzível de APK/AAB
+
+- Reconsultados os três documentos obrigatórios e os jobs de [testes 45218199845](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45218199845) e [pacotes 45218199751](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45218199751): **4/4 jobs success** em cada workflow. O empacotamento disponibilizou nove artefatos não expirados, incluindo manifesto SHA256, quatro pacotes Android/TV e relatório Lint.
+- Adicionado `scripts/verify-android-packages.cjs` para conferir localmente os quatro pacotes baixados da mesma execução, exigindo manifesto de exatamente quatro entradas, nomes conhecidos, hashes válidos, arquivos regulares não vazios e correspondência SHA-256. Commit `b2e7f6b`.
+- Adicionado teste automatizado com arquivos temporários que verifica sucesso, adulteração, entrada duplicada e arquivo ausente. Commit `afcfb79`.
+- Documentado o procedimento em `PACKAGES.md`, inclusive o alerta para não misturar artefatos de execuções diferentes. Commit `3d5eb85`.
+- **Validação pendente:** os jobs aprovados são anteriores aos novos commits; conferir o próximo CI para o teste adicionado e executar o verificador contra os binários efetivamente baixados. Não foram baixados nem instalados APK/AAB nesta rodada. Os hashes não substituem assinatura nem testes em hardware.
+- **Próximo foco:** conferir novo CI, depois reproduzir e medir integralmente a sequência de mil notas em Chromium/WebKit e equipamentos reais, mantendo pendentes as assinaturas, a política pública/contato confirmados e a revisão de loja.
