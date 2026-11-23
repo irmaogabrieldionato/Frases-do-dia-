@@ -160,3 +160,11 @@ test("manifesto SHA256 portátil rejeita alteração, duplicata e arquivo ausent
    assert.throws(()=>verify(dir),/Manifesto SHA256 inválido/);
  } finally {fs.rmSync(dir,{recursive:true,force:true});}
 });
+
+test("verificador de APK/AAB calcula SHA256 em blocos sem carregar pacote inteiro",()=>{
+ const verifier=content("scripts/verify-android-packages.cjs");
+ assert.match(verifier,/Buffer\.allocUnsafe\(1024 \* 1024\)/);
+ assert.match(verifier,/fs\.readSync\(fd, buffer, 0, buffer\.length, null\)/);
+ assert.match(verifier,/hash\.update\(buffer\.subarray\(0, count\)\)/);
+ assert.doesNotMatch(verifier,/fs\.readFileSync\(file\)/);
+});
