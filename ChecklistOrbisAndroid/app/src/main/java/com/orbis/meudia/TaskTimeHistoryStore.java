@@ -61,6 +61,12 @@ public final class TaskTimeHistoryStore {
         return TaskTimeHistory.betweenDates(load(), taskId, startDate, endDate);
     }
 
+    /** Weekly/monthly totals for a task, bounded by inclusive ISO dates. */
+    public synchronized TaskTimeHistory.Total totalForTaskBetween(
+            String taskId, String startDate, String endDate) {
+        return TaskTimeHistory.totalBetweenDates(load(), taskId, startDate, endDate);
+    }
+
     /** Aggregate only the recorded sessions of this task. */
     public synchronized TaskTimeHistory.Total totalForTask(String taskId) {
         return TaskTimeHistory.totalForTask(load(), taskId);
