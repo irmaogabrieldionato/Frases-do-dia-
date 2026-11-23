@@ -81,6 +81,11 @@ public final class TaskTimeHistoryStore {
         return TaskTimeHistory.forOccurrence(load(), taskId, occurrenceDate);
     }
 
+    /** Explicit user-driven deletion; never silently clear history on invalid IDs. */
+    public synchronized boolean removeSession(String sessionId) {
+        return save(TaskTimeHistory.withoutSession(load(), sessionId));
+    }
+
     public synchronized boolean append(TaskTimeHistory.Session session) {
         if (session == null) throw new IllegalArgumentException("Missing session");
         List<TaskTimeHistory.Session> all = new ArrayList<>(load());
