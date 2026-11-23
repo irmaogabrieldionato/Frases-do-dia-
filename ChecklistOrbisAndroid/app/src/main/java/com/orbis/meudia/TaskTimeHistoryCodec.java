@@ -78,7 +78,12 @@ public final class TaskTimeHistoryCodec {
     private static void field(StringBuilder out, String value) {
         if (value == null || value.length() > MAX_TEXT)
             throw new IllegalArgumentException("Invalid field length");
-        // UTF-8 replaces unpaired UTF-16 surrogates, which would silently corrupt IDs.
+        validateUnicode(value);
+        out.append(value.length()).append(':').append(value);
+    }
+
+    private static void validateUnicode(String value) {
+        // Reject unpaired surrogates on both export and import, before persistence.
         for (int i = 0; i < value.length(); i++) {
             char c = value.charAt(i);
             if (Character.isHighSurrogate(c)) {
@@ -89,7 +94,6 @@ public final class TaskTimeHistoryCodec {
                 throw new IllegalArgumentException("Unpaired UTF-16 surrogate");
             }
         }
-        out.append(value.length()).append(':').append(value);
     }
 
     public static List<TaskTimeHistory.Session> decode(String encoded) {
@@ -144,6 +148,8 @@ public final class TaskTimeHistoryCodec {
         if (length > MAX_TEXT || colon + 1 + length > input.length())
             throw new IllegalArgumentException("Truncated field");
         cursor[0] = colon + 1 + length;
-        return input.substring(colon + 1, cursor[0]);
+        String value = input.substring(colon + 1, cursor[0]);
+        validateUnicode(value);
+        return value;
     }
 }
