@@ -60,6 +60,26 @@ public final class TaskTimeHistoryStore {
         return TaskTimeHistory.totalForTask(load(), taskId);
     }
 
+    /**
+     * Individual sessions for one task occurrence, preserving insertion order.
+     * Returns a detached, immutable snapshot, never the mutable persisted list.
+     */
+    public synchronized List<TaskTimeHistory.Session> sessionsForOccurrence(
+            String taskId, String occurrenceDate) {
+        if (taskId == null || taskId.trim().isEmpty()
+                || occurrenceDate == null || occurrenceDate.trim().isEmpty()) {
+            throw new IllegalArgumentException("Missing task or occurrence date");
+        }
+        List<TaskTimeHistory.Session> result = new ArrayList<>();
+        for (TaskTimeHistory.Session session : load()) {
+            if (taskId.equals(session.taskId)
+                    && occurrenceDate.equals(session.occurrenceDate)) {
+                result.add(session);
+            }
+        }
+        return Collections.unmodifiableList(result);
+    }
+
     public synchronized boolean append(TaskTimeHistory.Session session) {
         if (session == null) throw new IllegalArgumentException("Missing session");
         List<TaskTimeHistory.Session> all = new ArrayList<>(load());
