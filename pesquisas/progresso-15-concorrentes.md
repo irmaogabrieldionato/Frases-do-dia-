@@ -1242,3 +1242,13 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **CI do SHA final ainda não verificado**; testes adicionados não equivalem a testes executados. Não há teste em dispositivo nem APK validado nesta etapa. Interface, timers reais e backup global continuam sem integração, e a exclusão não é ainda um controle visível ao usuário. Progresso funcional **5/24** inalterado; CLOCK-13–16 ainda parciais.
 - Assinatura release continua bloqueada por keystore privado/secrets não provisionados. Nenhuma integração com Google Agenda ou terceiros; branch `main` não modificada.
 - Próximo: verificar CI final, conectar histórico ao backup geral e fluxo real, testar persistência Android e restauração sem perda de dados.
+
+ 
+## Execução 161 — 23/11/2026 — integridade UTF-16 do histórico de tempo
+- Consultados primeiro este progresso e o inventário competitivo. Ordem vigente preservada (Microsoft To Do em foco; Todoist/TickTick adiados por decisão anterior); nenhum concorrente concluído.
+- Confirmado CI do SHA anterior de testes `39b32e4`: [Actions 45127668403](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45127668403), `completed/success`, 23/11/2026 06:58 UTC.
+- [e3c47ce](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/e3c47ce95a68dc3000a24e5307647e6dd678e5f8) rejeita pares UTF-16 inválidos em campos do codec de histórico antes da serialização UTF-8. Isso evita substituição silenciosa de caracteres inválidos, inclusive em IDs de sessão e tarefa.
+- [1fd2451](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/1fd2451fdd926f5b4ea96704264e46ecd9724f04) acrescenta três testes JVM para surrogate alto isolado, baixo isolado e par válido de emoji.
+- **CI do SHA final 1fd2451 ainda não confirmado** nesta execução; não afirmar testes executados, APK novo validado nem teste físico. Alteração limitada ao codec/testes, sem mudança de formato persistido para strings válidas. A integração com UI, timers reais e backup geral continua pendente; CLOCK-13–16 parciais e **5/24** incrementos funcionais.
+- Assinatura release continua bloqueada por keystore/secrets privados; agenda própria e offline, sem Google Agenda/API, sem terceiros e sem modificação da `main`.
+- Próximo: confirmar CI do SHA final; integrar histórico ao backup geral e à UI com testes Android instrumentados.
