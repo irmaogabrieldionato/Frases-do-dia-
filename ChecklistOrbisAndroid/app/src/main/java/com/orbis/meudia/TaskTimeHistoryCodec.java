@@ -78,6 +78,17 @@ public final class TaskTimeHistoryCodec {
     private static void field(StringBuilder out, String value) {
         if (value == null || value.length() > MAX_TEXT)
             throw new IllegalArgumentException("Invalid field length");
+        // UTF-8 replaces unpaired UTF-16 surrogates, which would silently corrupt IDs.
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            if (Character.isHighSurrogate(c)) {
+                if (i + 1 >= value.length() || !Character.isLowSurrogate(value.charAt(i + 1)))
+                    throw new IllegalArgumentException("Unpaired UTF-16 surrogate");
+                i++;
+            } else if (Character.isLowSurrogate(c)) {
+                throw new IllegalArgumentException("Unpaired UTF-16 surrogate");
+            }
+        }
         out.append(value.length()).append(':').append(value);
     }
 
