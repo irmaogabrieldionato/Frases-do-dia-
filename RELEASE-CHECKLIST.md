@@ -182,3 +182,11 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - O tempo impresso é apenas o tempo do cenário incluindo a espera de cancelamento; **não é benchmark de reprodução de 1.000 notas**, que exigiria duração prolongada e testes em dispositivos reais.
 - **Validação pendente:** conferir os jobs Chromium/WebKit disparados pelo novo commit e os artefatos; não foram realizados testes locais nem físicos nesta rodada.
 - **Próximo foco:** validar CI atualizado, depois medir reprodução integral e estabilidade do áudio na fase 1.000, sem alterar outras branches.
+
+
+## Evolução de 23/11/2026 — recuperação quando Web Audio API está indisponível
+
+- Conferidos os documentos `RELEASE-CHECKLIST.md`, `PACKAGES.md` e `README-7-NOTE.md`. As execuções anteriores [45145919766](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45145919766) (testes Chromium/WebKit/regras/ZIP) e [45145920174](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45145920174) (validação, Android/TV, Windows e iOS) apresentaram **4/4 jobs success** cada. Os resultados são anteriores ao novo teste.
+- Adicionado cenário Playwright em `tests/browser-smoke.cjs` com uma página isolada sem `AudioContext` nem `webkitAudioContext`: o modo Memória deve exibir mensagem explicativa, liberar novamente o botão de reprodução e manter nível, vitórias e derrotas inalterados. Commit `36386ab`.
+- **Validação pendente:** conferir Chromium/WebKit após o commit; o teste não foi executado localmente nem em aparelho físico nesta rodada. Não foram alterados os arquivos de outros aplicativos.
+- **Próximo foco:** verificar CI atualizado e depois avançar para ensaio de reprodução integral e estabilidade do áudio das mil notas em hardware real, sem confundir cancelamento com execução completa.
