@@ -121,6 +121,37 @@ async function run() {
     await page.locator('#settings-dialog button[type="submit"]').click();
     console.log("✓ Ajustes e progresso persistem após atualizar a página");
 
+    // Exercita 1.000 entradas na fase final sem reproduzir a sequência inteira.
+    // O modo Livre evita alterar a campanha e permite isolar o custo da interface.
+    await page.evaluate(() => {
+      localStorage.setItem("seven-note-musical-game:v2",
+        JSON.stringify({ level: 1000, best: 1000, completed: false,
+          totalWins: 999, points: 500000, totalLosses: 2 }));
+      localStorage.setItem("seven-note-musical-game:prefs-v1",
+        JSON.stringify({ volume: 0, tempo: "fast", instrument: "soft", showNames: true }));
+    });
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.locator('[data-mode="free"]').click();
+    const performanceSample = await page.evaluate(() => {
+      const firstAchievement = document.querySelector("#achievement-list .achievement");
+      const key = document.querySelector('[data-note="do"]');
+      const started = performance.now();
+      for (let i = 0; i < 1000; i++) key.click();
+      return {
+        elapsedMs: performance.now() - started,
+        stableAchievement: document.querySelector("#achievement-list .achievement") === firstAchievement,
+        level: document.getElementById("level").textContent,
+        count: document.querySelectorAll("#achievement-list .achievement").length
+      };
+    });
+    assert.equal(performanceSample.level, "1000");
+    assert.equal(performanceSample.count, 6);
+    assert.equal(performanceSample.stableAchievement, true,
+      "Entradas sem desbloqueio não devem reconstruir o painel de conquistas");
+    assert.ok(Number.isFinite(performanceSample.elapsedMs));
+    console.log("✓ 1.000 entradas na fase 1.000 (modo Livre, áudio mudo): " +
+      performanceSample.elapsedMs.toFixed(1) + " ms; conquistas sem reconstrução");
+
     await page.evaluate(() => {
       localStorage.setItem("seven-note-musical-game:v2",
         JSON.stringify({ level: 1000, best: 1000, completed: true,
