@@ -218,3 +218,12 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Alterado exclusivamente `.github/workflows/packages-7-note.yml` para repetir a execução completa do Gradle até três vezes, com esperas progressivas de 45 e 90 segundos; falhas persistentes continuam retornando erro. Commit `b22132d`.
 - **Validação pendente:** conferir nova execução do workflow no commit `b22132d` e exigir APK/AAB Android/TV e relatórios Lint válidos; o retry não prova que o serviço externo responderá. Não houve teste físico, assinatura ou publicação.
 - **Próximo foco:** se a falha 429 persistir, investigar cache/dependências e disponibilidade do Maven Central; depois implementar teste dinâmico de interrupção de áudio na fase 1.000.
+
+## Evolução de 23/11/2026 — CI Android recuperado e interrupção dinâmica na fase 1.000
+
+- Reconsultados `RELEASE-CHECKLIST.md`, `PACKAGES.md` e `README-7-NOTE.md` e os jobs mais recentes do GitHub Actions.
+- A execução de pacotes após o retry de Maven [45176404003](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45176404003), no commit `b22132d`, concluiu com **4/4 success**, inclusive o job **Android 36 e TV 35 - APK e AAB**. O bloqueio transitório HTTP 429 não reapareceu nessa execução. Isso confirma o job de compilação, não testes em aparelhos nem assinatura de release.
+- Testes no commit `18729ba`: [45176430499](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45176430499), **4/4 success**, incluindo Chromium, WebKit, regras e ZIP.
+- Acrescentado cenário **dinâmico** em `tests/browser-smoke.cjs`: iniciar a reprodução da fase 1.000, simular `AudioContext.state` suspenso durante o laço, aguardar mensagem de interrupção, confirmar desbloqueio e ausência de alteração de nível, vitórias ou derrotas. Commits `3f87ad3` e `6eeb171`. O teste não reproduz as mil notas integralmente nem simula hardware real.
+- **Validação pendente:** aguardar o workflow Chromium/WebKit do commit `6eeb171`; não foram executados Playwright local ou testes físicos nesta rodada. Inspecionar também os artefatos efetivos do workflow Android/TV antes de afirmar integridade de pacotes.
+- **Próximo foco:** corrigir eventual regressão no CI novo, auditar os artefatos Android/TV e medir reprodução integral e estabilidade da fase final em hardware real. Permanecem pendentes assinatura, políticas/contato públicos confirmados e revisão humana das lojas.
