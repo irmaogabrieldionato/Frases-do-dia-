@@ -66,18 +66,7 @@ public final class TaskTimeHistoryStore {
      */
     public synchronized List<TaskTimeHistory.Session> sessionsForOccurrence(
             String taskId, String occurrenceDate) {
-        if (taskId == null || taskId.trim().isEmpty()
-                || occurrenceDate == null || occurrenceDate.trim().isEmpty()) {
-            throw new IllegalArgumentException("Missing task or occurrence date");
-        }
-        List<TaskTimeHistory.Session> result = new ArrayList<>();
-        for (TaskTimeHistory.Session session : load()) {
-            if (taskId.equals(session.taskId)
-                    && occurrenceDate.equals(session.occurrenceDate)) {
-                result.add(session);
-            }
-        }
-        return Collections.unmodifiableList(result);
+        return TaskTimeHistory.forOccurrence(load(), taskId, occurrenceDate);
     }
 
     public synchronized boolean append(TaskTimeHistory.Session session) {
