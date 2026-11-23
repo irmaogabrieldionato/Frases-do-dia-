@@ -29,8 +29,9 @@ function verify(dir) {
     if (!stat.isFile() || stat.size === 0) throw new Error("Pacote inválido: " + name);
     const actual = crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
     if (actual !== entries.get(name)) throw new Error("Hash divergente: " + name);
-    process.stdout.write("OK " + name + "\n");
   }
+  // Só anunciar sucesso depois que TODOS os quatro pacotes forem validados.
+  for (const name of names) process.stdout.write("OK " + name + "\n");
 }
 if (require.main === module) {
   try { verify(directory); } catch (error) { console.error(error.message); process.exitCode = 1; }
