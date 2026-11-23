@@ -262,4 +262,23 @@ public class TaskTimeHistoryTest {
         assertEquals(1, TaskTimeHistory.forOccurrence(sessions, "work", "2026-11-11").size());
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void removalRejectsUnrelatedDuplicateIdsWithoutWritingCorruptHistory() {
+        TaskTimeHistory.withoutSession(Arrays.asList(
+                s("remove", "work", "2026-11-11", TaskTimeHistory.Kind.STOPWATCH, 1, 0),
+                s("duplicate", "work", "2026-11-12", TaskTimeHistory.Kind.TIMER, 2, 3),
+                s("duplicate", "work", "2026-11-13", TaskTimeHistory.Kind.TIMER, 4, 5)),
+                "remove");
+    }
+
+    @Test public void removalKeepsDistinctSessionsAndOriginalInput() {
+        List<TaskTimeHistory.Session> sessions = Arrays.asList(
+                s("remove", "work", "2026-11-11", TaskTimeHistory.Kind.STOPWATCH, 1, 0),
+                s("keep", "work", "2026-11-12", TaskTimeHistory.Kind.TIMER, 2, 3));
+        List<TaskTimeHistory.Session> remaining = TaskTimeHistory.withoutSession(sessions, "remove");
+        assertEquals(1, remaining.size());
+        assertEquals("keep", remaining.get(0).id);
+        assertEquals(2, sessions.size());
+    }
+
 }
