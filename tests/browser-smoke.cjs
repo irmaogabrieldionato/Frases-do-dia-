@@ -67,6 +67,16 @@ async function run() {
     console.log("✓ TV Box ativado e controle remoto navega entre botões");
 
 
+    // Sair da página durante uma sequência não pode deixar a fase bloqueada.
+    await page.locator("#play-button").click();
+    await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
+    assert.equal(await page.locator("#play-button").isEnabled(), true,
+      "pagehide deve cancelar reprodução e liberar reinício da fase");
+    await page.waitForTimeout(350);
+    assert.equal(await page.locator("#play-button").isEnabled(), true,
+      "reprodução cancelada não pode reativar o bloqueio após timer pendente");
+    console.log("✓ Navegação/pagehide cancela sequência e permite reinício");
+
     await page.locator("#play-button").click();
     await waitMessage(page, "Agora repita");
     await page.locator('[data-note="do"]').click();
