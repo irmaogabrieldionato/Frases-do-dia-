@@ -1355,3 +1355,12 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - Testes **adicionados, mas execução do novo SHA ainda não confirmada**. Não afirmar novo APK validado ou testes físicos/instrumentados. Sem mudança de código de produção ou formato persistido.
 - **Bloqueios**: restauração global ainda não é atômica entre tarefas e histórico; falta integrar UI/timers reais, testar recuperação em Android e configurar assinatura release com keystore e secrets privados.
 - Permanecem **5/24** incrementos funcionais e **0/15** concorrentes integralmente concluídos. Agenda independente e offline; sem Google Agenda/API, serviços externos ou alterações na `main`.
+
+
+## Execução 174 — 23/11/2026 — coordenador experimental de rollback entre dois armazenamentos
+- Consultados primeiro este documento e `pesquisas/concorrentes-checklist-orbis-2026-11-15.md` na branch `checklist-orbis`. Microsoft To Do segue em foco conforme ordem revisada; Todoist/TickTick adiados. 0/15 concorrentes concluídos.
+- [200d3d3](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/200d3d37a52d8445ec64fac72cd5b75b9a23f90d) cria `DualStoreRestore`, coordenador JVM independente que captura snapshots antes da escrita e tenta compensar falha no segundo armazenamento restaurando o primeiro.
+- [086a54c](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/086a54cff2df2eba5c98b388624fb7bafcc0e70c) adiciona três testes JVM: sucesso, falha no segundo armazenamento com rollback, falha no primeiro sem alteração.
+- **Não é transação atômica resistente a encerramento do processo, falha elétrica ou corrupção de armazenamento.** Ainda não conectado ao fluxo Android real; exige mecanismo de journal/recovery durável e integração de backup legado antes de oferecer restauração global na UI. O código não escreve nas preferências sem chamada explícita.
+- **CI dos novos commits não confirmado nesta execução; testes adicionados não equivalem a testes executados.** Sem novo APK validado, teste físico/instrumentado ou assinatura release. Mantidos 5/24 incrementos funcionais e 0/15 concorrentes concluídos.
+- Próximo: conferir Actions do SHA final, validar falhas de rollback e adicionar journal de recuperação antes de integrar tarefas + histórico. Preservada agenda offline própria, sem Google Agenda/API, sem serviços externos e sem alterações na `main`.
