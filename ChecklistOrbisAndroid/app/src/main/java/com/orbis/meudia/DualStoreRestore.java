@@ -23,27 +23,31 @@ final class DualStoreRestore {
         if (oldTasks == null || oldHistory == null)
             throw new IllegalStateException("Cannot snapshot existing data");
 
-        // Even a write returning false may have persisted a partial change.
-        boolean tasksAttempted = false;
-        boolean historyAttempted = false;
+        // A false result or exception can occur after a partial persistence.
+        final boolean taskWritten;
         try {
-            tasksAttempted = true;
-            if (!tasks.write(newTasks)) {
-                rollback(tasks, oldTasks, null, null, null);
-                return false;
-            }
-            historyAttempted = true;
-            if (!history.write(newHistory)) {
-                rollback(tasks, oldTasks, history, oldHistory, null);
-                return false;
-            }
-            return true;
+            taskWritten = tasks.write(newTasks);
         } catch (RuntimeException failure) {
-            if (tasksAttempted)
-                rollback(tasks, oldTasks, historyAttempted ? history : null,
-                        historyAttempted ? oldHistory : null, failure);
+            rollback(tasks, oldTasks, null, null, failure);
             throw failure;
         }
+        if (!taskWritten) {
+            rollback(tasks, oldTasks, null, null, null);
+            return false;
+        }
+
+        final boolean historyWritten;
+        try {
+            historyWritten = history.write(newHistory);
+        } catch (RuntimeException failure) {
+            rollback(tasks, oldTasks, history, oldHistory, failure);
+            throw failure;
+        }
+        if (!historyWritten) {
+            rollback(tasks, oldTasks, history, oldHistory, null);
+            return false;
+        }
+        return true;
     }
 
     private static void rollback(Store tasks, String oldTasks, Store history,
