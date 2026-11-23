@@ -269,3 +269,11 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Acrescentados testes de regressão para manifesto acima do limite e manifesto como link simbólico, além dos casos existentes de alteração de binário, duplicata e arquivo ausente. Commit `33407ad`.
 - **Validação pendente:** conferir CI Chromium/WebKit e empacotamento após `33407ad`; a consulta de status combinado do commit retornou lista vazia e não prova sucesso ou ausência de workflows. Não foram executados testes locais nem verificações com APK/AAB reais nesta rodada.
 - **Próximo foco:** validar os testes novos, baixar os quatro pacotes e manifesto da mesma execução e verificar os hashes; continuar ensaios de áudio da fase 1.000 e testes físicos. Nenhuma assinatura, publicação ou alteração em outros aplicativos foi realizada.
+
+## Evolução de 23/11/2026 — saída atômica do verificador SHA-256
+
+- Conferido CI anterior na branch exclusiva: testes [45240024062](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45240024062) **success** no commit `87fc0b14`; empacotamento [45239969726](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45239969726) **success** no commit `33407ade`. São resultados anteriores às alterações atuais.
+- Corrigido `scripts/verify-android-packages.cjs`: antes, imprimia `OK` para os primeiros pacotes mesmo quando o quarto falhava, criando uma saída parcialmente enganosa. Agora só anuncia os quatro `OK` após a validação completa dos quatro hashes. Commit `3a9dd563`.
+- Adicionado teste de regressão em `tests/release-readiness.test.cjs` que corrompe o último pacote, exige ausência de mensagens `OK` e confirma quatro mensagens apenas na verificação integral. Commit `d00e8540`.
+- **Validação pendente:** conferir os workflows disparados após os novos commits; nenhuma execução local ou teste físico foi afirmado nesta rodada.
+- **Próximo foco:** validar CI e baixar/verificar os quatro binários reais do mesmo empacotamento, sem misturar execuções; continuar testes físicos e preparação para lojas.
