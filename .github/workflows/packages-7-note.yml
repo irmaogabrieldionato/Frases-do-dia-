@@ -138,11 +138,18 @@ jobs:
             sha256sum "$BUNDLE"
             sha256sum "native/android/app/build/outputs/apk/$flavor/debug/app-$flavor-debug.apk"
           done
-          # Publicar checksums verificáveis junto aos pacotes, não apenas nos logs.
+          # Criar um manifesto portátil: nomes simples, sem caminhos do runner.
+          # Os quatro nomes são distintos e podem ser verificados após baixar os ZIPs.
           mkdir -p native/android/checksums
-          sha256sum native/android/app/build/outputs/apk/{mobile,tv}/debug/*.apk \
-            native/android/app/build/outputs/bundle/{mobile,tv}Release/*.aab \
-            > native/android/checksums/SHA256SUMS.txt
+          for flavor in mobile tv; do
+            cp "native/android/app/build/outputs/apk/$flavor/debug/app-$flavor-debug.apk" native/android/checksums/
+            cp "native/android/app/build/outputs/bundle/${flavor}Release/app-$flavor-release.aab" native/android/checksums/
+          done
+          (
+            cd native/android/checksums
+            sha256sum app-mobile-debug.apk app-tv-debug.apk app-mobile-release.aab app-tv-release.aab > SHA256SUMS.txt
+            sha256sum --check --strict SHA256SUMS.txt
+          )
       - uses: actions/upload-artifact@v4
         with:
           name: 7-note-Android-TV-SHA256
