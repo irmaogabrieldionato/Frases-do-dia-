@@ -294,3 +294,10 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Acrescentada regressão estática para fstatSync, tipo, identidade e fechamento do descritor. Commit `4eed761f`.
 - **Validação pendente:** confirmar GitHub Actions dos novos commits, executar teste dinâmico de troca de caminho e baixar os quatro binários reais com manifesto da mesma execução para verificação independente. Nenhum teste local/físico nem assinatura/publicação foi realizado nesta rodada.
 - **Próximo foco:** priorizar CI, depois verificação real de APK/AAB, áudio na fase 1000, acessibilidade e dispositivos físicos. As pendências externas de identidade, políticas públicas, suporte e contas de loja permanecem.
+
+
+## Evolução de 23/11/2026 — verificador Node aplicado aos binários do CI
+
+- Reconsultados os três documentos obrigatórios. Jobs conhecidos de testes 45250668254 e pacotes 45250668238: 4/4 success em cada execução; anteriores à revisão atual.
+- O workflow de pacotes agora executa `node scripts/verify-android-packages.cjs native/android/checksums` sobre os quatro APK/AAB reais preparados pelo build, depois da validação independente com sha256sum e antes do upload. Commit `c8857607`. Uma divergência impede a distribuição dos artefatos.
+- Validação pendente: confirmar a execução do novo passo no Android/TV. A consulta de workflows por commit é limitada a eventos de pull request e não confirma o resultado de push. Não houve download independente nem teste físico nesta rodada. Assinaturas e requisitos das lojas continuam pendentes.
