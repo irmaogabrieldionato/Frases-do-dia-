@@ -55,6 +55,12 @@ public final class TaskTimeHistoryStore {
         return TaskTimeHistory.byDate(load(), taskId);
     }
 
+    /** Read-only date-range summary for a task, inclusive of both boundaries. */
+    public synchronized List<TaskTimeHistory.Day> daysForTaskBetween(
+            String taskId, String startDate, String endDate) {
+        return TaskTimeHistory.betweenDates(load(), taskId, startDate, endDate);
+    }
+
     /** Aggregate only the recorded sessions of this task. */
     public synchronized TaskTimeHistory.Total totalForTask(String taskId) {
         return TaskTimeHistory.totalForTask(load(), taskId);
