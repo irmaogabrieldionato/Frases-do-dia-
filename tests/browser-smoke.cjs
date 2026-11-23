@@ -66,6 +66,26 @@ async function run() {
     await page.goto(url, { waitUntil: "domcontentloaded" });
     console.log("✓ TV Box ativado e controle remoto navega entre botões");
 
+    // Navegadores sem Web Audio API não podem deixar a fase em estado "playing".
+    // Página isolada evita modificar o áudio dos demais cenários do teste.
+    const noAudioPage = await context.newPage();
+    await noAudioPage.addInitScript(() => {
+      Object.defineProperty(window, "AudioContext", { configurable: true, value: undefined });
+      Object.defineProperty(window, "webkitAudioContext", { configurable: true, value: undefined });
+    });
+    await noAudioPage.goto(url, { waitUntil: "domcontentloaded" });
+    await noAudioPage.locator("#play-button").click();
+    await noAudioPage.waitForFunction(() =>
+      document.getElementById("message").textContent.includes("não oferece áudio"));
+    assert.equal(await noAudioPage.locator("#play-button").isEnabled(), true,
+      "Falha de áudio deve permitir nova tentativa sem bloquear o jogo");
+    assert.equal(await noAudioPage.locator("#level").textContent(), "1");
+    assert.equal(await noAudioPage.locator("#wins").textContent(), "0");
+    assert.equal(await noAudioPage.locator("#losses").textContent(), "0");
+    await noAudioPage.close();
+    console.log("✓ Falta de Web Audio API informa erro sem bloquear ou alterar progresso");
+
+
 
     // Sair da página durante uma sequência não pode deixar a fase bloqueada.
     await page.locator("#play-button").click();
