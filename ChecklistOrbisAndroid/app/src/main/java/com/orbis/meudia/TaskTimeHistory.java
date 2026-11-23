@@ -188,8 +188,10 @@ public final class TaskTimeHistory {
         if (sessions == null || blank(sessionId)) throw new IllegalArgumentException("Missing input");
         List<Session> result = new ArrayList<>();
         boolean found = false;
+        java.util.HashSet<String> seen = new java.util.HashSet<>();
         for (Session session : sessions) {
             if (session == null) throw new IllegalArgumentException("Null session");
+            if (!seen.add(session.id)) throw new IllegalArgumentException("Duplicate session id");
             if (sessionId.equals(session.id)) {
                 if (found) throw new IllegalArgumentException("Duplicate session id");
                 found = true;
