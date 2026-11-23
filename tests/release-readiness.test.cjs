@@ -80,3 +80,19 @@ test("sequência da memória é reutilizada durante a fase 1000",()=>{
  assert.match(app,/core\.evaluateNote\(currentMemorySequence\(\), inputIndex, id\)/);
  assert.doesNotMatch(app,/core\.evaluateNote\(core\.sequenceForLevel\(/);
 });
+
+// Evita milhares de reconstruções da lista de conquistas na fase final.
+test("conquistas só são redesenhadas quando a condição de desbloqueio muda",()=>{
+ const app=content("app.js");
+ const core=content("game-core.js");
+ assert.match(app,/let achievementRenderKey = null/);
+ assert.match(app,/if \(key === achievementRenderKey\) return/);
+ assert.match(app,/achievementRenderKey = key/);
+ for(const expression of ["progress.totalWins > 0","progress.best >= 8","progress.bestStreak >= 5",
+   "progress.earBest >= core.EAR_ROUNDS","progress.best >= 25","progress.completed"]){
+   assert.ok(app.includes(expression),expression);
+ }
+ for(const field of ["totalWins","best","bestStreak","earBest","completed"]){
+   assert.ok(core.includes("p."+field),field);
+ }
+});
