@@ -1330,3 +1330,12 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **CI do SHA final ainda não confirmado**; testes adicionados não são testes executados. Não declarar APK validado, teste físico/instrumentado ou backup geral concluído. Incrementos funcionais **5/24**, CLOCK-13–16 parciais.
 - Assinatura release depende de keystore privado e secrets protegidos. Sem Google Agenda/API, serviços externos ou alterações na `main`.
 - Próximo: confirmar GitHub Actions do SHA de testes; localizar e integrar o fluxo real de backup/restauração de tarefas e tempo, incluindo compatibilidade com versões anteriores, teste de corrupção e rollback.
+
+
+## Execução 171 — 23/11/2026 — conexão do backup portátil ao armazenamento offline
+- Consultados primeiro este progresso e o inventário de concorrentes na branch `checklist-orbis`. Microsoft To Do segue em foco conforme ordem revisada; nenhum concorrente integralmente concluído.
+- CI da execução 170 confirmado: [Actions 45222209531](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45222209531), SHA `96d46fd`, `completed/success` em 23/11/2026. Não implica teste instrumentado.
+- [4f88fbb](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/4f88fbbcbef08f0a2d79dc69eb500529f73bd77b) adiciona `exportBackupSection()` e `mergeBackupSection()` ao `TaskTimeHistoryStore`. O armazenamento Android agora pode exportar o envelope versionado e validar/mesclar antes de uma gravação síncrona. Falhas de validação não chegam à gravação; falha de commit retorna false.
+- **Limite crítico**: ainda não integrado ao backup geral das tarefas, nem à interface. A gravação da seção de tempo NÃO é atômica com a gravação das tarefas. Não declarar backup integral pronto, restauração global sem perda ou rollback interarmazenamentos. Testes JVM do envelope passaram no CI anterior, mas **CI do commit novo ainda não confirmado**, sem APK novo aprovado nem teste em aparelho.
+- Contagem funcional **5/24**, CLOCK-13–16 parciais; assinatura release bloqueada por keystore/secrets privados. Próximo: criar coordenador de restauração transacional ou estratégia de recuperação verificável e testar compatibilidade com backups antigos, sem apagar dados.
+- Agenda própria, offline, sem Google Agenda/API, terceiros ou alteração em `main`.
