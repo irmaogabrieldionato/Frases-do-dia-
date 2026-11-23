@@ -45,6 +45,21 @@ public final class TaskTimeHistoryStore {
         return save(merged);
     }
 
+    /** Export a portable versioned section without external services. */
+    public synchronized String exportBackupSection() {
+        return TaskTimeBackupSection.exportSection(load());
+    }
+
+    /**
+     * Validate and merge before one local write. Not an atomic transaction with
+     * task storage; full-app restore must coordinate both stores separately.
+     */
+    public synchronized boolean mergeBackupSection(String section) {
+        List<TaskTimeHistory.Session> merged =
+                TaskTimeBackupSection.prepareRestore(load(), section);
+        return save(merged);
+    }
+
     /** Read-only export for a future user-controlled backup flow. */
     public synchronized String exportSnapshot() {
         return TaskTimeHistoryCodec.encode(load());
