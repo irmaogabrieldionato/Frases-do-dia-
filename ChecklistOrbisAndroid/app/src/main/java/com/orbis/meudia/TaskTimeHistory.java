@@ -33,6 +33,7 @@ public final class TaskTimeHistory {
             }
             try {
                 int year = Integer.parseInt(occurrenceDate.substring(0, 4));
+                if (year == 0) throw new IllegalArgumentException("Year zero is not an ISO calendar year");
                 int month = Integer.parseInt(occurrenceDate.substring(5, 7));
                 int day = Integer.parseInt(occurrenceDate.substring(8, 10));
                 java.util.GregorianCalendar calendar = new java.util.GregorianCalendar();
@@ -130,6 +131,7 @@ public final class TaskTimeHistory {
         if (date == null || !date.matches("\\d{4}-\\d{2}-\\d{2}")) return false;
         try {
             int year = Integer.parseInt(date.substring(0, 4));
+            if (year == 0) return false;
             int month = Integer.parseInt(date.substring(5, 7));
             int day = Integer.parseInt(date.substring(8, 10));
             java.util.GregorianCalendar calendar = new java.util.GregorianCalendar();
