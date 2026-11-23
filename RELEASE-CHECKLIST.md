@@ -277,3 +277,12 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Adicionado teste de regressão em `tests/release-readiness.test.cjs` que corrompe o último pacote, exige ausência de mensagens `OK` e confirma quatro mensagens apenas na verificação integral. Commit `d00e8540`.
 - **Validação pendente:** conferir os workflows disparados após os novos commits; nenhuma execução local ou teste físico foi afirmado nesta rodada.
 - **Próximo foco:** validar CI e baixar/verificar os quatro binários reais do mesmo empacotamento, sem misturar execuções; continuar testes físicos e preparação para lojas.
+
+
+## Evolução de 23/11/2026 — verificação SHA-256 com memória limitada
+
+- Reconsultados os três documentos obrigatórios e os jobs conhecidos mais recentes: [testes 45250668254](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45250668254) e [pacotes 45250668238](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45250668238), ambos com **4/4 jobs success**, inclusive Chromium, WebKit, Android/TV, iOS e Windows. São resultados anteriores à mudança atual.
+- Corrigido `scripts/verify-android-packages.cjs`: o cálculo SHA-256 antes usava `readFileSync` para carregar cada APK/AAB inteiro na memória. Agora utiliza leitura sequencial em blocos de 1 MiB, mantendo o resultado SHA-256, as validações e a saída atômica. Commit `ce106935`.
+- Acrescentada regressão estática em `tests/release-readiness.test.cjs` para impedir retorno ao carregamento integral. Commit `ba008d70`.
+- **Validação pendente:** confirmar CI dos novos commits e executar o verificador com os quatro APK/AAB reais baixados de uma mesma execução. Não foram baixados pacotes nem executados testes físicos nesta rodada; os testes anteriores não aprovam automaticamente esta alteração.
+- **Próximo foco:** conferir CI e manifesto de hashes reais; continuar testes de áudio, offline e hardware e preparar metadados de lojas sem publicar. Permanecem pendentes assinaturas, política e suporte públicos confirmados e revisão humana.
