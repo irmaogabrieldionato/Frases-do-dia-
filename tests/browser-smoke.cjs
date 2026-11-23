@@ -134,12 +134,14 @@ async function run() {
     await page.locator('[data-mode="free"]').click();
     const performanceSample = await page.evaluate(() => {
       const firstAchievement = document.querySelector("#achievement-list .achievement");
+      const firstMelodyChip = document.querySelector("#sequence-list .sequence-chip");
       const key = document.querySelector('[data-note="do"]');
       const started = performance.now();
       for (let i = 0; i < 1000; i++) key.click();
       return {
         elapsedMs: performance.now() - started,
         stableAchievement: document.querySelector("#achievement-list .achievement") === firstAchievement,
+        stableMelody: document.querySelector("#sequence-list .sequence-chip") === firstMelodyChip,
         level: document.getElementById("level").textContent,
         count: document.querySelectorAll("#achievement-list .achievement").length
       };
@@ -148,6 +150,8 @@ async function run() {
     assert.equal(performanceSample.count, 6);
     assert.equal(performanceSample.stableAchievement, true,
       "Entradas sem desbloqueio não devem reconstruir o painel de conquistas");
+    assert.equal(performanceSample.stableMelody, true,
+      "Entradas no modo Livre não devem reconstruir os chips do compositor");
     assert.ok(Number.isFinite(performanceSample.elapsedMs));
     console.log("✓ 1.000 entradas na fase 1.000 (modo Livre, áudio mudo): " +
       performanceSample.elapsedMs.toFixed(1) + " ms; conquistas sem reconstrução");
