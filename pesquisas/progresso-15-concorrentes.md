@@ -1252,3 +1252,11 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **CI do SHA final 1fd2451 ainda não confirmado** nesta execução; não afirmar testes executados, APK novo validado nem teste físico. Alteração limitada ao codec/testes, sem mudança de formato persistido para strings válidas. A integração com UI, timers reais e backup geral continua pendente; CLOCK-13–16 parciais e **5/24** incrementos funcionais.
 - Assinatura release continua bloqueada por keystore/secrets privados; agenda própria e offline, sem Google Agenda/API, sem terceiros e sem modificação da `main`.
 - Próximo: confirmar CI do SHA final; integrar histórico ao backup geral e à UI com testes Android instrumentados.
+
+
+## Execução 162 — 23/11/2026 — correção dos testes de integridade UTF-16
+- Consultados primeiro este registro e o inventário de concorrentes na branch `checklist-orbis`. Mantida a ordem vigente anotada neste arquivo (Microsoft To Do em foco; Todoist e TickTick adiados por decisão posterior).
+- Revisão do commit `1fd2451` identificou defeito nos três testes: literais Java com `\\uD83D`, `\\uDC00` e `\\uD83D\\uDE80` representavam sequências de barra invertida e letra u, não caracteres surrogate reais. Portanto, os testes não exercitavam o caso declarado.
+- [3b62c66](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/3b62c664bfb4dfafe211c17800588b396a494bb7) corrige os testes usando `Character.toString((char) 0xD83D)`, `Character.toString((char) 0xDC00)` e `Character.toChars(0x1F680)`, sem alterar o código de produção.
+- **CI do SHA final 3b62c66 ainda não confirmado**. A alteração foi inspecionada estaticamente; testes JVM, instrumentados Android, aparelho físico, regressões e APK novo não foram validados nesta execução. Confirmar GitHub Actions antes de declarar sucesso; caso falhe, corrigir antes de seguir.
+- Contagem funcional **5/24**, CLOCK-13–16 parciais, nenhum concorrente concluído. Interface, timers reais e backup global continuam pendentes. Assinatura release bloqueada por keystore privado/secrets; sem Google Agenda/API, serviços externos ou alterações na `main`.
