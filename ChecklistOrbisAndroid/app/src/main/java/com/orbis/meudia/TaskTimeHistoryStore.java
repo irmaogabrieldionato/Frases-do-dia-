@@ -45,6 +45,21 @@ public final class TaskTimeHistoryStore {
         return save(merged);
     }
 
+    /** Read-only export for a future user-controlled backup flow. */
+    public synchronized String exportSnapshot() {
+        return TaskTimeHistoryCodec.encode(load());
+    }
+
+    /** Chronological per-day history for a single task; never includes other tasks. */
+    public synchronized List<TaskTimeHistory.Day> daysForTask(String taskId) {
+        return TaskTimeHistory.byDate(load(), taskId);
+    }
+
+    /** Aggregate only the recorded sessions of this task. */
+    public synchronized TaskTimeHistory.Total totalForTask(String taskId) {
+        return TaskTimeHistory.totalForTask(load(), taskId);
+    }
+
     public synchronized boolean append(TaskTimeHistory.Session session) {
         if (session == null) throw new IllegalArgumentException("Missing session");
         List<TaskTimeHistory.Session> all = new ArrayList<>(load());
