@@ -72,6 +72,11 @@ public final class TaskTimeHistory {
             this.stopwatchSessions = stopwatchSessions;
             this.timerSessions = timerSessions;
         }
+
+        /** Actual recorded work; timer targets are never counted as elapsed time. */
+        public long workedMillis() {
+            return Math.addExact(stopwatchMillis, timerElapsedMillis);
+        }
     }
 
     /** Totals for one task, keeping timer target separate from actual elapsed time. */
@@ -91,6 +96,11 @@ public final class TaskTimeHistory {
             this.timerTargetMillis = timerTargetMillis;
             this.stopwatchSessions = stopwatchSessions;
             this.timerSessions = timerSessions;
+        }
+
+        /** Actual recorded work across the selected dates, excluding timer targets. */
+        public long workedMillis() {
+            return Math.addExact(stopwatchMillis, timerElapsedMillis);
         }
     }
 
