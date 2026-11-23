@@ -123,8 +123,17 @@ jobs:
           done
           grep -F "targetSdkVersion:'36'" /tmp/mobile-badging.txt
           grep -F "targetSdkVersion:'35'" /tmp/tv-badging.txt
-          test -n "$(find native/android/app/build/outputs/bundle/mobileRelease -name '*.aab' -type f -size +0c)"
-          test -n "$(find native/android/app/build/outputs/bundle/tvRelease -name '*.aab' -type f -size +0c)"
+          # Auditar o conteúdo real dos dois bundles, não apenas seu tamanho.
+          for flavor in mobile tv; do
+            BUNDLE="native/android/app/build/outputs/bundle/${flavor}Release/app-${flavor}-release.aab"
+            test -s "$BUNDLE"
+            unzip -t "$BUNDLE" >/dev/null
+            unzip -Z1 "$BUNDLE" | grep -Fx 'base/assets/game-core.js'
+            unzip -Z1 "$BUNDLE" | grep -Fx 'base/assets/privacy.html'
+            unzip -Z1 "$BUNDLE" | grep -Fx 'base/manifest/AndroidManifest.xml'
+            sha256sum "$BUNDLE"
+            sha256sum "native/android/app/build/outputs/apk/$flavor/debug/app-$flavor-debug.apk"
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: 7-note-Android-APK-debug
