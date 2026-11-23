@@ -127,3 +127,12 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Acrescentado cenário Playwright em `tests/browser-smoke.cjs` para Chromium e WebKit: carregar a fase 1.000 ainda não concluída, entrar no modo Livre, realizar 1.000 entradas de teclado musical sem som, medir duração e verificar que o painel de seis conquistas conserva os mesmos nós DOM quando nenhuma condição de desbloqueio muda. Commit `9f4e043`.
 - **Limite da medição:** a duração é apenas diagnóstico registrado nos logs do CI, sem limite absoluto arbitrário entre máquinas; o cenário não mede reprodução auditiva das 1.000 notas nem latência em aparelho físico. Não se afirma aprovação dos novos testes antes da conclusão do workflow.
 - **Próximo foco:** conferir o novo CI Chromium/WebKit e comparar duração, depois medir reprodução e resposta no modo Memória da fase final em dispositivos reais.
+
+
+## Evolução de 22/11/2026 — cache do painel do compositor
+
+- Identificada reconstrução desnecessária de todos os chips do compositor em cada renderização, inclusive nas 1.000 entradas do modo Livre e durante a fase final de Memória.
+- `app.js`: cache pela sequência de notas da melodia; o DOM dos chips só é reconstruído quando a composição muda. O estado dos botões Desfazer e Limpar continua sendo atualizado em todas as renderizações. Commit: `2e99ca19`.
+- `tests/release-readiness.test.cjs`: adicionada verificação estática de regressão da cache. Commit: `9363e28b`.
+- Conferido resultado anterior de quatro jobs aprovados em [testes 45084386409](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45084386409), anterior a estas mudanças.
+- **Validação pendente:** verificar novos jobs Chromium/WebKit e pacotes; não foi medido ganho real em mil entradas, nem executado teste físico. Preservadas as 1.000 fases e todas as regras de jogo.
