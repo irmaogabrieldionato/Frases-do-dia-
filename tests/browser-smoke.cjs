@@ -77,6 +77,19 @@ async function run() {
       "reprodução cancelada não pode reativar o bloqueio após timer pendente");
     console.log("✓ Navegação/pagehide cancela sequência e permite reinício");
 
+    // Navegação real: a página de privacidade deve ser acessível e o retorno
+    // não pode conservar um estado de reprodução bloqueado (inclusive bfcache).
+    await page.locator("#play-button").click();
+    await page.goto(url + "privacy.html", { waitUntil: "domcontentloaded" });
+    assert.match(await page.locator("body").innerText(), /privacidade/i);
+    await page.goBack({ waitUntil: "domcontentloaded" });
+    assert.equal(await page.locator("#play-button").isEnabled(), true,
+      "Voltar da política de privacidade deve permitir reproduzir novamente");
+    await page.waitForTimeout(350);
+    assert.equal(await page.locator("#play-button").isEnabled(), true,
+      "Timer da página anterior não deve bloquear o retorno do histórico");
+    console.log("✓ Navegação real e retorno do histórico liberam reprodução");
+
     await page.locator("#play-button").click();
     await waitMessage(page, "Agora repita");
     await page.locator('[data-note="do"]').click();
