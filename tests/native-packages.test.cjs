@@ -55,3 +55,11 @@ test("native assets include all the same files as the web game",()=>{
    assert.ok(artwork.includes(name),name);
  }
 });
+
+test("Android/TV checksums are portable and validated before upload",()=>{
+ const workflow=file(".github/workflows/packages-7-note.yml");
+ assert.match(workflow,/sha256sum --check --strict SHA256SUMS\.txt/);
+ assert.match(workflow,/sha256sum app-mobile-debug\.apk app-tv-debug\.apk app-mobile-release\.aab app-tv-release\.aab > SHA256SUMS\.txt/);
+ assert.match(workflow,/7-note-Android-TV-SHA256/);
+ assert.doesNotMatch(workflow,/sha256sum native\/android\/app\/build\/outputs\/apk\/\{mobile,tv\}\/debug\/\*\.apk/);
+});
