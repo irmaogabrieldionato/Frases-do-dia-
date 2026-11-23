@@ -38,4 +38,26 @@ public class TaskTimeBackupSectionTest {
                 () -> TaskTimeBackupSection.prepareRestore(original, section));
         assertEquals(20, original.get(0).elapsedMillis);
     }
+    @Test public void emptyHistoryRoundTripsWithoutErasingExistingSessions() {
+        String section = TaskTimeBackupSection.exportSection(Collections.emptyList());
+        List<TaskTimeHistory.Session> existing = Arrays.asList(session("kept", 42));
+        List<TaskTimeHistory.Session> restored =
+                TaskTimeBackupSection.prepareRestore(existing, section);
+        assertEquals(1, restored.size());
+        assertEquals("kept", restored.get(0).id);
+    }
+
+    @Test public void malformedLengthAndChecksumMetadataAreRejected() {
+        String section = TaskTimeBackupSection.exportSection(Arrays.asList(session("one", 100)));
+        int first = section.indexOf('\\n') + 1;
+        int second = section.indexOf('\\n', first);
+        int third = section.indexOf('\\n', second + 1);
+        String badLength = section.substring(0, first) + "0001" + section.substring(second);
+        String badChecksum = section.substring(0, second + 1) + "NOT_HEX" + section.substring(third);
+        assertThrows(IllegalArgumentException.class,
+                () -> TaskTimeBackupSection.prepareRestore(Collections.emptyList(), badLength));
+        assertThrows(IllegalArgumentException.class,
+                () -> TaskTimeBackupSection.prepareRestore(Collections.emptyList(), badChecksum));
+    }
+
 }
