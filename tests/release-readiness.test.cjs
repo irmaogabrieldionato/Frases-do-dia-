@@ -115,3 +115,28 @@ test("reprodução interrompida não habilita respostas silenciosas", () => {
  assert.match(section,/phase = "idle";[\s\S]*?setMessage\("O áudio foi interrompido/);
  assert.match(section,/phase = owner === "memory" \? "input" : "idle"/);
 });
+
+test("manifesto SHA256 portátil rejeita alteração, duplicata e arquivo ausente",()=>{
+ const os=require("node:os");
+ const crypto=require("node:crypto");
+ const {verify}=require("../scripts/verify-android-packages.cjs");
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),"sevennote-sha-"));
+ const names=["app-mobile-debug.apk","app-tv-debug.apk","app-mobile-release.aab","app-tv-release.aab"];
+ try {
+   const lines=names.map((name,i)=>{
+     const data=Buffer.from("fixture-"+i);
+     fs.writeFileSync(path.join(dir,name),data);
+     return crypto.createHash("sha256").update(data).digest("hex")+"  "+name;
+   });
+   fs.writeFileSync(path.join(dir,"SHA256SUMS.txt"),lines.join("\n")+"\n");
+   assert.doesNotThrow(()=>verify(dir));
+   fs.appendFileSync(path.join(dir,names[0]),"alterado");
+   assert.throws(()=>verify(dir),/Hash divergente/);
+   fs.writeFileSync(path.join(dir,names[0]),"fixture-0");
+   fs.writeFileSync(path.join(dir,"SHA256SUMS.txt"),[lines[0],lines[0],lines[2],lines[3]].join("\n"));
+   assert.throws(()=>verify(dir),/duplicada/);
+   fs.writeFileSync(path.join(dir,"SHA256SUMS.txt"),lines.join("\n"));
+   fs.unlinkSync(path.join(dir,names[3]));
+   assert.throws(()=>verify(dir),/ENOENT/);
+ } finally {fs.rmSync(dir,{recursive:true,force:true});}
+});
