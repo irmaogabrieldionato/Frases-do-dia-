@@ -7,7 +7,12 @@ const crypto = require("node:crypto");
 const directory = path.resolve(process.argv[2] || ".");
 const names = ["app-mobile-debug.apk", "app-tv-debug.apk", "app-mobile-release.aab", "app-tv-release.aab"];
 function verify(dir) {
-  const manifest = fs.readFileSync(path.join(dir, "SHA256SUMS.txt"), "utf8");
+  const manifestPath = path.join(dir, "SHA256SUMS.txt");
+  const manifestStat = fs.lstatSync(manifestPath);
+  if (!manifestStat.isFile() || manifestStat.size > 512 || manifestStat.size === 0) {
+    throw new Error("Manifesto SHA256 inválido");
+  }
+  const manifest = fs.readFileSync(manifestPath, "utf8");
   const lines = manifest.trim().split(/\r?\n/);
   if (lines.length !== names.length) throw new Error("Manifesto deve conter exatamente quatro hashes");
   const entries = new Map();
