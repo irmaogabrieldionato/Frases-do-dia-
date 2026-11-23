@@ -164,4 +164,34 @@ public class TaskTimeHistoryTest {
                 "study", "2026-11-11", "2026-11-12").clear();
     }
 
+
+    @Test public void boundedTotalsIncludeEndpointsAndExcludeOtherTasks() {
+        List<TaskTimeHistory.Session> sessions = Arrays.asList(
+                s("a", "work", "2026-11-10", TaskTimeHistory.Kind.STOPWATCH, 100, 0),
+                s("b", "work", "2026-11-11", TaskTimeHistory.Kind.STOPWATCH, 200, 0),
+                s("c", "work", "2026-11-12", TaskTimeHistory.Kind.TIMER, 300, 900),
+                s("d", "work", "2026-11-13", TaskTimeHistory.Kind.TIMER, 400, 800),
+                s("e", "other", "2026-11-12", TaskTimeHistory.Kind.STOPWATCH, 9999, 0));
+        TaskTimeHistory.Total total = TaskTimeHistory.totalBetweenDates(
+                sessions, "work", "2026-11-11", "2026-11-12");
+        assertEquals(2, total.activeDays);
+        assertEquals(200, total.stopwatchMillis);
+        assertEquals(300, total.timerElapsedMillis);
+        assertEquals(900, total.timerTargetMillis);
+        assertEquals(1, total.stopwatchSessions);
+        assertEquals(1, total.timerSessions);
+    }
+
+    @Test public void boundedTotalsEmptyIntervalReturnsZero() {
+        TaskTimeHistory.Total total = TaskTimeHistory.totalBetweenDates(
+                Collections.<TaskTimeHistory.Session>emptyList(), "work", "2026-11-11", "2026-11-12");
+        assertEquals(0, total.activeDays);
+        assertEquals(0, total.timerElapsedMillis);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void boundedTotalsRejectReverseRange() {
+        TaskTimeHistory.totalBetweenDates(Collections.<TaskTimeHistory.Session>emptyList(),
+                "work", "2026-11-12", "2026-11-11");
+    }
 }
