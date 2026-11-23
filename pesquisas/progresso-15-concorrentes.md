@@ -1320,3 +1320,13 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - **Bloqueios**: histórico ainda não integrado à UI, aos timers reais e ao backup global; faltam testes Android instrumentados e restauração em dispositivo; assinatura release depende de keystore privado e secrets seguros, sem chaves no Git.
 - **Próximo incremento de produto**: integrar o histórico de tempo ao backup geral com versão e restauração atômica, preservar compatibilidade com backups legados e testar ida/volta e falhas de importação antes de alterar a interface. Contagem funcional permanece **5/24**; nenhuma alegação de APK de release assinado ou de concorrente concluído.
 - Agenda própria, offline, sem API ou integração com Google Agenda; nenhuma alteração na branch `main`.
+
+
+## Execução 170 — 23/11/2026 — seção portátil de backup de histórico de tempo
+- Consultados primeiro este progresso e o inventário competitivo na branch `checklist-orbis`; Microsoft To Do em foco segundo ordem revisada; 0/15 concorrentes concluídos.
+- [684917c](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/684917c8bd8cd28ec46990c6db4c8bb3f3b847ce) adiciona `TaskTimeBackupSection`, um envelope local versionado com comprimento UTF-8 e CRC32 para detectar corrupção acidental. O payload usa o codec existente e restauração não destrutiva `mergeForRestore`, que rejeita conflitos de ID.
+- [96d46fd](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/96d46fd22f66ecadbc0d0fe0abfb81256ec65730) adiciona três testes JVM de ida/volta e idempotência, corrupção e conflitos sem alteração da entrada.
+- **Escopo parcial**: seção preparada, ainda NÃO conectada ao backup geral de tarefas, à persistência Android ou à UI. CRC32 não é autenticação criptográfica e não protege contra adulteração deliberada. Backup legado permanece inalterado. A futura integração precisa fazer commit atômico de todas as partes ou rollback completo.
+- **CI do SHA final ainda não confirmado**; testes adicionados não são testes executados. Não declarar APK validado, teste físico/instrumentado ou backup geral concluído. Incrementos funcionais **5/24**, CLOCK-13–16 parciais.
+- Assinatura release depende de keystore privado e secrets protegidos. Sem Google Agenda/API, serviços externos ou alterações na `main`.
+- Próximo: confirmar GitHub Actions do SHA de testes; localizar e integrar o fluxo real de backup/restauração de tarefas e tempo, incluindo compatibilidade com versões anteriores, teste de corrupção e rollback.
