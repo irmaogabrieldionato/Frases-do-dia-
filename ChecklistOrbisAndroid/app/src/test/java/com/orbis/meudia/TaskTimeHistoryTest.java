@@ -234,4 +234,17 @@ public class TaskTimeHistoryTest {
                 Collections.<TaskTimeHistory.Session>emptyList(), "work", "0001-01-01").size());
     }
 
+    @Test public void historicalGregorianCutoverDatesAreAccepted() {
+        TaskTimeHistory.Session session = s("historic", "work", "1582-10-10",
+                TaskTimeHistory.Kind.STOPWATCH, 1000, 0);
+        assertEquals("1582-10-10", session.occurrenceDate);
+        assertEquals(1, TaskTimeHistory.forOccurrence(
+                Collections.singletonList(session), "work", "1582-10-10").size());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void historicalInvalidLeapDayIsRejected() {
+        s("bad", "work", "1500-02-29", TaskTimeHistory.Kind.STOPWATCH, 1, 0);
+    }
+
 }
