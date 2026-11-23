@@ -131,6 +131,27 @@ async function run() {
         JSON.stringify({ volume: 0, tempo: "fast", instrument: "soft", showNames: true }));
     });
     await page.reload({ waitUntil: "domcontentloaded" });
+    // Valida a campanha completa no mesmo motor carregado pela interface.
+    const campaignAudit = await page.evaluate(() => {
+      const core = window.SevenNoteCore;
+      const opening = ["do", "si", "re", "mi", "do", "do", "re", "sol", "fa"];
+      let previous = [];
+      for (let level = 1; level <= 1000; level++) {
+        const sequence = core.sequenceForLevel(level);
+        if (sequence.length !== level ||
+            sequence.slice(0, previous.length).some((note, index) => note !== previous[index]) ||
+            (level <= opening.length && sequence[level - 1] !== opening[level - 1])) {
+          return { valid: false, level };
+        }
+        previous = sequence;
+      }
+      let rejects1001 = false;
+      try { core.sequenceForLevel(1001); } catch (error) { rejects1001 = error instanceof RangeError; }
+      return { valid: rejects1001, level: 1000, finalLength: previous.length };
+    });
+    assert.deepEqual(campaignAudit, { valid: true, level: 1000, finalLength: 1000 },
+      "Campanha deve manter os prefixos e terminar exatamente na fase 1.000");
+    console.log("✓ Campanha completa: 1.000 prefixos estáveis e fase 1.001 proibida");
     await page.locator('[data-mode="free"]').click();
     const performanceSample = await page.evaluate(() => {
       const firstAchievement = document.querySelector("#achievement-list .achievement");
