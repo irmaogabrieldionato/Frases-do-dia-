@@ -331,3 +331,9 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Reconsultados os três documentos obrigatórios. Confirmados 4/4 jobs success em [testes 45416329113](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45416329113) (f0b1d523) e 4/4 em [pacotes 45416312289](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45416312289) (8234e8c6), incluindo Android Lint e auditoria de APKs, Chromium/WebKit e auditoria de dependências Windows.
 - Estendida regressão dinâmica do Ouvido: repetir a nota após interrupção mantém progresso em 0%; responder efetivamente avança para 10%, independentemente do acerto. Commit 46a54b57. Não altera regras ou código de produção.
 - CI do novo teste ainda não confirmado; auditoria independente dos binários baixados, reprodução integral das mil notas e testes físicos permanecem pendentes. Nenhuma assinatura ou publicação realizada.
+
+## Evolução de 24/11/2026 — leitura limitada do manifesto SHA256
+
+- Reconsultados os três documentos obrigatórios e os oito jobs conhecidos das execuções 45416329113 e 45416312289, todos success. Não foi possível listar execuções por push mais recentes com o conector disponível.
+- Corrigido o verificador Android/TV para validar identidade e tamanho do descritor do manifesto após abertura, impedir links simbólicos quando suportado e limitar leitura a 513 bytes, rejeitando crescimento acima de 512 bytes. Commit `610517df`.
+- Adicionado teste dinâmico de crescimento do manifesto durante abertura, commit `599a2625`. CI novo ainda não confirmado; nenhum teste local ou download independente de binários realizado. Permanecem pendentes reprodução integral das mil notas, testes físicos, assinatura e publicação.
