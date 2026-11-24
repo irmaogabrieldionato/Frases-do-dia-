@@ -253,7 +253,7 @@
         ? "Pergunta " + ear.round + "/" + core.EAR_ROUNDS + " · Acertos: " + ear.correct
         : "Dez notas para reconhecer";
       mainLabel = ear.status === "idle" || ear.status === "finished" ? "▶ Novo treino"
-        : ear.status === "feedback" || ear.status === "ready" ? "▶ Próxima nota"
+        : ear.status === "feedback" ? "▶ Próxima nota"
         : ear.status === "playing" ? "♫ Tocando nota..." : "♫ Ouvir nota outra vez";
       otherLabel = "♫ Repetir som";
       otherEnabled = ear.status === "input";
