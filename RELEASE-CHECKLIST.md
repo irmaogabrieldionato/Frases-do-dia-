@@ -307,3 +307,9 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Reconsultados os três documentos obrigatórios; jobs conhecidos 45250668254 e 45250668238: 4/4 success cada, anteriores à correção. A consulta por commit é limitada a pull requests e não valida CI por push.
 - Corrigido app.js: verifica áudio ativo e visibilidade antes e depois da nota, mantém respostas bloqueadas em caso de interrupção, aguarda 640 ms para nota de 620 ms e repete a mesma pergunta sem trocar o alvo. Botão secundário usa o mesmo fluxo protegido. Commit 6d544788.
 - Acrescentada regressão estática em tests/release-readiness.test.cjs, commit f1e0d12f. CI novo ainda não confirmado; nenhum teste local ou físico realizado. Próximo foco: teste dinâmico de interrupção em Chromium/WebKit e auditoria dos binários reais. Campanha, pontuações, anúncios e outros aplicativos preservados.
+
+## Evolução de 24/11/2026 — CI confirmado e regressão dinâmica do Ouvido
+
+- Reconsultados os três documentos obrigatórios. Testes [45327433336](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45327433336) e pacotes [45327421756](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45327421756): quatro jobs success em cada, incluindo Chromium, WebKit, Lint Android/TV e builds iOS/Windows. Passo de auditoria Android aprovado; não houve download independente dos binários.
+- Adicionado cenário Playwright de suspensão simulada do AudioContext no modo Ouvido, resposta bloqueada sem derrota e recuperação por nova reprodução, commit `55715a181`. Executado pelos dois navegadores no próximo CI; resultado ainda não confirmado nesta rodada. Não houve teste físico ou reprodução integral das mil notas.
+- Próximo foco: confirmar novo CI e auditar artefatos baixados da mesma execução; manter pendências de assinatura, suporte público e revisão das lojas.
