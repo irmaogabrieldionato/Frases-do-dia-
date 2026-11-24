@@ -313,6 +313,8 @@ async function run() {
     await earInterruptedPage.evaluate(() => { window.__earInterrupted = true; });
     await waitMessage(earInterruptedPage, "O áudio foi interrompido");
     assert.equal(await earInterruptedPage.locator("#play-button").isEnabled(), true);
+    assert.match(await earInterruptedPage.locator("#play-button").textContent(), /Ouvir nota outra vez/,
+      "A recuperação deve indicar repetição, não avanço de pergunta");
     await earInterruptedPage.locator('[data-note="do"]').evaluate(button => button.click());
     assert.equal(await earInterruptedPage.locator("#losses").textContent(), lossesBefore);
     assert.match(await earInterruptedPage.locator("#message").textContent(), /interrompido/);
