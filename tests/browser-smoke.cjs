@@ -324,6 +324,17 @@ async function run() {
     await earInterruptedPage.locator("#play-button").click();
     await waitMessage(earInterruptedPage, "Qual nota você ouviu");
     assert.equal(await earInterruptedPage.locator("#losses").textContent(), lossesBefore);
+    assert.equal(await earInterruptedPage.locator("#progress-track").getAttribute("aria-valuenow"), "0",
+      "Reproduzir novamente não deve contar como resposta");
+    await earInterruptedPage.locator('[data-note="do"]').click();
+    await earInterruptedPage.waitForFunction(() =>
+      document.getElementById("progress-track").getAttribute("aria-valuenow") === "10");
+    // A resposta pode ser incorreta; feche apenas a demonstração eventualmente exibida.
+    if (await earInterruptedPage.locator("#ad-modal").isVisible()) {
+      await earInterruptedPage.locator("#close-ad").click();
+    }
+    assert.equal(await earInterruptedPage.locator("#progress-track").getAttribute("aria-valuenow"), "10",
+      "Uma resposta efetiva deve contabilizar exatamente uma das dez perguntas");
     await earInterruptedPage.close();
     console.log("✓ Ouvido: interrupção bloqueia resposta e permite repetir sem derrota");
 
