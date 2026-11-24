@@ -17,10 +17,28 @@ final class RestoreRecoveryJournal {
         file = new AtomicFile(privateFile);
     }
 
+    private boolean hasCommittedSnapshot() {
+        return file.getBaseFile().exists() || sidecar(".bak").exists();
+    }
+
+    private File sidecar(String suffix) {
+        return new File(file.getBaseFile().getPath() + suffix);
+    }
+
+    // A lone .new is an interrupted preparation, never a committed snapshot.
+    // No store writes may begin until prepare returns successfully.
+    private void discardUncommittedPreparation() throws IOException {
+        if (!hasCommittedSnapshot() && sidecar(".new").exists()) {
+            if (!sidecar(".new").delete() && sidecar(".new").exists())
+                throw new IOException("Cannot discard interrupted preparation");
+        }
+    }
+
     void prepare(String tasks, String history) throws IOException {
         if (tasks == null || history == null) throw new IllegalArgumentException("Missing snapshot");
-        if (file.getBaseFile().exists() || new File(file.getBaseFile().getPath() + ".bak").exists())
+        if (hasCommittedSnapshot())
             throw new IOException("Recovery already pending");
+        discardUncommittedPreparation();
         final byte[] bytes;
         try {
             bytes = new JSONObject().put("version", 1).put("tasks", tasks)
@@ -43,8 +61,10 @@ final class RestoreRecoveryJournal {
     }
 
     boolean recover(DualStoreRestore.Store tasks, DualStoreRestore.Store history) throws IOException {
-        if (!file.getBaseFile().exists() && !new File(file.getBaseFile().getPath() + ".bak").exists())
+        if (!hasCommittedSnapshot()) {
+            discardUncommittedPreparation();
             return false;
+        }
         final String oldTasks, oldHistory;
         try {
             JSONObject data = new JSONObject(new String(file.readFully(), StandardCharsets.UTF_8));
@@ -62,7 +82,7 @@ final class RestoreRecoveryJournal {
 
     void clear() throws IOException {
         file.delete();
-        if (file.getBaseFile().exists() || new File(file.getBaseFile().getPath() + ".bak").exists())
+        if (hasCommittedSnapshot() || sidecar(".new").exists())
             throw new IOException("Cannot clear recovery journal");
     }
 }
