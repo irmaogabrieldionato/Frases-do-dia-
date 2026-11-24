@@ -286,6 +286,43 @@ async function run() {
     await interruptedPage.close();
     console.log("✓ Suspensão dinâmica do áudio na fase 1.000 não concede vitória nem bloqueia reinício");
 
+    // Regressão dinâmica do modo Ouvido: interromper durante a nota e repetir.
+    const earInterruptedPage = await context.newPage();
+    await earInterruptedPage.addInitScript(() => {
+      const NativeContext = window.AudioContext || window.webkitAudioContext;
+      window.__earInterrupted = false;
+      window.AudioContext = class {
+        constructor() {
+          const ctx = new NativeContext();
+          const nativeState = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(ctx), "state");
+          Object.defineProperty(ctx, "state", {
+            configurable: true,
+            get() {
+              return window.__earInterrupted ? "suspended" :
+                (nativeState ? nativeState.get.call(ctx) : "running");
+            }
+          });
+          return ctx;
+        }
+      };
+    });
+    await earInterruptedPage.goto(url, { waitUntil: "domcontentloaded" });
+    await earInterruptedPage.locator('[data-mode="ear"]').click();
+    const lossesBefore = await earInterruptedPage.locator("#losses").textContent();
+    await earInterruptedPage.locator("#play-button").click();
+    await earInterruptedPage.evaluate(() => { window.__earInterrupted = true; });
+    await waitMessage(earInterruptedPage, "O áudio foi interrompido");
+    assert.equal(await earInterruptedPage.locator("#play-button").isEnabled(), true);
+    await earInterruptedPage.locator('[data-note="do"]').evaluate(button => button.click());
+    assert.equal(await earInterruptedPage.locator("#losses").textContent(), lossesBefore);
+    assert.match(await earInterruptedPage.locator("#message").textContent(), /interrompido/);
+    await earInterruptedPage.evaluate(() => { window.__earInterrupted = false; });
+    await earInterruptedPage.locator("#play-button").click();
+    await waitMessage(earInterruptedPage, "Qual nota você ouviu");
+    assert.equal(await earInterruptedPage.locator("#losses").textContent(), lossesBefore);
+    await earInterruptedPage.close();
+    console.log("✓ Ouvido: interrupção bloqueia resposta e permite repetir sem derrota");
+
     // Testa a transição real do motor no último acerto, sem falsificar o estado final no storage.
     const finalTransition = await page.evaluate(() => {
       const core = window.SevenNoteCore;
