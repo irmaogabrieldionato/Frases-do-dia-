@@ -190,3 +190,23 @@ test("treino de ouvido bloqueia resposta se áudio interrompido e repete a mesma
  const secondary=app.split("async function secondaryAction()")[1].split('$("play-button")')[0];
  assert.match(secondary,/void startEarQuestion\(\)/);
 });
+
+test("manifesto SHA256 rejeita crescimento após abertura",()=>{
+ const os=require("node:os");
+ const {verify}=require("../scripts/verify-android-packages.cjs");
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),"sevennote-manifest-"));
+ const manifest=path.join(dir,"SHA256SUMS.txt");
+ const original=fs.openSync;
+ try {
+   fs.writeFileSync(manifest,"x");
+   fs.openSync=function(file,...args){
+     const fd=original.call(fs,file,...args);
+     if(file===manifest) fs.truncateSync(manifest,513);
+     return fd;
+   };
+   assert.throws(()=>verify(dir),/Manifesto SHA256/);
+ } finally {
+   fs.openSync=original;
+   fs.rmSync(dir,{recursive:true,force:true});
+ }
+});
