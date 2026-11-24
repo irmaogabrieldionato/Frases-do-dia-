@@ -12,7 +12,25 @@ function verify(dir) {
   if (!manifestStat.isFile() || manifestStat.size > 512 || manifestStat.size === 0) {
     throw new Error("Manifesto SHA256 inválido");
   }
-  const manifest = fs.readFileSync(manifestPath, "utf8");
+  const manifestFd = fs.openSync(manifestPath, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0));
+  let manifest;
+  try {
+    const opened = fs.fstatSync(manifestFd);
+    if (!opened.isFile() || opened.dev !== manifestStat.dev || opened.ino !== manifestStat.ino || opened.size === 0 || opened.size > 512) {
+      throw new Error("Manifesto SHA256 alterado durante abertura");
+    }
+    const buffer = Buffer.alloc(513);
+    let length = 0;
+    while (length < buffer.length) {
+      const count = fs.readSync(manifestFd, buffer, length, buffer.length - length, null);
+      if (count === 0) break;
+      length += count;
+    }
+    if (length === 0 || length > 512) throw new Error("Manifesto SHA256 inválido");
+    manifest = buffer.subarray(0, length).toString("utf8");
+  } finally {
+    fs.closeSync(manifestFd);
+  }
   const lines = manifest.trim().split(/\r?\n/);
   if (lines.length !== names.length) throw new Error("Manifesto deve conter exatamente quatro hashes");
   const entries = new Map();
