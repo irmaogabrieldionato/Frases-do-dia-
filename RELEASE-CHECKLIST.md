@@ -319,3 +319,9 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Consultados os três documentos e a lista de execuções por branch. Testes [45349707931](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45349707931) no commit `4e5f9c11` e pacotes [45349690008](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45349690008) no commit `55715a18`: quatro jobs success cada. Confirmada a regressão dinâmica anterior em Chromium/WebKit e Android Lint aprovado.
 - Corrigido o rótulo do botão no estado `ready` do modo Ouvido: após interrupção, indica ouvir novamente em vez de próxima nota, sem alterar o alvo ou a pontuação. Commit `8f1f10ed`. Acrescentada asserção ao cenário Playwright existente, commit `148a936c`.
 - Validação pendente: CI dos novos commits; nenhum teste local, download independente de binários ou teste físico realizado nesta rodada. Próximo foco: auditoria dos artefatos e reprodução integral da fase 1.000. Nenhuma publicação ou assinatura realizada.
+
+## Evolução de 24/11/2026 — progresso acessível do treino de ouvido
+
+- Reconsultados os três documentos obrigatórios e os oito jobs das execuções 45349707931 e 45349690008, todos success; resultados anteriores à revisão atual. Não foi possível confirmar execuções mais recentes por push nesta rodada.
+- Corrigido app.js para não contar uma pergunta interrompida e ainda sem resposta como concluída na barra visual e aria-valuenow (commit 6d6ab774). Acrescentada asserção Playwright no cenário de interrupção existente (commit 8234e8c6).
+- Validação pendente: CI Chromium/WebKit dos novos commits, auditoria independente dos binários e reprodução integral da fase 1.000. Nenhum teste local ou físico, assinatura ou publicação realizado nesta rodada.
