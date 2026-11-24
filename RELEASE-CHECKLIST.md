@@ -325,3 +325,9 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Reconsultados os três documentos obrigatórios e os oito jobs das execuções 45349707931 e 45349690008, todos success; resultados anteriores à revisão atual. Não foi possível confirmar execuções mais recentes por push nesta rodada.
 - Corrigido app.js para não contar uma pergunta interrompida e ainda sem resposta como concluída na barra visual e aria-valuenow (commit 6d6ab774). Acrescentada asserção Playwright no cenário de interrupção existente (commit 8234e8c6).
 - Validação pendente: CI Chromium/WebKit dos novos commits, auditoria independente dos binários e reprodução integral da fase 1.000. Nenhum teste local ou físico, assinatura ou publicação realizado nesta rodada.
+
+## Evolução de 24/11/2026 — progresso do Ouvido após recuperação
+
+- Reconsultados os três documentos obrigatórios. Confirmados 4/4 jobs success em [testes 45416329113](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45416329113) (f0b1d523) e 4/4 em [pacotes 45416312289](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45416312289) (8234e8c6), incluindo Android Lint e auditoria de APKs, Chromium/WebKit e auditoria de dependências Windows.
+- Estendida regressão dinâmica do Ouvido: repetir a nota após interrupção mantém progresso em 0%; responder efetivamente avança para 10%, independentemente do acerto. Commit 46a54b57. Não altera regras ou código de produção.
+- CI do novo teste ainda não confirmado; auditoria independente dos binários baixados, reprodução integral das mil notas e testes físicos permanecem pendentes. Nenhuma assinatura ou publicação realizada.
