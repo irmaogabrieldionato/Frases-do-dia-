@@ -301,3 +301,9 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Reconsultados os três documentos obrigatórios. Jobs conhecidos de testes 45250668254 e pacotes 45250668238: 4/4 success em cada execução; anteriores à revisão atual.
 - O workflow de pacotes agora executa `node scripts/verify-android-packages.cjs native/android/checksums` sobre os quatro APK/AAB reais preparados pelo build, depois da validação independente com sha256sum e antes do upload. Commit `c8857607`. Uma divergência impede a distribuição dos artefatos.
 - Validação pendente: confirmar a execução do novo passo no Android/TV. A consulta de workflows por commit é limitada a eventos de pull request e não confirma o resultado de push. Não houve download independente nem teste físico nesta rodada. Assinaturas e requisitos das lojas continuam pendentes.
+
+## Evolução de 24/11/2026 — recuperação de áudio no treino de ouvido
+
+- Reconsultados os três documentos obrigatórios; jobs conhecidos 45250668254 e 45250668238: 4/4 success cada, anteriores à correção. A consulta por commit é limitada a pull requests e não valida CI por push.
+- Corrigido app.js: verifica áudio ativo e visibilidade antes e depois da nota, mantém respostas bloqueadas em caso de interrupção, aguarda 640 ms para nota de 620 ms e repete a mesma pergunta sem trocar o alvo. Botão secundário usa o mesmo fluxo protegido. Commit 6d544788.
+- Acrescentada regressão estática em tests/release-readiness.test.cjs, commit f1e0d12f. CI novo ainda não confirmado; nenhum teste local ou físico realizado. Próximo foco: teste dinâmico de interrupção em Chromium/WebKit e auditoria dos binários reais. Campanha, pontuações, anúncios e outros aplicativos preservados.
