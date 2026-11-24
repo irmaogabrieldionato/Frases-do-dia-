@@ -258,7 +258,7 @@
       otherLabel = "♫ Repetir som";
       otherEnabled = ear.status === "input";
       progressPct = ear.status === "finished" ? 100 : ear.round
-        ? ((ear.round - (ear.status === "input" || ear.status === "playing" ? 1 : 0)) / core.EAR_ROUNDS) * 100 : 0;
+        ? ((ear.round - (["ready", "input", "playing"].includes(ear.status) ? 1 : 0)) / core.EAR_ROUNDS) * 100 : 0;
     } else if (mode === "free") {
       $("instructions").textContent = "Explore livremente as sete notas, sem derrotas ou anúncios.";
       $("mode-label").textContent = "TECLADO LIVRE";
