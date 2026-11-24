@@ -356,9 +356,21 @@
       return;
     }
     if (epoch !== playbackEpoch || mode !== "ear") return;
+    if (!audioContext || audioContext.state !== "running" || document.hidden) {
+      ear.status = "ready";
+      setMessage("O áudio foi interrompido. Ouça a nota novamente.", "error");
+      render();
+      return;
+    }
     tone(ear.target, 0.62); // No treino de ouvido nunca revelamos a tecla correta.
-    await delay(540);
+    await delay(640);
     if (epoch !== playbackEpoch || mode !== "ear") return;
+    if (!audioContext || audioContext.state !== "running" || document.hidden) {
+      ear.status = "ready";
+      setMessage("O áudio foi interrompido. Ouça a nota novamente.", "error");
+      render();
+      return;
+    }
     ear.status = "input";
     setMessage("Qual nota você ouviu? Toque a resposta no teclado.");
     render();
@@ -381,9 +393,11 @@
       return;
     }
     if (ear.status !== "feedback" && ear.status !== "ready") return;
-    if (ear.status === "feedback") ear.round += 1;
-    ear.target = core.chooseEarNote(ear.last);
-    ear.last = ear.target;
+    if (ear.status === "feedback") {
+      ear.round += 1;
+      ear.target = core.chooseEarNote(ear.last);
+      ear.last = ear.target;
+    }
     void startEarQuestion();
   }
 
@@ -588,7 +602,7 @@
     if (adBusy) return;
     if (mode === "memory" && phase === "input") void startMemory();
     else if (mode === "ear" && ear.status === "input") {
-      if (await prepareAudio()) tone(ear.target, 0.62);
+      void startEarQuestion();
     } else if (mode === "compose") undoMelody();
   }
 
