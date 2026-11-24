@@ -318,6 +318,8 @@ async function run() {
     await earInterruptedPage.locator('[data-note="do"]').evaluate(button => button.click());
     assert.equal(await earInterruptedPage.locator("#losses").textContent(), lossesBefore);
     assert.match(await earInterruptedPage.locator("#message").textContent(), /interrompido/);
+    assert.equal(await earInterruptedPage.locator("#progress-track").getAttribute("aria-valuenow"), "0",
+      "Pergunta interrompida e sem resposta não deve contar como concluída");
     await earInterruptedPage.evaluate(() => { window.__earInterrupted = false; });
     await earInterruptedPage.locator("#play-button").click();
     await waitMessage(earInterruptedPage, "Qual nota você ouviu");
