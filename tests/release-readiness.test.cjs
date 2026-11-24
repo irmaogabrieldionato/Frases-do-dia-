@@ -178,3 +178,15 @@ test("verificador valida identidade e tipo do arquivo após abrir o descritor",(
  assert.match(verifier,/opened\.ino !== stat\.ino/);
  assert.match(verifier,/finally \{\s*fs\.closeSync\(fd\)/);
 });
+
+test("treino de ouvido bloqueia resposta se áudio interrompido e repete a mesma nota",()=>{
+ const app=content("app.js");
+ const question=app.split("async function startEarQuestion()")[1].split("function newEarSession()")[0];
+ assert.equal((question.match(/audioContext.state !== "running"/g)||[]).length,2);
+ assert.equal((question.match(/O áudio foi interrompido/g)||[]).length,2);
+ assert.match(question,/await delay\(640\);[\s\S]*?audioContext.state !== "running"[\s\S]*?ear.status = "input"/);
+ const next=app.split("function nextEar()")[1].split("function answerEar")[0];
+ assert.match(next,/if \(ear.status === "feedback"\) \{\s*ear.round \+= 1;\s*ear.target = core.chooseEarNote\(ear.last\);\s*ear.last = ear.target;\s*\}/);
+ const secondary=app.split("async function secondaryAction()")[1].split('$("play-button")')[0];
+ assert.match(secondary,/void startEarQuestion\(\)/);
+});
