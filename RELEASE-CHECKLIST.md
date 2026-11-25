@@ -337,3 +337,9 @@ Ainda não foram feitas publicações em loja. Nenhuma credencial de assinatura 
 - Reconsultados os três documentos obrigatórios e os oito jobs conhecidos das execuções 45416329113 e 45416312289, todos success. Não foi possível listar execuções por push mais recentes com o conector disponível.
 - Corrigido o verificador Android/TV para validar identidade e tamanho do descritor do manifesto após abertura, impedir links simbólicos quando suportado e limitar leitura a 513 bytes, rejeitando crescimento acima de 512 bytes. Commit `610517df`.
 - Adicionado teste dinâmico de crescimento do manifesto durante abertura, commit `599a2625`. CI novo ainda não confirmado; nenhum teste local ou download independente de binários realizado. Permanecem pendentes reprodução integral das mil notas, testes físicos, assinatura e publicação.
+
+## Evolução de 25/11/2026 — desbloqueio do CI
+
+- Execução 45492862931: Chromium e WebKit aprovados; regras/PWA falharam (43/44 testes aprovados), ZIP ignorado. Execução 45492845777: validação compartilhada falhou, pacotes Android/TV/iOS/Windows ignorados.
+- Log do job 138795494117 confirmou recursão no teste de crescimento do manifesto: truncateSync reabria o arquivo por openSync interceptado. Corrigido o teste usando a função original de abertura e ftruncateSync com fechamento em finally, sem enfraquecer a asserção de segurança. Commit `fff659625d3fcb8f9784f1c5157889ee6fb4141e`.
+- A aprovação da correção depende do novo CI; nenhum binário novo ou teste físico é declarado aprovado nesta rodada.
