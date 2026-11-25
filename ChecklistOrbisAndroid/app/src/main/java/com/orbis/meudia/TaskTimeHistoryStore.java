@@ -60,6 +60,21 @@ public final class TaskTimeHistoryStore {
         return save(merged);
     }
 
+    /** Exact replacement adapter for journal recovery, not a merge operation.
+     * The restore coordinator must serialize access to both stores.
+     */
+    DualStoreRestore.Store recoveryStore() {
+        return new DualStoreRestore.Store() {
+            @Override public String snapshot() {
+                return exportSnapshot();
+            }
+
+            @Override public boolean write(String value) {
+                return save(TaskTimeHistoryCodec.decode(value));
+            }
+        };
+    }
+
     /** Read-only export for a future user-controlled backup flow. */
     public synchronized String exportSnapshot() {
         return TaskTimeHistoryCodec.encode(load());
