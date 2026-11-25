@@ -1379,3 +1379,10 @@ Cada melhoria exige código, compilação GitHub Actions aprovada, checagem de r
 - CI anterior confirmado: [45419405196](https://github.com/irmaogabrieldionato/Frases-do-dia-/actions/runs/45419405196), SHA 7e9940a, completed/success.
 - [ead2291](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/ead229117e6b487265bddb5f39f6c9bc8e5556db) conecta o journal ao coordenador DualStoreRestore: prepara snapshots antes da escrita, limpa após sucesso ou compensação bem-sucedida e retém em exceções. Exige acesso serializado e recuperação antes de uso normal. Ainda não conectado à MainActivity ou ao backup real; testes de interrupção e CI do novo SHA pendentes. Sem APK novo validado ou assinatura definitiva.
 - Próximo: testar recuperação Android, adaptar snapshots dos armazenamentos reais e integrar inicialização e backup legado. Sem alteração na main, serviços externos ou Google Agenda.
+
+
+## Atualização — 25/11/2026 — adaptador real de histórico e recuperação independente
+- Consultados os dois documentos obrigatórios. Microsoft To Do permanece em foco; 5/24 incrementos e 0/15 concorrentes concluídos.
+- [5ad3a7f](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/5ad3a7f3345127ee76d7e8228d0fa445e2aa1bf8) adiciona adaptador de snapshot exato ao TaskTimeHistoryStore, com validação pelo codec e commit síncrono; não confundir recuperação com mesclagem de importação.
+- [b47cb26](https://github.com/irmaogabrieldionato/Frases-do-dia-/commit/b47cb261627aea0a85ac298ec6b108b8dad145f7) tenta recuperar ambos os armazenamentos mesmo se o primeiro falhar, retendo journal até sucesso de ambos.
+- Consulta de workflows por SHA retornou lista vazia (consulta limitada a pull requests); CI e testes não confirmados. Sem novo APK validado. MainActivity ainda usa backup v1; falta adaptador de tarefas, integração de inicialização, testes de interrupção e compatibilidade. Assinatura definitiva depende de keystore/secrets privados. Sem alteração em main ou integração externa.
