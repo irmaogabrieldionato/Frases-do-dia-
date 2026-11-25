@@ -90,8 +90,23 @@ final class RestoreRecoveryJournal {
         } catch (JSONException e) {
             throw new IOException("Invalid recovery journal", e);
         }
-        if (!history.write(oldHistory) || !tasks.write(oldTasks))
-            throw new IOException("Recovery incomplete; journal retained");
+        // Attempt both stores even if the first rejects or throws. Retain the
+        // journal until both snapshots are durable so startup can retry.
+        IOException failure = null;
+        try {
+            if (!history.write(oldHistory))
+                throw new IllegalStateException("History recovery rejected");
+        } catch (RuntimeException e) {
+            failure = new IOException("History recovery incomplete", e);
+        }
+        try {
+            if (!tasks.write(oldTasks))
+                throw new IllegalStateException("Task recovery rejected");
+        } catch (RuntimeException e) {
+            if (failure == null) failure = new IOException("Task recovery incomplete", e);
+            else failure.addSuppressed(e);
+        }
+        if (failure != null) throw failure;
         clear();
         return true;
     }
