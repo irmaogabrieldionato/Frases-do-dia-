@@ -201,7 +201,10 @@ test("manifesto SHA256 rejeita crescimento após abertura",()=>{
    fs.writeFileSync(manifest,"x");
    fs.openSync=function(file,...args){
      const fd=original.call(fs,file,...args);
-     if(file===manifest) fs.truncateSync(manifest,513);
+     if(file===manifest) {
+       const writer=original.call(fs,manifest,"r+");
+       try {fs.ftruncateSync(writer,513);} finally {fs.closeSync(writer);}
+     }
      return fd;
    };
    assert.throws(()=>verify(dir),/Manifesto SHA256/);
