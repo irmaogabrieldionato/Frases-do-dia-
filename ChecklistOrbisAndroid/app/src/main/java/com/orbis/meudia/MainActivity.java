@@ -304,6 +304,18 @@ public class MainActivity extends Activity {
                 View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
         preferences = getSharedPreferences("meu-dia-dados-v1", MODE_PRIVATE);
         selectedLanguage = preferences.getString("app-language", null);
+        try {
+            String previous = preferences.getString("tasks", null);
+            if (restoreJournal().recover(taskRecoveryStore(), new TaskTimeHistoryStore(this).recoveryStore())) {
+                String recovered = preferences.getString("tasks", null);
+                tasks = recovered == null ? new JSONArray() : new JSONArray(recovered);
+                syncOneTimeReminders(previous, true);
+            }
+        } catch (Exception failure) {
+            android.util.Log.e("ChecklistOrbis", "Startup recovery failed", failure);
+            blockAfterRestoreFailure();
+            return;
+        }
         restoreFilterState();
         if (Languages.index(selectedLanguage) < 0) {
             showLanguagePicker(true);
@@ -507,10 +519,56 @@ public class MainActivity extends Activity {
         startActivityForResult(intent,IMPORT_REQUEST);
     }
 
+    private RestoreRecoveryJournal restoreJournal() {
+        return new RestoreRecoveryJournal(new java.io.File(getNoBackupFilesDir(), "restore-journal.json"));
+    }
+
+    // Preserve the exact local task JSON (including device-local attachment references)
+    // and the presence/absence of both preference keys for rollback.
+    private DualStoreRestore.Store taskRecoveryStore() {
+        return new DualStoreRestore.Store() {
+            @Override public String snapshot() {
+                try {
+                    return taskSnapshot(preferences.getString("day", null),
+                            preferences.getString("tasks", null));
+                } catch (JSONException e) { throw new IllegalStateException(e); }
+            }
+
+            @Override public boolean write(String value) {
+                try {
+                    JSONObject snapshot = new JSONObject(value);
+                    Object raw = snapshot.get("tasks");
+                    Object date = snapshot.get("day");
+                    if (raw != JSONObject.NULL && !(raw instanceof String)) return false;
+                    if (date != JSONObject.NULL && !(date instanceof String)) return false;
+                    if (raw != JSONObject.NULL) new JSONArray((String) raw);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    if (raw == JSONObject.NULL) editor.remove("tasks");
+                    else editor.putString("tasks", (String) raw);
+                    if (date == JSONObject.NULL) editor.remove("day");
+                    else editor.putString("day", (String) date);
+                    return editor.commit();
+                } catch (JSONException e) { return false; }
+            }
+        };
+    }
+
+    private static String taskSnapshot(String date, String raw) throws JSONException {
+        return new JSONObject().put("day", date == null ? JSONObject.NULL : date)
+                .put("tasks", raw == null ? JSONObject.NULL : raw).toString();
+    }
+
+    private void blockAfterRestoreFailure() {
+        new AlertDialog.Builder(this).setMessage(tr("backup_error"))
+                .setCancelable(false)
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> finish()).show();
+    }
+
     private String backupJson() throws JSONException {
         JSONObject root=new JSONObject();
         root.put("format","checklist-orbis-backup");
-        root.put("version",1);
+        root.put("version",2);
+        root.put("timeHistory",new TaskTimeHistoryStore(this).exportBackupSection());
         root.put("exportedAt",System.currentTimeMillis());
         root.put("tasks",TaskAttachments.portableTasks(tasks));
         return root.toString(2);
@@ -539,7 +597,7 @@ public class MainActivity extends Activity {
         JSONObject root=new JSONObject(raw);
         if(!"checklist-orbis-backup".equals(root.optString("format"))
                 ||!(root.opt("version") instanceof Integer)
-                ||((Integer)root.opt("version"))!=1)throw new JSONException("Invalid format/version");
+                ||(((Integer)root.opt("version"))!=1 && ((Integer)root.opt("version"))!=2))throw new JSONException("Invalid format/version");
         JSONArray incoming=root.getJSONArray("tasks");
         if(incoming.length()>10000)throw new JSONException("Too many tasks");
         for(int i=0;i<incoming.length();i++){
@@ -581,7 +639,9 @@ public class MainActivity extends Activity {
         if(request==EXPORT_REQUEST){
             try(OutputStream output=getContentResolver().openOutputStream(uri)){
                 if(output==null)throw new java.io.IOException("No output stream");
-                output.write(backupJson().getBytes(StandardCharsets.UTF_8));
+                byte[] encoded = backupJson().getBytes(StandardCharsets.UTF_8);
+                if (encoded.length > MAX_BACKUP_BYTES) throw new java.io.IOException("Backup too large");
+                output.write(encoded);
                 output.flush();
                 android.widget.Toast.makeText(this,tr("backup_saved"),
                         android.widget.Toast.LENGTH_LONG).show();
@@ -598,8 +658,14 @@ public class MainActivity extends Activity {
                 }
                 // Backup v1 never carries media bytes or portable URI grants. Strip any
                 // injected device-local attachment references before persisting imports.
-                JSONArray restored=TaskAttachments.portableTasks(
-                        validateBackup(bytes.toString("UTF-8")));
+                String rawBackup = bytes.toString("UTF-8");
+                JSONArray restored=TaskAttachments.portableTasks(validateBackup(rawBackup));
+                JSONObject envelope = new JSONObject(rawBackup);
+                String section = envelope.getInt("version") == 2
+                        ? envelope.getString("timeHistory") : null;
+                // Validate before asking for confirmation; re-merge at commit time.
+                if (section != null) TaskTimeBackupSection.prepareRestore(
+                        new TaskTimeHistoryStore(this).load(), section);
                 new AlertDialog.Builder(this)
                     .setTitle(tr("restore_backup"))
                     .setMessage(tr("restore_confirm"))
@@ -608,21 +674,22 @@ public class MainActivity extends Activity {
                         // Commit the replacement before changing memory or local alarms.
                         // A failed disk write must not report a successful restoration.
                         String previousJson=preferences.getString("tasks",null);
-                        boolean persisted=BackupRestoreCommit.restore(
-                                (restoreDay,restoreJson)->preferences.edit()
-                                        .putString("day",restoreDay)
-                                        .putString("tasks",restoreJson)
-                                        .commit(),
-                                today(),restored.toString(),
-                                ()->{
-                                    tasks=restored;
-                                    // Rebuild reminders only after the restored tasks are durable.
-                                    syncOneTimeReminders(previousJson,true);
-                                    loadTasks();
-                                    render();
-                                });
-                        if(!persisted){
-                            showBackupError();
+                        try {
+                            TaskTimeHistoryStore history = new TaskTimeHistoryStore(this);
+                            String nextHistory = section == null ? history.exportSnapshot()
+                                    : TaskTimeHistoryCodec.encode(TaskTimeBackupSection.prepareRestore(
+                                            history.load(), section));
+                            boolean persisted = restoreJournal().restore(taskRecoveryStore(),
+                                    taskSnapshot(today(), restored.toString()),
+                                    history.recoveryStore(), nextHistory);
+                            if (!persisted) { showBackupError(); return; }
+                            tasks = restored;
+                            syncOneTimeReminders(previousJson, true);
+                            loadTasks();
+                            render();
+                        } catch (Exception failure) {
+                            android.util.Log.e("ChecklistOrbis", "Restore failed", failure);
+                            blockAfterRestoreFailure();
                             return;
                         }
                         android.widget.Toast.makeText(this,tr("backup_restored"),
