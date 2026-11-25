@@ -60,6 +60,22 @@ final class RestoreRecoveryJournal {
             throw new IOException("Recovery journal verification failed");
     }
 
+    /** Caller serializes access and validates both replacement snapshots first.
+     * A pending journal is retained on any exception, including failed rollback.
+     * Startup must recover before normal store access.
+     */
+    boolean restore(DualStoreRestore.Store tasks, String newTasks,
+                    DualStoreRestore.Store history, String newHistory) throws IOException {
+        if (tasks == null || history == null || tasks == history
+                || newTasks == null || newHistory == null)
+            throw new IllegalArgumentException("Missing restore argument");
+        prepare(tasks.snapshot(), history.snapshot());
+        boolean restored = DualStoreRestore.restore(tasks, newTasks, history, newHistory);
+        // False means compensating rollback succeeded. Exceptions retain the journal.
+        clear();
+        return restored;
+    }
+
     boolean recover(DualStoreRestore.Store tasks, DualStoreRestore.Store history) throws IOException {
         if (!hasCommittedSnapshot()) {
             discardUncommittedPreparation();
